@@ -1,0 +1,18 @@
+query = "select sum(extended_cost) as total_cost from `shoppingCarts` limit 1;"
+
+query = '''select sum(extended_cost) as total_cost from `transactions` 
+            where STR_TO_MILLIS(SUBSTR(purchase_date, 0, LENGTH(purchase_date)-3)) between STR_TO_MILLIS('{}') 
+            and STR_TO_MILLIS('{}');'''.format(startDate, endDate)
+
+query = '''SELECT sku, sale_price, name_title, sum(items.qty) as ordered 
+            FROM `transactions` txn 
+            UNNEST txn.item_list AS items  
+            where STR_TO_MILLIS(SUBSTR(txn.purchase_date, 0, LENGTH(txn.purchase_date)-3)) between STR_TO_MILLIS('{}') and STR_TO_MILLIS('{}')
+            group by items.sku, items.name_title, items.sale_price;'''.format(startDate, endDate)
+
+query = '''SELECT name_title, price, id, sum(items.qty) as ordered 
+            FROM `shoppingCarts` carts 
+            UNNEST carts.item_list AS items  
+            group by items.sku, items.id, items.price, items.name_title
+            order by sum(items.qty) desc
+            limit 50;'''

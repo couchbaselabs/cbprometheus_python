@@ -1,0 +1,5 @@
+CREATE DATASET users on `main` where jsonType="user";
+CREATE DATASET shoppingCarts on `main` where jsonType="shoppingCart";
+CREATE DATASET transactions on `main` where jsonType="Transaction";
+
+CONNECT LINK `Local`;

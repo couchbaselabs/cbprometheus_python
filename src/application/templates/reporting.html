@@ -1,0 +1,113 @@
+{% extends "base_admin.html" %}
+{% block content %}
+<div>
+    <fieldset>
+        <div style="display: flex; text-align: center;">
+            <div>
+                <label>
+                    <span class="" id="txtTotal_lbl">Street 1: </span><br>
+                    <input type="text" id="txnStreet1_txt" name="txnStreet1_txt" onkeypress="updateTable()"/>
+                </label>
+            </div>
+            <div>
+                <label>
+                    <span class="" id="txtTotal_lbl">Street 2: </span><br>
+                    <input type="text" id="txnStreet2_txt" name="txnStreet2_txt" onkeypress="updateTable()"/>
+                </label>
+            </div>
+            <div>
+                <label>
+                    <span class="" id="txtTotal_lbl">City: </span><br>
+                    <input type="text" id="txnCity_txt" name="txnCity_txt" onkeypress="updateTable()"/>
+                </label>
+            </div>
+            <div>
+                <label>
+                    <span class="" id="txtTotal_lbl">State: </span><br>
+                    <input type="text" id="txnState_txt" name="txnState_txt" onkeypress="updateTable()"/>
+                </label>
+            </div>
+            <div>
+                <label>
+                    <span class="" id="txtTotal_lbl">Zipcode: </span><br>
+                    <input type="text" id="txnZipcode_txt" name="txnZipcode_txt" onkeypress="updateTable()"/>
+                </label>
+            </div>
+        </div>
+        <input type="button" id="queryUsers_btn" name="queryUsers_btn" value="Query" onclick="updateTable()" />
+    </fieldset>
+</div>
+<div>
+    <table width="100%" id="userTable" class="display">
+        <thead>
+            <tr>
+                <th>Fist Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Address</th>
+            </tr>
+        </thead>
+        <tfoot class="">
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        </tfoot>
+    </table>
+</div>
+
+<SCRIPT>
+    jQuery(document).ready(function () {
+        var userTable = $('#userTable').DataTable({
+            "processing": false,
+            "destroy": true,
+            "retreive": true,
+            "AjaxDataProp": "",
+            "serverSide": false,
+            "paging": true,
+            "pageLength": 15,
+            "iDisplayLength": 15,
+            "lengthChange": false,
+            "searching": false,
+            "stateSave": false,
+            "ordering": true,
+            "info": false,
+            "autoWidth": true,
+            "scrollY": "25%",
+            "scrollCollapse": true,
+            "order": [[0, "asc"]],
+            "ajax": {
+                "type": "POST",
+                "url": "getUserList",
+                "dataType": "json",
+                "data": function(d){
+                    d.street1 = $("#txnStreet1_txt").val()
+                    d.street2 = $("#txnStreet2_txt").val()
+                    d.city = $("#txnCity_txt").val()
+                    d.state = $("#txnState_txt").val()
+                    d.zipcode = $("#txnZipcode_txt").val()}
+            },
+            "columns": [
+                {"data": "first_name"},
+                {"data": "last_name"},
+                {"data": "email"},
+                {"data": "address"}
+            ],
+            "columnDefs": [
+                {"className": "dt-center", "targets": "_all"},
+                {"targets": 0},
+                {"targets": 1},
+                {"targets": 2},
+                {"targets": 3}
+            ]
+        });
+
+        updateTable = function () {
+            userTable.ajax.reload(function () {
+                userTable.draw()
+            });
+        };
+    })
+            ;
+</SCRIPT>
+{% endblock %}
