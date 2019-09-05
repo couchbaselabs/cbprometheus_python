@@ -7,7 +7,7 @@ class BaseConfig(object):
     WTF_CSRF_ENABLED = True
     SECRET_KEY = 'you will never guess'
     LOGGING_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    LOGGING_LOCATION = '/opt/cbdemo/logs/messaging.log'
+    LOGGING_LOCATION = '../logs/messaging.log'
     LOGGING_LEVEL = logging.INFO
 
 config = {

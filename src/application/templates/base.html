@@ -1,50 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        {% if title %}
-        <title>{{ title }}</title>
-        {% else %}
-        <title>Querc.org - Test</title>
-        {% endif %}
-        <link rel="stylesheet" href="{{ css }}?v={5}" />
-        <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-        <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
-        <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
-        <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+<head>
+    {% if title %}
+    <title>{{ title }}</title>
+    {% else %}
+    <title>Couchbase Metrics</title>
+    {% endif %}
 
-        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css" />
-        <script type=text/javascript>
-        $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};        </script>
-        <link rel="icon" href="{{ icon }}" />
+</head>
+<body onload="">
 
-    </head>
-    <body onload="">
-        <div>
-            <h1 style="padding: 5px;"><left></left><right> <img src = "{{ icon }}" style="height: 5%; width: 2%;" alt="Querc.org Online Ordering">{{ title }}
-                    </div>
-                    <div>
-                        <ul>
-                            <li><a href="/">Home</a></li>
-                            <li><a href="/catalog">Catalog</a></li>
-                            <li><a href="/cart">Shopping Cart</a></li>
-                            <li><a href="/login">Login</a></li>
-                            <li><a href="/admin">Admin</a></li>
-                            <li><a href="/logout">Logout</a></li>
-                        </ul>
-                    </div><br />
-                    <hr>
-                    <br /><br />
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<ul>
+    {% for message in messages %}
+    <li>{{message}}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+{% block content %}{% endblock %}
 
-                    {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                    <ul>
-                        {% for message in messages %}
-                        <li>{{message}}</li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                    {% endwith %}
-                    {% block content %}{% endblock %}
-
-                    </body>
-                    </html>
+</body>
+</html>
