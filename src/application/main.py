@@ -372,24 +372,36 @@ def _get_bucket_metrics(url, user, passwrd):
 
             # bucket[''] gives info about bucket config
             # b_json[''] gives info about specific bucket stats
-            
+
         return metrics
     except Exception as e:
         pass
         return []
 
 
+def _get_view_metrics(url, user, passwrd):
+    metrics = []
+    return metrics
+
 def _get_index_metrics(url, user, passwrd):
-    pass
+    metrics = []
+    return metrics
 
 def _get_query_metrics(url, user, passwrd):
-    pass
+    metrics = []
+    return metrics
 
 def _get_analytics_metrics(url, user, passwrd):
-    pass
+    metrics = []
+    return metrics
 
 def _get_eventing_metrics(url, user, passwrd):
-    pass
+    metrics = []
+    return metrics
+
+def _get_fts_metrics(url, user, passwrd):
+    metrics = []
+    return metrics
 
 def get_metrics():
     url = "10.112.191.101"
@@ -401,6 +413,27 @@ def get_metrics():
 
     node_metrics = _get_base_metrics(url, user, passwrd, clusterValues['nodeList'])
     metrics = metrics + node_metrics
+
+    bucket_metrics = _get_bucket_metrics(url, user, passwrd)
+    metrics = metrics + bucket_metrics
+
+    view_metrics = _get_view_metrics(url, user, passwrd)
+    metrics = metrics + view_metrics
+
+    index_metrics = _get_index_metrics(url, user, passwrd)
+    metrics = metrics + index_metrics
+
+    query_metrics = _get_query_metrics(url, user, passwrd)
+    metrics = metrics + query_metrics
+
+    analytics_metrics = _get_analytics_metrics(url, user, passwrd)
+    metrics = metrics + analytics_metrics
+
+    eventing_metrics = _get_eventing_metrics(url, user, passwrd)
+    metrics = metrics + eventing_metrics
+
+    fts_metrics = _get_fts_metrics(url, user, passwrd)
+    metrics = metrics + fts_metrics
 
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
