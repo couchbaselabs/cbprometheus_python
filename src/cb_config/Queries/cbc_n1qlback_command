@@ -1,1 +1,0 @@
-cbc-n1qlback -U couchbase://127.0.0.1/main -u Administrator -P password123 -e log.log -t 5 -T -f n1ql

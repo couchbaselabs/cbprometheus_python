@@ -1,6 +1,0 @@
-CREATE PRIMARY INDEX on `main`;
-CREATE INDEX `ixd_main_products_001` ON `main`(`jsonType`) WHERE (`jsonType` = "product")
-CREATE INDEX `idx_main_users_001` ON `main`(`jsonType`,`email`,`pw`, billing_address, (distinct (array (address) for address in shipping_address end))) WHERE (`jsonType` = "user");
-CREATE INDEX `idx_main_transactions_001` ON `main`(`jsonType`,`uniqueID`) WHERE (`jsonType` = "Transaction")
-CREATE INDEX `ixd_main_carts_001` ON `main`(`jsonType`) WHERE (`jsonType` = "shoppingCart")
-
