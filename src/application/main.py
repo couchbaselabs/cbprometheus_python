@@ -170,12 +170,12 @@ def _getCluster(url, user, passwrd):
 
     return(result)
 
-def _get_base_metrics(url, user, passwrd):
+def _get_base_metrics(url, user, passwrd, nodeList):
     #refactor this to return the metrics and pass the nodelist back in from the main function
     try:
         result = _getCluster(url, user, passwrd)
-        metrics = result['metrics']
-        for node in result['nodeList']:
+        metrics = []
+        for node in nodeList:
             url = node.split(":")[0]
             _url = "http://{}:8091/pools/default".format(url)
             req = urllib2.Request(_url,
@@ -331,13 +331,14 @@ def _get_base_metrics(url, user, passwrd):
                             pass
                 except Exception as e:
                     pass
-        metrics_str = "\n"
-        metrics_str = metrics_str.join(metrics)
-        print(metrics_str)
-        return(metrics_str)
+
+        return(metrics)
     except Exception as e:
         print("Curl Error:", e.args)
         return("")
+
+def _get_bucket_metrics(url, user, passwrd):
+    pass
 
 def _get_index_metrics(url, user, passwrd):
     pass
@@ -355,8 +356,18 @@ def get_metrics():
     url = "10.112.191.101"
     user = "Administrator"
     passwrd = "password1"
-    _value = _get_base_metrics(url, user, passwrd)
-    return _value
+
+    clusterValues = _getCluster(url, user, passwrd)
+    metrics = clusterValues['metrics']
+
+    node_metrics = _get_base_metrics(url, user, passwrd, clusterValues['nodeList'])
+    metrics = metrics + node_metrics
+
+    metrics_str = "\n"
+    metrics_str = metrics_str.join(metrics)
+
+    # print(metrics_str)
+    return metrics_str
 
 if __name__ == "__main__":
-    get_base_metrics()
+    get_metrics()
