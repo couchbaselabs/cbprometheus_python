@@ -338,7 +338,46 @@ def _get_base_metrics(url, user, passwrd, nodeList):
         return("")
 
 def _get_bucket_metrics(url, user, passwrd):
-    pass
+    try:
+        metrics = []
+        _url = "http://{}:8091/pools/default/buckets".format(url)
+        req = urllib2.Request(_url,
+                              headers={
+                                  "Authorization": basic_authorization(user, passwrd),
+                                  "Content-Type": "application/x-www-form-urlencoded",
+
+                                  # Some extra headers for fun
+                                  "Accept": "*/*", # curl does this
+                                  "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                              })
+
+        f = (urllib2.urlopen(req)).read()
+        f_json = json.loads(f)
+
+        for bucket in f_json:
+            bucket_url = "http://{}:8091/pools/default/buckets/{}/stats".format(url, bucket['name'])
+            print(bucket_url)
+            req = urllib2.Request(bucket_url,
+                                  headers={
+                                      "Authorization": basic_authorization(user, passwrd),
+                                      "Content-Type": "application/x-www-form-urlencoded",
+
+                                      # Some extra headers for fun
+                                      "Accept": "*/*", # curl does this
+                                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                  })
+
+            b = (urllib2.urlopen(req)).read()
+            b_json = json.loads(b)
+
+            # bucket[''] gives info about bucket config
+            # b_json[''] gives info about specific bucket stats
+            
+        return metrics
+    except Exception as e:
+        pass
+        return []
+
 
 def _get_index_metrics(url, user, passwrd):
     pass
@@ -370,4 +409,8 @@ def get_metrics():
     return metrics_str
 
 if __name__ == "__main__":
-    get_metrics()
+    url = "10.112.191.101"
+    user = "Administrator"
+    passwrd = "password1"
+
+    _get_bucket_metrics(url, user, passwrd)
