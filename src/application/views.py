@@ -11,5 +11,5 @@ import main
 @application.route('/metrics', methods=['GET', 'POST'])
 @application.route('/', methods=['GET', 'POST'])
 def index():
-    _value = main.get_base_metrics()
+    _value = main.get_metrics()
     return Response(_value, mimetype='text/plain')

@@ -171,8 +171,8 @@ def _getCluster(url, user, passwrd):
     return(result)
 
 def _get_base_metrics(url, user, passwrd):
+    #refactor this to return the metrics and pass the nodelist back in from the main function
     try:
-
         result = _getCluster(url, user, passwrd)
         metrics = result['metrics']
         for node in result['nodeList']:
@@ -339,8 +339,19 @@ def _get_base_metrics(url, user, passwrd):
         print("Curl Error:", e.args)
         return("")
 
+def _get_index_metrics(url, user, passwrd):
+    pass
 
-def get_base_metrics():
+def _get_query_metrics(url, user, passwrd):
+    pass
+
+def _get_analytics_metrics(url, user, passwrd):
+    pass
+
+def _get_eventing_metrics(url, user, passwrd):
+    pass
+
+def get_metrics():
     url = "10.112.191.101"
     user = "Administrator"
     passwrd = "password1"
