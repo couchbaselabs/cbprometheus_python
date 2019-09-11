@@ -405,7 +405,7 @@ def _get_bucket_metrics(url, user, passwrd):
         print(e)
         return []
 
-
+#Probably dont need to do this as it doesnt really get us anything useful
 def _get_view_metrics(url, user, passwrd, bucketList):
     viewInfo = {}
     viewInfo['definitions'] = []
@@ -487,8 +487,8 @@ def get_metrics():
     bucket_metrics = _get_bucket_metrics(url, user, passwrd)
     metrics = metrics + bucket_metrics['metrics']
 
-    view_metrics = _get_view_metrics(url, user, passwrd, bucket_metrics['buckets'])
-    metrics = metrics + view_metrics
+    # view_metrics = _get_view_metrics(url, user, passwrd, bucket_metrics['buckets'])
+    # metrics = metrics + view_metrics
 
     index_metrics = _get_index_metrics(url, user, passwrd)
     metrics = metrics + index_metrics
