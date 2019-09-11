@@ -338,8 +338,10 @@ def _get_base_metrics(url, user, passwrd, nodeList):
         return("")
 
 def _get_bucket_metrics(url, user, passwrd):
+    bucket_info = {}
+    bucket_info['buckets'] = []
+    bucket_info['metrics'] = []
     try:
-        metrics = []
         _url = "http://{}:8091/pools/default/buckets".format(url)
         req = urllib2.Request(_url,
                               headers={
@@ -355,8 +357,9 @@ def _get_bucket_metrics(url, user, passwrd):
         f_json = json.loads(f)
 
         for bucket in f_json:
-            bucket_url = "http://{}:8091/pools/default/buckets/{}/stats".format(url, bucket['name'])
-            print(bucket_url)
+            bucket_info['buckets'].append(bucket['name'])
+            bucket_url = "http://{}:8091/pools/default/buckets/{}/stats?zoom=minute".format(url, bucket['name'])
+            # print(bucket_url)
             req = urllib2.Request(bucket_url,
                                   headers={
                                       "Authorization": basic_authorization(user, passwrd),
@@ -369,17 +372,84 @@ def _get_bucket_metrics(url, user, passwrd):
 
             b = (urllib2.urlopen(req)).read()
             b_json = json.loads(b)
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("mem_used", bucket['name'], sum(b_json['op']['samples']['mem_used']) / len(b_json['op']['samples']['mem_used'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_kv_size", bucket['name'], sum(b_json['op']['samples']['ep_kv_size']) / len(b_json['op']['samples']['ep_kv_size'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_mem_high_wat", bucket['name'], sum(b_json['op']['samples']['ep_mem_high_wat']) / len(b_json['op']['samples']['ep_mem_high_wat'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("mem_total", bucket['name'], sum(b_json['op']['samples']['mem_total']) / len(b_json['op']['samples']['mem_total'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_meta_data_memory", bucket['name'], sum(b_json['op']['samples']['ep_meta_data_memory']) / len(b_json['op']['samples']['ep_meta_data_memory'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_queue_size", bucket['name'], sum(b_json['op']['samples']['ep_queue_size']) / len(b_json['op']['samples']['ep_queue_size'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_flusher_todo", bucket['name'], sum(b_json['op']['samples']['ep_flusher_todo']) / len(b_json['op']['samples']['ep_flusher_todo'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("vb_avg_total_queue_age", bucket['name'], sum(b_json['op']['samples']['vb_avg_total_queue_age']) / len(b_json['op']['samples']['vb_avg_total_queue_age'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_replica_items_remaining", bucket['name'], sum(b_json['op']['samples']['ep_dcp_replica_items_remaining']) / len(b_json['op']['samples']['ep_dcp_replica_items_remaining'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ops", bucket['name'], sum(b_json['op']['samples']['ops']) / len(b_json['op']['samples']['ops'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("cmd_get", bucket['name'], sum(b_json['op']['samples']['cmd_get']) / len(b_json['op']['samples']['cmd_get'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("cmd_set", bucket['name'], sum(b_json['op']['samples']['cmd_set']) / len(b_json['op']['samples']['cmd_set'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("delete_hits", bucket['name'], sum(b_json['op']['samples']['delete_hits']) / len(b_json['op']['samples']['delete_hits'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_bg_fetched", bucket['name'], sum(b_json['op']['samples']['ep_bg_fetched']) / len(b_json['op']['samples']['ep_bg_fetched'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("curr_connections", bucket['name'], sum(b_json['op']['samples']['curr_connections']) / len(b_json['op']['samples']['curr_connections'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("curr_items", bucket['name'], sum(b_json['op']['samples']['curr_items']) / len(b_json['op']['samples']['curr_items'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("vb_active_resident_items_ratio", bucket['name'], sum(b_json['op']['samples']['vb_active_resident_items_ratio']) / len(b_json['op']['samples']['vb_active_resident_items_ratio'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("vb_replica_resident_items_ratio", bucket['name'], sum(b_json['op']['samples']['vb_replica_resident_items_ratio']) / len(b_json['op']['samples']['vb_replica_resident_items_ratio'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_tmp_oom_errors", bucket['name'], sum(b_json['op']['samples']['ep_tmp_oom_errors']) / len(b_json['op']['samples']['ep_tmp_oom_errors'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_views_items_remaining", bucket['name'], sum(b_json['op']['samples']['ep_dcp_views_items_remaining']) / len(b_json['op']['samples']['ep_dcp_views_items_remaining'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_2i_items_remaining", bucket['name'], sum(b_json['op']['samples']['ep_queue_size']) / len(b_json['op']['samples']['ep_queue_size'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_replica_backoff", bucket['name'], sum(b_json['op']['samples']['ep_dcp_replica_backoff']) / len(b_json['op']['samples']['ep_dcp_replica_backoff'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_xdcr_backoff", bucket['name'], sum(b_json['op']['samples']['ep_dcp_xdcr_backoff']) / len(b_json['op']['samples']['ep_dcp_xdcr_backoff'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("couch_docs_fragmentation", bucket['name'], sum(b_json['op']['samples']['couch_docs_fragmentation']) / len(b_json['op']['samples']['couch_docs_fragmentation'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("couch_views_fragmentation", bucket['name'], sum(b_json['op']['samples']['couch_views_fragmentation']) / len(b_json['op']['samples']['couch_views_fragmentation'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("vb_replica_num", bucket['name'], sum(b_json['op']['samples']['vb_replica_num']) / len(b_json['op']['samples']['vb_replica_num'])))
+            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("vb_active_num", bucket['name'], sum(b_json['op']['samples']['vb_active_num']) / len(b_json['op']['samples']['vb_active_num'])))
 
-            # bucket[''] gives info about bucket config
-            # b_json[''] gives info about specific bucket stats
-
-        return metrics
+        return bucket_info
     except Exception as e:
-        pass
+        print(e)
         return []
 
 
-def _get_view_metrics(url, user, passwrd):
+def _get_view_metrics(url, user, passwrd, bucketList):
+    viewInfo = {}
+    viewInfo['definitions'] = []
+    for bucket in bucketList:
+        viewInfo[bucket] = []
+        view_url = "http://{}:8091/pools/default/buckets/{}/ddocs".format(url, bucket)
+        req = urllib2.Request(view_url,
+              headers={
+                  "Authorization": basic_authorization(user, passwrd),
+                  "Content-Type": "application/x-www-form-urlencoded",
+
+                  # Some extra headers for fun
+                  "Accept": "*/*", # curl does this
+              })
+        try:
+            v = (urllib2.urlopen(req)).read()
+            v_json = json.loads(v)
+            for ddoc in v_json['rows']:
+                id = ddoc['doc']['meta']['id']
+                try:
+                    for _doc in ddoc['doc']['json']['spatial']:
+                        definition = {}
+                        definition['id'] = id
+                        definition['bucket'] = bucket
+                        definition['name'] = _doc
+                        definition['type'] = "spatial"
+                        viewInfo['definitions'].append(definition)
+                except Exception as e:
+                    for _doc in ddoc['doc']['json']['views']:
+                        definition = {}
+                        definition['id'] = id
+                        definition['bucket'] = bucket
+                        definition['name'] = _doc
+                        definition['type'] = "views"
+                        viewInfo['definitions'].append(definition)
+        except Exception as e:
+            pass
+
+    for definition in viewInfo['definitions']:
+        if definition['type'] == "spatial":
+            viewUrl = "http://{}:8092/{}/{}/_spatial/{}".format(url, bucket, definition['id'], definition['name'])
+        elif definition['type'] == "views":
+            viewUrl = "http://{}:8092/{}/{}/_views/{}".format(url, bucket, definition['id'], definition['name'])
+        print(viewUrl)
     metrics = []
     return metrics
 
@@ -415,9 +485,9 @@ def get_metrics():
     metrics = metrics + node_metrics
 
     bucket_metrics = _get_bucket_metrics(url, user, passwrd)
-    metrics = metrics + bucket_metrics
+    metrics = metrics + bucket_metrics['metrics']
 
-    view_metrics = _get_view_metrics(url, user, passwrd)
+    view_metrics = _get_view_metrics(url, user, passwrd, bucket_metrics['buckets'])
     metrics = metrics + view_metrics
 
     index_metrics = _get_index_metrics(url, user, passwrd)
@@ -438,7 +508,6 @@ def get_metrics():
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
 
-    # print(metrics_str)
     return metrics_str
 
 if __name__ == "__main__":
@@ -446,4 +515,6 @@ if __name__ == "__main__":
     user = "Administrator"
     passwrd = "password1"
 
-    _get_bucket_metrics(url, user, passwrd)
+    bucket_metrics = _get_bucket_metrics(url, user, passwrd)
+    print(bucket_metrics)
+    #view_metrics = _get_view_metrics(url, user, passwrd, bucket_metrics['buckets'])
