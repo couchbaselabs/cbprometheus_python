@@ -532,19 +532,23 @@ def _get_index_metrics(url, user, passwrd, nodes):
                     if len(split_record) == 3:
                         name = (split_record[1]).replace("+", "_")
                         index_type = (split_record[2]).replace("+", "_")
+                        if type(ii_json['op']['samples'][record]) == type([]):
+                            stat = sum(ii_json['op']['samples'][record]) / len(ii_json['op']['samples'][record])
+                        else:
+                            stat = ii_json['op']['samples'][record]
 
+                        index_info['metrics'].append("{} {{node = \"{}\", index=\"{}\", type=\"index_stat\"}} {}".format(index_type, node, name, stat))
                     elif len(split_record) == 2:
-                        name = split_record[1]
-                        index_type="index"
+                        index_type = split_record[1]
+                        if type(ii_json['op']['samples'][record]) == type([]):
+                            stat = sum(ii_json['op']['samples'][record]) / len(ii_json['op']['samples'][record])
+                        else:
+                            stat = ii_json['op']['samples'][record]
+                        index_info['metrics'].append("{} {{node = \"{}\", type=\"index_stat\"}} {}".format(index_type, node, stat))
                     else:
                         next
 
-                    if type(ii_json['op']['samples'][record]) == type([]):
-                        stat = sum(ii_json['op']['samples'][record]) / len(ii_json['op']['samples'][record])
-                    else:
-                        stat = ii_json['op']['samples'][record]
 
-                    index_info['metrics'].append("{} {{node = \"{}\", index=\"{}\", type=\"index_stat\"}} {}".format(index_type, node, name, stat))
                 except Exception as e:
                     print(e)
 
