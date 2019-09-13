@@ -9,7 +9,7 @@ import datetime
 import urllib2
 import json
 
-
+#optimization would be to create a dictionary of all the nodes and their services and interate only through those
 
 def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1")
@@ -635,7 +635,12 @@ def _get_eventing_metrics(url, user, passwrd, nodeList):
         #     print(result)
     return eventing_metrics
 
-def _get_fts_metrics(url, user, passwrd):
+def _get_fts_metrics(url, user, passwrd, nodeList, bucketList):
+    metrics = {}
+    metrics['metrics'] = []
+    return metrics
+
+def _get_xdcr_metrics(url, user, passwrd):
     metrics = []
     return metrics
 
@@ -668,8 +673,13 @@ def get_metrics():
     eventing_metrics = _get_eventing_metrics(url, user, passwrd, clusterValues['nodeList'])
     metrics = metrics + eventing_metrics['metrics']
 
-    fts_metrics = _get_fts_metrics(url, user, passwrd)
+    fts_metrics = _get_fts_metrics(url, user, passwrd, clusterValues['nodeList'], bucket_metrics['buckets'])
     metrics = metrics + fts_metrics
+
+    xdcr_metrics = _get_xdcr_metrics(url, user, passwrd)
+    metrics = metrics + xdcr_metrics
+
+
 
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
@@ -682,5 +692,6 @@ if __name__ == "__main__":
     passwrd = "password1"
 
     clusterValues = _getCluster(url, user, passwrd)
-    metrics = _get_eventing_metrics(url, user, passwrd, clusterValues['nodeList'])
+    bucket_metrics = _get_bucket_metrics(url, user, passwrd)
+    metrics = _get_fts_metrics(url, user, passwrd, clusterValues['nodeList'], bucket_metrics['buckets'])
     print(metrics['metrics'])
