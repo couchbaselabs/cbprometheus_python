@@ -480,8 +480,9 @@ def _get_index_metrics(url, user, passwrd, nodes):
         except Exception as e:
             pass
 
-    try:
-        for node in nodes:
+
+    for node in nodes:
+        try:
             index_info_url = "http://{}/pools/default/buckets/@index-main/stats".format(nodes[0])
             req = urllib2.Request(index_info_url,
                                   headers={
@@ -526,16 +527,17 @@ def _get_index_metrics(url, user, passwrd, nodes):
                 except Exception as e:
                     print(e)
 
-    except Exception as e:
-        print(e)
+        except Exception as e:
+            print(e)
 
     return index_info
 
 def _get_query_metrics(url, user, passwrd, nodeList):
     query_info = {}
     query_info['metrics'] = []
-    try:
-        for node in nodeList:
+
+    for node in nodeList:
+        try:
             _query_url = "http://{}/pools/default/buckets/@query/nodes/{}/stats".format(node, node)
             req = urllib2.Request(_query_url,
                                   headers={
@@ -572,17 +574,66 @@ def _get_query_metrics(url, user, passwrd, nodeList):
 
             # for metric in query_info['metrics']:
             #     print(metric)
-    except Exception as e:
-        print(e)
+        except Exception as e:
+            print(e)
     return query_info
 
 def _get_analytics_metrics(url, user, passwrd):
     metrics = []
     return metrics
 
-def _get_eventing_metrics(url, user, passwrd):
-    metrics = []
-    return metrics
+def _get_eventing_metrics(url, user, passwrd, nodeList):
+    eventing_metrics = {}
+    eventing_metrics['metrics'] = []
+
+    for node in nodeList:
+        try:
+            _event_url = "http://{}/pools/default/buckets/@eventing/nodes/{}/stats".format(node, node)
+            print(_event_url)
+            req = urllib2.Request(_event_url,
+                                  headers={
+                                      "Authorization": basic_authorization(user, passwrd),
+                                      "Content-Type": "application/x-www-form-urlencoded",
+
+                                      # Some extra headers for fun
+                                      "Accept": "*/*", # curl does this
+                                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                  })
+
+            _e = (urllib2.urlopen(req)).read()
+            _e_json = json.loads(_e)
+            for record in _e_json['op']['samples']:
+                name = ""
+                metric_type=""
+                stat = ""
+                _node = node.split(":")[0]
+                try:
+                    split_record = record.split("/")
+                    if len(split_record) == 3:
+                        name = (split_record[1]).replace("+", "_")
+                        metric_type = (split_record[2]).replace("+", "_")
+                        if type(_e_json['op']['samples'][record]) == type([]):
+                            stat = sum(_e_json['op']['samples'][record]) / len(_e_json['op']['samples'][record])
+                        else:
+                            stat = _e_json['op']['samples'][record]
+                        eventing_metrics['metrics'].append("{} {{node = \"{}\", function=\"{}\", type=\"eventing_stat\"}} {}".format(metric_type, _node, name, stat))
+                    elif len(split_record) == 2:
+                        metric_type = (split_record[1]).replace("+", "_")
+                        if type(_e_json['op']['samples'][record]) == type([]):
+                            stat = sum(_e_json['op']['samples'][record]) / len(_e_json['op']['samples'][record])
+                        else:
+                            stat = e_json['op']['samples'][record]
+                        eventing_metrics['metrics'].append("{} {{node = \"{}\", type=\"eventing\"}} {}".format(metric_type, _node, stat))
+                    else:
+                        next
+
+                except Exception as e:
+                    print(str(e) + str(record))
+        except Exception as e:
+            print(e)
+        # for result in eventing_metrics['metrics']:
+        #     print(result)
+    return eventing_metrics
 
 def _get_fts_metrics(url, user, passwrd):
     metrics = []
@@ -614,8 +665,8 @@ def get_metrics():
     analytics_metrics = _get_analytics_metrics(url, user, passwrd)
     metrics = metrics + analytics_metrics
 
-    eventing_metrics = _get_eventing_metrics(url, user, passwrd)
-    metrics = metrics + eventing_metrics
+    eventing_metrics = _get_eventing_metrics(url, user, passwrd, clusterValues['nodeList'])
+    metrics = metrics + eventing_metrics['metrics']
 
     fts_metrics = _get_fts_metrics(url, user, passwrd)
     metrics = metrics + fts_metrics
@@ -631,5 +682,5 @@ if __name__ == "__main__":
     passwrd = "password1"
 
     clusterValues = _getCluster(url, user, passwrd)
-    metrics = _get_query_metrics(url, user, passwrd, clusterValues['nodeList'])
+    metrics = _get_eventing_metrics(url, user, passwrd, clusterValues['nodeList'])
     print(metrics['metrics'])
