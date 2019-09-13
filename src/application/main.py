@@ -453,9 +453,45 @@ def _get_view_metrics(url, user, passwrd, bucketList):
     metrics = []
     return metrics
 
-def _get_index_metrics(url, user, passwrd):
-    metrics = []
-    return metrics
+def _get_index_metrics(url, user, passwrd, nodes):
+    index_info = {}
+    index_info['metrics'] = []
+    main_index_url = "http://{}:8091/pools/default/buckets/@index/stats".format(url)
+    req = urllib2.Request(main_index_url,
+                          headers={
+                              "Authorization": basic_authorization(user, passwrd),
+                              "Content-Type": "application/x-www-form-urlencoded",
+
+                              # Some extra headers for fun
+                              "Accept": "*/*", # curl does this
+                              "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                          })
+
+    i = (urllib2.urlopen(req)).read()
+    i_json = json.loads(i)
+
+    for node in nodes:
+        _index_url = " http://{}/pools/default/buckets/@index/nodes/{}/stats".format(node, node)
+        try:
+            req = urllib2.Request(_index_url,
+                  headers={
+                      "Authorization": basic_authorization(user, passwrd),
+                      "Content-Type": "application/x-www-form-urlencoded",
+
+                      # Some extra headers for fun
+                      "Accept": "*/*", # curl does this
+                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                  })
+
+            _i = (urllib2.urlopen(req)).read()
+            _i_json = json.loads(_i)
+            index_info['metrics'].append("{} {{node = \"{}\", type=\"index\"}} {}".format("index_ram_percent", node.split(":")[0], sum(_i_json['op']['samples']['index_ram_percent']) / len(_i_json['op']['samples']['index_ram_percent'])))
+            index_info['metrics'].append("{} {{node = \"{}\", type=\"index\"}} {}".format("index_memory_used", node.split(":")[0],  sum(_i_json['op']['samples']['index_memory_used']) / len(_i_json['op']['samples']['index_memory_used'])))
+            index_info['metrics'].append("{} {{node = \"{}\", type=\"index\"}} {}".format("index_memory_quota", node.split(":")[0], sum(_i_json['op']['samples']['index_memory_quota']) / len(_i_json['op']['samples']['index_memory_quota'])))
+            index_info['metrics'].append("{} {{node = \"{}\", type=\"index\"}} {}".format("index_remaining_ram", node.split(":")[0], sum(_i_json['op']['samples']['index_remaining_ram']) / len(_i_json['op']['samples']['index_remaining_ram'])))
+        except Exception as e:
+            pass
+    return index_info
 
 def _get_query_metrics(url, user, passwrd):
     metrics = []
@@ -490,8 +526,9 @@ def get_metrics():
     # view_metrics = _get_view_metrics(url, user, passwrd, bucket_metrics['buckets'])
     # metrics = metrics + view_metrics
 
-    index_metrics = _get_index_metrics(url, user, passwrd)
-    metrics = metrics + index_metrics
+    index_metrics = _get_index_metrics(url, user, passwrd, clusterValues['nodeList'])
+    metrics = metrics + index_metrics['metrics']
+    print(index_metrics['metrics'])
 
     query_metrics = _get_query_metrics(url, user, passwrd)
     metrics = metrics + query_metrics
@@ -515,6 +552,6 @@ if __name__ == "__main__":
     user = "Administrator"
     passwrd = "password1"
 
-    bucket_metrics = _get_bucket_metrics(url, user, passwrd)
-    print(bucket_metrics)
-    #view_metrics = _get_view_metrics(url, user, passwrd, bucket_metrics['buckets'])
+    clusterValues = _getCluster(url, user, passwrd)
+    index_metrics = _get_index_metrics(url, user, passwrd, clusterValues['nodeList'])
+    print(index_metrics['metrics'])
