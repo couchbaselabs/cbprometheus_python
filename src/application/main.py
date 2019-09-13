@@ -456,20 +456,8 @@ def _get_view_metrics(url, user, passwrd, bucketList):
 def _get_index_metrics(url, user, passwrd, nodes):
     index_info = {}
     index_info['metrics'] = []
-    main_index_url = "http://{}:8091/pools/default/buckets/@index/stats".format(url)
-    req = urllib2.Request(main_index_url,
-                          headers={
-                              "Authorization": basic_authorization(user, passwrd),
-                              "Content-Type": "application/x-www-form-urlencoded",
 
-                              # Some extra headers for fun
-                              "Accept": "*/*", # curl does this
-                              "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
-                          })
-
-    i = (urllib2.urlopen(req)).read()
-    i_json = json.loads(i)
-
+    # get cluster index info
     for node in nodes:
         _index_url = " http://{}/pools/default/buckets/@index/nodes/{}/stats".format(node, node)
         try:
@@ -491,6 +479,78 @@ def _get_index_metrics(url, user, passwrd, nodes):
             index_info['metrics'].append("{} {{node = \"{}\", type=\"index\"}} {}".format("index_remaining_ram", node.split(":")[0], sum(_i_json['op']['samples']['index_remaining_ram']) / len(_i_json['op']['samples']['index_remaining_ram'])))
         except Exception as e:
             pass
+
+    #get index list and associate bucket
+    # try:
+    #     index_list_url = "http://{}/indexStatus".format(nodes[0])
+    #     req = urllib2.Request(index_list_url,
+    #                           headers={
+    #                               "Authorization": basic_authorization(user, passwrd),
+    #                               "Content-Type": "application/x-www-form-urlencoded",
+    #
+    #                               # Some extra headers for fun
+    #                               "Accept": "*/*", # curl does this
+    #                               "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+    #                           })
+    #
+    #     il = (urllib2.urlopen(req)).read()
+    #     il_json = json.loads(il)
+    #     index_list = []
+    #     for index in il_json['indexes']:
+    #         index_list.append({"bucket": index['bucket'], "name":index['index']})
+    # except Exception as e:
+    #     print(e)
+    #
+    # try:
+    #     for index in index_list:
+    #         print(index)
+    # except Exception as e:
+    #     print(e)
+
+    try:
+        for node in nodes:
+            index_info_url = "http://{}/pools/default/buckets/@index-main/stats".format(nodes[0])
+            req = urllib2.Request(index_info_url,
+                                  headers={
+                                      "Authorization": basic_authorization(user, passwrd),
+                                      "Content-Type": "application/x-www-form-urlencoded",
+
+                                      # Some extra headers for fun
+                                      "Accept": "*/*", # curl does this
+                                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                  })
+
+            ii = (urllib2.urlopen(req)).read()
+            ii_json = json.loads(ii)
+            for record in ii_json['op']['samples']:
+                name = ""
+                index_type=""
+                stat = ""
+                try:
+                    split_record = record.split("/")
+
+                    if len(split_record) == 3:
+                        name = (split_record[1]).replace("+", "_")
+                        index_type = (split_record[2]).replace("+", "_")
+
+                    elif len(split_record) == 2:
+                        name = split_record[1]
+                        index_type="index"
+                    else:
+                        next
+
+                    if type(ii_json['op']['samples'][record]) == type([]):
+                        stat = sum(ii_json['op']['samples'][record]) / len(ii_json['op']['samples'][record])
+                    else:
+                        stat = ii_json['op']['samples'][record]
+
+                    index_info['metrics'].append("{} {{node = \"{}\", index=\"{}\", type=\"index_stat\"}} {}".format(index_type, node, name, stat))
+                except Exception as e:
+                    print(e)
+
+    except Exception as e:
+        print(e)
+
     return index_info
 
 def _get_query_metrics(url, user, passwrd):
