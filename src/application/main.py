@@ -480,33 +480,6 @@ def _get_index_metrics(url, user, passwrd, nodes):
         except Exception as e:
             pass
 
-    #get index list and associate bucket
-    # try:
-    #     index_list_url = "http://{}/indexStatus".format(nodes[0])
-    #     req = urllib2.Request(index_list_url,
-    #                           headers={
-    #                               "Authorization": basic_authorization(user, passwrd),
-    #                               "Content-Type": "application/x-www-form-urlencoded",
-    #
-    #                               # Some extra headers for fun
-    #                               "Accept": "*/*", # curl does this
-    #                               "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
-    #                           })
-    #
-    #     il = (urllib2.urlopen(req)).read()
-    #     il_json = json.loads(il)
-    #     index_list = []
-    #     for index in il_json['indexes']:
-    #         index_list.append({"bucket": index['bucket'], "name":index['index']})
-    # except Exception as e:
-    #     print(e)
-    #
-    # try:
-    #     for index in index_list:
-    #         print(index)
-    # except Exception as e:
-    #     print(e)
-
     try:
         for node in nodes:
             index_info_url = "http://{}/pools/default/buckets/@index-main/stats".format(nodes[0])
@@ -526,6 +499,7 @@ def _get_index_metrics(url, user, passwrd, nodes):
                 name = ""
                 index_type=""
                 stat = ""
+                _node = node.split(":")[0]
                 try:
                     split_record = record.split("/")
 
@@ -537,14 +511,14 @@ def _get_index_metrics(url, user, passwrd, nodes):
                         else:
                             stat = ii_json['op']['samples'][record]
 
-                        index_info['metrics'].append("{} {{node = \"{}\", index=\"{}\", type=\"index_stat\"}} {}".format(index_type, node, name, stat))
+                        index_info['metrics'].append("{} {{node = \"{}\", index=\"{}\", type=\"index_stat\"}} {}".format(index_type, _node, name, stat))
                     elif len(split_record) == 2:
                         index_type = split_record[1]
                         if type(ii_json['op']['samples'][record]) == type([]):
                             stat = sum(ii_json['op']['samples'][record]) / len(ii_json['op']['samples'][record])
                         else:
                             stat = ii_json['op']['samples'][record]
-                        index_info['metrics'].append("{} {{node = \"{}\", type=\"index_stat\"}} {}".format(index_type, node, stat))
+                        index_info['metrics'].append("{} {{node = \"{}\", type=\"index_stat\"}} {}".format(index_type, _node, stat))
                     else:
                         next
 
@@ -557,9 +531,50 @@ def _get_index_metrics(url, user, passwrd, nodes):
 
     return index_info
 
-def _get_query_metrics(url, user, passwrd):
-    metrics = []
-    return metrics
+def _get_query_metrics(url, user, passwrd, nodeList):
+    query_info = {}
+    query_info['metrics'] = []
+    try:
+        for node in nodeList:
+            _query_url = "http://{}/pools/default/buckets/@query/nodes/{}/stats".format(node, node)
+            req = urllib2.Request(_query_url,
+                                  headers={
+                                      "Authorization": basic_authorization(user, passwrd),
+                                      "Content-Type": "application/x-www-form-urlencoded",
+
+                                      # Some extra headers for fun
+                                      "Accept": "*/*", # curl does this
+                                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                  })
+
+            _q = (urllib2.urlopen(req)).read()
+            _q_json = json.loads(_q)
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_warnings", node.split(":")[0], sum(_q_json['op']['samples']['query_warnings']) / len(_q_json['op']['samples']['query_warnings'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_request_time", node.split(":")[0], sum(_q_json['op']['samples']['query_request_time']) / len(_q_json['op']['samples']['query_request_time'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_result_count", node.split(":")[0], sum(_q_json['op']['samples']['query_result_count']) / len(_q_json['op']['samples']['query_result_count'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_selects", node.split(":")[0], sum(_q_json['op']['samples']['query_selects']) / len(_q_json['op']['samples']['query_selects'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_requests_500ms", node.split(":")[0], sum(_q_json['op']['samples']['query_requests_500ms']) / len(_q_json['op']['samples']['query_requests_500ms'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_active_requests", node.split(":")[0], sum(_q_json['op']['samples']['query_active_requests']) / len(_q_json['op']['samples']['query_active_requests'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_requests_5000ms", node.split(":")[0], sum(_q_json['op']['samples']['query_requests_5000ms']) / len(_q_json['op']['samples']['query_requests_5000ms'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_requests_1000ms", node.split(":")[0], sum(_q_json['op']['samples']['query_requests_1000ms']) / len(_q_json['op']['samples']['query_requests_1000ms'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_invalid_requests", node.split(":")[0], sum(_q_json['op']['samples']['query_invalid_requests']) / len(_q_json['op']['samples']['query_invalid_requests'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_queued_requests", node.split(":")[0], sum(_q_json['op']['samples']['query_queued_requests']) / len(_q_json['op']['samples']['query_queued_requests'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_avg_result_count", node.split(":")[0], sum(_q_json['op']['samples']['query_avg_result_count']) / len(_q_json['op']['samples']['query_avg_result_count'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_service_time", node.split(":")[0], sum(_q_json['op']['samples']['query_service_time']) / len(_q_json['op']['samples']['query_service_time'])))
+            # query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("timestamp", node.split(":")[0], sum(_q_json['op']['samples']['timestamp']) / len(_q_json['op']['samples']['timestamp'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_avg_svc_time", node.split(":")[0], sum(_q_json['op']['samples']['query_avg_svc_time']) / len(_q_json['op']['samples']['query_avg_svc_time'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_errors", node.split(":")[0], sum(_q_json['op']['samples']['query_errors']) / len(_q_json['op']['samples']['query_errors'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_requests", node.split(":")[0], sum(_q_json['op']['samples']['query_requests']) / len(_q_json['op']['samples']['query_requests'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_avg_response_size", node.split(":")[0], sum(_q_json['op']['samples']['query_avg_response_size']) / len(_q_json['op']['samples']['query_avg_response_size'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_result_size", node.split(":")[0], sum(_q_json['op']['samples']['query_result_size']) / len(_q_json['op']['samples']['query_result_size'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_avg_req_time", node.split(":")[0], sum(_q_json['op']['samples']['query_avg_req_time']) / len(_q_json['op']['samples']['query_avg_req_time'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_requests_250ms", node.split(":")[0], sum(_q_json['op']['samples']['query_requests_250ms']) / len(_q_json['op']['samples']['query_requests_250ms'])))
+
+            # for metric in query_info['metrics']:
+            #     print(metric)
+    except Exception as e:
+        print(e)
+    return query_info
 
 def _get_analytics_metrics(url, user, passwrd):
     metrics = []
@@ -592,10 +607,9 @@ def get_metrics():
 
     index_metrics = _get_index_metrics(url, user, passwrd, clusterValues['nodeList'])
     metrics = metrics + index_metrics['metrics']
-    print(index_metrics['metrics'])
 
-    query_metrics = _get_query_metrics(url, user, passwrd)
-    metrics = metrics + query_metrics
+    query_metrics = _get_query_metrics(url, user, passwrd, clusterValues['nodeList'])
+    metrics = metrics + query_metrics['metrics']
 
     analytics_metrics = _get_analytics_metrics(url, user, passwrd)
     metrics = metrics + analytics_metrics
@@ -617,5 +631,5 @@ if __name__ == "__main__":
     passwrd = "password1"
 
     clusterValues = _getCluster(url, user, passwrd)
-    index_metrics = _get_index_metrics(url, user, passwrd, clusterValues['nodeList'])
-    print(index_metrics['metrics'])
+    metrics = _get_query_metrics(url, user, passwrd, clusterValues['nodeList'])
+    print(metrics['metrics'])
