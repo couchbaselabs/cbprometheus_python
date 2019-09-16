@@ -713,8 +713,70 @@ def _get_analytics_metrics(url, user, passwrd, nodeList):
     return cbas_metrics
 
 def _get_xdcr_metrics(url, user, passwrd):
-    metrics = []
-    return metrics
+    xdcr_metrics = {}
+    xdcr_metrics['metrics']= []
+
+    try:
+        clusterDefinintion = {}
+        _remote_cluster_url = "http://{}:8091/pools/default/remoteClusters".format(url)
+        req = urllib2.Request(_remote_cluster_url,
+                              headers={
+                                  "Authorization": basic_authorization(user, passwrd),
+                                  "Content-Type": "application/x-www-form-urlencoded",
+
+                                  # Some extra headers for fun
+                                  "Accept": "*/*", # curl does this
+                                  "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                              })
+        _rc = (urllib2.urlopen(req)).read()
+        _rc_json = json.loads(_rc)
+        for entry in _rc_json:
+            clusterDefinintion[entry['uuid']] = {}
+            clusterDefinintion[entry['uuid']]['hostname'] = entry['hostname']
+            clusterDefinintion[entry['uuid']]['name'] = entry['name']
+
+        try:
+            _xdcr_url = "http://{}:8091/pools/default/tasks".format(url)
+
+            req = urllib2.Request(_xdcr_url,
+                                  headers={
+                                      "Authorization": basic_authorization(user, passwrd),
+                                      "Content-Type": "application/x-www-form-urlencoded",
+
+                                      # Some extra headers for fun
+                                      "Accept": "*/*", # curl does this
+                                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                  })
+
+            _x = (urllib2.urlopen(req)).read()
+            _x_json = json.loads(_x)
+
+            #get generic stats for each replication
+            for index, record in enumerate(_x_json):
+                if record['type']=="xdcr":
+                    source = record['source']
+                    destBucket = record['target'].split("/")[4]
+
+                    id = record['id'].split("/")[0]
+                    if record['status'] == "running":
+                        status = 0
+                    elif record['status'] == "paused":
+                        status = 1
+                    else:
+                        status = 2
+
+                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("status", id, source, clusterDefinintion[id]['name'], clusterDefinintion[id]['hostname'], destBucket, status))
+                    # xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", source=\"{}\", destCluster=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("changesLeft", id, source, "", destBucket, record['changesLeft']))
+                    # xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", source=\"{}\", destCluster=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("docsChecked", id, source, "", destBucket, record['docsChecked']))
+                    # xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", source=\"{}\", destCluster=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("docsWritten", id, source, "", destBucket, record['docsWritten']))
+                    # xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", source=\"{}\", destCluster=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("errors", id, source, "", destBucket, len(record['errors'])))
+                    # xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", source=\"{}\", destCluster=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("", "", "", "", "", ""))
+
+        except Exception as e:
+            print("error in: " + str(e))
+    except Exception as e:
+        print("error out: " + str(e))
+    return xdcr_metrics
 
 def get_metrics():
     url = "10.112.191.101"
@@ -749,7 +811,7 @@ def get_metrics():
     metrics = metrics + analytics_metrics['metrics']
 
     xdcr_metrics = _get_xdcr_metrics(url, user, passwrd)
-    metrics = metrics + xdcr_metrics
+    metrics = metrics + xdcr_metrics['metrics']
 
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
@@ -763,5 +825,5 @@ if __name__ == "__main__":
 
     clusterValues = _getCluster(url, user, passwrd)
     bucket_metrics = _get_bucket_metrics(url, user, passwrd)
-    metrics = _get_analytics_metrics(url, user, passwrd, clusterValues['nodeList'])
+    metrics = _get_xdcr_metrics(url, user, passwrd)
     print(metrics['metrics'])
