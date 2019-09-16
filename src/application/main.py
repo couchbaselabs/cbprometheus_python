@@ -578,10 +578,6 @@ def _get_query_metrics(url, user, passwrd, nodeList):
             print(e)
     return query_info
 
-def _get_analytics_metrics(url, user, passwrd):
-    metrics = []
-    return metrics
-
 def _get_eventing_metrics(url, user, passwrd, nodeList):
     eventing_metrics = {}
     eventing_metrics['metrics'] = []
@@ -636,8 +632,31 @@ def _get_eventing_metrics(url, user, passwrd, nodeList):
     return eventing_metrics
 
 def _get_fts_metrics(url, user, passwrd, nodeList, bucketList):
+    for node in nodeList:
+        for bucket in bucketList:
+            try:
+                _fts_url = "http://{}/pools/default/buckets/@fts-{}/nodes/{}/stats".format(node, bucket, node)
+                req = urllib2.Request(_fts_url,
+                                      headers={
+                                          "Authorization": basic_authorization(user, passwrd),
+                                          "Content-Type": "application/x-www-form-urlencoded",
+
+                                          # Some extra headers for fun
+                                          "Accept": "*/*", # curl does this
+                                          "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                      })
+
+                _f = (urllib2.urlopen(req)).read()
+                _f_json = json.loads(_f)
+                print(_f)
+            except Exception as e:
+                print(e)
     metrics = {}
     metrics['metrics'] = []
+    return metrics
+
+def _get_analytics_metrics(url, user, passwrd):
+    metrics = []
     return metrics
 
 def _get_xdcr_metrics(url, user, passwrd):
@@ -667,14 +686,14 @@ def get_metrics():
     query_metrics = _get_query_metrics(url, user, passwrd, clusterValues['nodeList'])
     metrics = metrics + query_metrics['metrics']
 
-    analytics_metrics = _get_analytics_metrics(url, user, passwrd)
-    metrics = metrics + analytics_metrics
-
     eventing_metrics = _get_eventing_metrics(url, user, passwrd, clusterValues['nodeList'])
     metrics = metrics + eventing_metrics['metrics']
 
     fts_metrics = _get_fts_metrics(url, user, passwrd, clusterValues['nodeList'], bucket_metrics['buckets'])
-    metrics = metrics + fts_metrics
+    metrics = metrics + fts_metrics['metrics']
+
+    analytics_metrics = _get_analytics_metrics(url, user, passwrd)
+    metrics = metrics + analytics_metrics
 
     xdcr_metrics = _get_xdcr_metrics(url, user, passwrd)
     metrics = metrics + xdcr_metrics
