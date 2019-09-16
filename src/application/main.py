@@ -699,10 +699,17 @@ def _get_analytics_metrics(url, user, passwrd, nodeList):
 
             _a = (urllib2.urlopen(req)).read()
             _a_json = json.loads(_a)
-            for record in _a_json['op']['samples']:
-                print(record)
+
+            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_disk_used", node, sum(_a_json['op']['samples']['cbas_disk_used']) / len(_a_json['op']['samples']['cbas_disk_used'])))
+            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_gc_time", node, sum(_a_json['op']['samples']['cbas_gc_time']) / len(_a_json['op']['samples']['cbas_gc_time'])))
+            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_io_writes", node, sum(_a_json['op']['samples']['cbas_io_writes']) / len(_a_json['op']['samples']['cbas_io_writes'])))
+            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_gc_count", node, sum(_a_json['op']['samples']['cbas_gc_count']) / len(_a_json['op']['samples']['cbas_gc_count'])))
+            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_heap_used", node, sum(_a_json['op']['samples']['cbas_heap_used']) / len(_a_json['op']['samples']['cbas_heap_used'])))
+            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_system_load_average", node, sum(_a_json['op']['samples']['cbas_system_load_average']) / len(_a_json['op']['samples']['cbas_system_load_average'])))
+            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_thread_count", node, sum(_a_json['op']['samples']['cbas_thread_count']) / len(_a_json['op']['samples']['cbas_thread_count'])))
+            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_io_reads", node, sum(_a_json['op']['samples']['cbas_io_reads']) / len(_a_json['op']['samples']['cbas_io_reads'])))
         except Exception as e:
-            print(e)
+            print
     return cbas_metrics
 
 def _get_xdcr_metrics(url, user, passwrd):
