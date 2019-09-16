@@ -632,6 +632,8 @@ def _get_eventing_metrics(url, user, passwrd, nodeList):
     return eventing_metrics
 
 def _get_fts_metrics(url, user, passwrd, nodeList, bucketList):
+    fts_metrics = {}
+    fts_metrics['metrics'] = []
     for node in nodeList:
         for bucket in bucketList:
             try:
@@ -648,12 +650,36 @@ def _get_fts_metrics(url, user, passwrd, nodeList, bucketList):
 
                 _f = (urllib2.urlopen(req)).read()
                 _f_json = json.loads(_f)
-                print(_f)
+                for record in _f_json['op']['samples']:
+                    name = ""
+                    metric_type=""
+                    stat = ""
+                    _node = node.split(":")[0]
+                    try:
+                        split_record = record.split("/")
+                        if len(split_record) == 3:
+                            name = (split_record[1]).replace("+", "_")
+                            metric_type = (split_record[2]).replace("+", "_")
+                            if type(_f_json['op']['samples'][record]) == type([]):
+                                stat = sum(_f_json['op']['samples'][record]) / len(_f_json['op']['samples'][record])
+                            else:
+                                stat = _f_json['op']['samples'][record]
+                            fts_metrics['metrics'].append("{} {{node = \"{}\", index=\"{}\", type=\"fts_stat\"}} {}".format(metric_type, _node, name, stat))
+                        elif len(split_record) == 2:
+                            metric_type = (split_record[1]).replace("+", "_")
+                            if type(_f_json['op']['samples'][record]) == type([]):
+                                stat = sum(_f_json['op']['samples'][record]) / len(_f_json['op']['samples'][record])
+                            else:
+                                stat = e_json['op']['samples'][record]
+                            fts_metrics['metrics'].append("{} {{node = \"{}\", type=\"fts\"}} {}".format(metric_type, _node, stat))
+                        else:
+                            next
+
+                    except Exception as e:
+                        print(str(e) + str(record))
             except Exception as e:
                 print(e)
-    metrics = {}
-    metrics['metrics'] = []
-    return metrics
+    return fts_metrics
 
 def _get_analytics_metrics(url, user, passwrd):
     metrics = []
