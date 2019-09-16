@@ -681,9 +681,29 @@ def _get_fts_metrics(url, user, passwrd, nodeList, bucketList):
                 print(e)
     return fts_metrics
 
-def _get_analytics_metrics(url, user, passwrd):
-    metrics = []
-    return metrics
+def _get_analytics_metrics(url, user, passwrd, nodeList):
+    cbas_metrics = {}
+    cbas_metrics['metrics'] = []
+    for node in nodeList:
+        try:
+            _cbas_url = "http://{}/pools/default/buckets/@cbas/nodes/{}/stats".format(node, node)
+            req = urllib2.Request(_cbas_url,
+                                  headers={
+                                      "Authorization": basic_authorization(user, passwrd),
+                                      "Content-Type": "application/x-www-form-urlencoded",
+
+                                      # Some extra headers for fun
+                                      "Accept": "*/*", # curl does this
+                                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                  })
+
+            _a = (urllib2.urlopen(req)).read()
+            _a_json = json.loads(_a)
+            for record in _a_json['op']['samples']:
+                print(record)
+        except Exception as e:
+            print(e)
+    return cbas_metrics
 
 def _get_xdcr_metrics(url, user, passwrd):
     metrics = []
@@ -718,13 +738,11 @@ def get_metrics():
     fts_metrics = _get_fts_metrics(url, user, passwrd, clusterValues['nodeList'], bucket_metrics['buckets'])
     metrics = metrics + fts_metrics['metrics']
 
-    analytics_metrics = _get_analytics_metrics(url, user, passwrd)
-    metrics = metrics + analytics_metrics
+    analytics_metrics = _get_analytics_metrics(url, user, passwrd, clusterValues['nodeList'])
+    metrics = metrics + analytics_metrics['metrics']
 
     xdcr_metrics = _get_xdcr_metrics(url, user, passwrd)
     metrics = metrics + xdcr_metrics
-
-
 
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
@@ -738,5 +756,5 @@ if __name__ == "__main__":
 
     clusterValues = _getCluster(url, user, passwrd)
     bucket_metrics = _get_bucket_metrics(url, user, passwrd)
-    metrics = _get_fts_metrics(url, user, passwrd, clusterValues['nodeList'], bucket_metrics['buckets'])
+    metrics = _get_analytics_metrics(url, user, passwrd, clusterValues['nodeList'])
     print(metrics['metrics'])
