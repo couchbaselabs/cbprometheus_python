@@ -776,6 +776,30 @@ def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
             print("error in: " + str(e))
     except Exception as e:
         print("error out: " + str(e))
+
+    for node in nodes:
+        for bucket in buckets:
+            try:
+                _node_url = "http://{}/pools/default/buckets/@xdcr-{}/nodes/{}/stats".format(node, bucket, node)
+                req = urllib2.Request(_node_url,
+                                      headers={
+                                          "Authorization": basic_authorization(user, passwrd),
+                                          "Content-Type": "application/x-www-form-urlencoded",
+
+                                          # Some extra headers for fun
+                                          "Accept": "*/*", # curl does this
+                                          "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                      })
+                _n = (urllib2.urlopen(req)).read()
+                _n_json = json.loads(_n)
+                for entry in _n_json['op']['samples']:
+                    key_split = entry.split("/")
+                    if len(key_split) == 5:
+                        xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"node\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\", node=\"{}\"}} {}".format(key_split[4], key_split[1], key_split[2], clusterDefinintion[key_split[1]]['name'], clusterDefinintion[key_split[1]]['hostname'], key_split[3], node, sum(_n_json['op']['samples'][entry])/len(_n_json['op']['samples'][entry])))
+                    elif len(key_split) == 1 and entry != "timestamp":
+                        xdcr_metrics['metrics'].append("{} {{level=\"bucket\", source=\"{}\", type=\"xdcr\", node=\"{}\"}} {}".format(entry, bucket, node, sum(_n_json['op']['samples'][entry])/len(_n_json['op']['samples'][entry])))
+            except Exception as e:
+                print(e)
     return xdcr_metrics
 
 def get_metrics():
@@ -826,4 +850,5 @@ if __name__ == "__main__":
     clusterValues = _getCluster(url, user, passwrd)
     bucket_metrics = _get_bucket_metrics(url, user, passwrd)
     metrics = _get_xdcr_metrics(url, user, passwrd, clusterValues['nodeList'], bucket_metrics['buckets'])
-    print(metrics['metrics'])
+    for entry in metrics['metrics']:
+        print(entry)
