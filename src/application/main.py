@@ -712,7 +712,7 @@ def _get_analytics_metrics(url, user, passwrd, nodeList):
             print
     return cbas_metrics
 
-def _get_xdcr_metrics(url, user, passwrd):
+def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
     xdcr_metrics = {}
     xdcr_metrics['metrics']= []
 
@@ -765,12 +765,12 @@ def _get_xdcr_metrics(url, user, passwrd):
                     else:
                         status = 2
 
-                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("status", id, source, clusterDefinintion[id]['name'], clusterDefinintion[id]['hostname'], destBucket, status))
-                    # xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", source=\"{}\", destCluster=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("changesLeft", id, source, "", destBucket, record['changesLeft']))
-                    # xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", source=\"{}\", destCluster=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("docsChecked", id, source, "", destBucket, record['docsChecked']))
-                    # xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", source=\"{}\", destCluster=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("docsWritten", id, source, "", destBucket, record['docsWritten']))
-                    # xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", source=\"{}\", destCluster=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("errors", id, source, "", destBucket, len(record['errors'])))
-                    # xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", source=\"{}\", destCluster=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("", "", "", "", "", ""))
+                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("status", id, source, clusterDefinintion[id]['name'], clusterDefinintion[id]['hostname'], destBucket, status))
+                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("changesLeft", id, source, clusterDefinintion[id]['name'], clusterDefinintion[id]['hostname'], destBucket, record['changesLeft']))
+                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("docsChecked", id, source, clusterDefinintion[id]['name'], clusterDefinintion[id]['hostname'], destBucket, record['docsChecked']))
+                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("docsWritten", id, source, clusterDefinintion[id]['name'], clusterDefinintion[id]['hostname'], destBucket, record['docsWritten']))
+                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("errors", id, source, clusterDefinintion[id]['name'], clusterDefinintion[id]['hostname'], destBucket, len(record['errors'])))
+                    # xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("", id, source, clusterDefinintion[id]['name'], clusterDefinintion[id]['hostname'], destBucket, ""))
 
         except Exception as e:
             print("error in: " + str(e))
@@ -810,7 +810,7 @@ def get_metrics():
     analytics_metrics = _get_analytics_metrics(url, user, passwrd, clusterValues['nodeList'])
     metrics = metrics + analytics_metrics['metrics']
 
-    xdcr_metrics = _get_xdcr_metrics(url, user, passwrd)
+    xdcr_metrics = _get_xdcr_metrics(url, user, passwrd, clusterValues['nodeList'], bucket_metrics['buckets'])
     metrics = metrics + xdcr_metrics['metrics']
 
     metrics_str = "\n"
@@ -825,5 +825,5 @@ if __name__ == "__main__":
 
     clusterValues = _getCluster(url, user, passwrd)
     bucket_metrics = _get_bucket_metrics(url, user, passwrd)
-    metrics = _get_xdcr_metrics(url, user, passwrd)
+    metrics = _get_xdcr_metrics(url, user, passwrd, clusterValues['nodeList'], bucket_metrics['buckets'])
     print(metrics['metrics'])
