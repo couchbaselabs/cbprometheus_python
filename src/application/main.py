@@ -9,8 +9,6 @@ import datetime
 import urllib2
 import json
 
-#optimization would be to create a dictionary of all the nodes and their services and interate only through those
-
 def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1")
 
@@ -39,9 +37,34 @@ def _getCluster(url, user, passwrd):
     f = (urllib2.urlopen(req)).read()
     node_list = []
     stats = json.loads(f)
+    service_nodes = {}
+    service_nodes['kv'] = []
+    service_nodes['index'] = []
+    service_nodes['n1ql'] = []
+    service_nodes['eventing'] = []
+    service_nodes['fts'] = []
+    service_nodes['cbas'] = []
     for node in stats['nodes']:
         node_list.append(node['hostname'])
+        if "kv" in node['services']:
+            service_nodes['kv'].append(node['hostname'])
+
+        if "index" in node['services']:
+            service_nodes['index'].append(node['hostname'])
+
+        if "n1ql" in node['services']:
+            service_nodes['n1ql'].append(node['hostname'])
+
+        if "eventing" in node['services']:
+            service_nodes['eventing'].append(node['hostname'])
+
+        if "fts" in node['services']:
+            service_nodes['fts'].append(node['hostname'])
+
+        if "cbas" in node['services']:
+            service_nodes['cbas'].append(node['hostname'])
     result = {}
+    result['serviceNodes'] = service_nodes
     result['nodeList'] = node_list
     result['metrics'] = []
     try:
@@ -337,6 +360,7 @@ def _get_base_metrics(url, user, passwrd, nodeList):
         print("Curl Error:", e.args)
         return("")
 
+#This needs to be updated to perNode metrics
 def _get_bucket_metrics(url, user, passwrd):
     bucket_info = {}
     bucket_info['buckets'] = []
@@ -819,19 +843,19 @@ def get_metrics():
     # view_metrics = _get_view_metrics(url, user, passwrd, bucket_metrics['buckets'])
     # metrics = metrics + view_metrics
 
-    index_metrics = _get_index_metrics(url, user, passwrd, clusterValues['nodeList'])
+    index_metrics = _get_index_metrics(url, user, passwrd, clusterValues['serviceNodes']['index'])
     metrics = metrics + index_metrics['metrics']
 
-    query_metrics = _get_query_metrics(url, user, passwrd, clusterValues['nodeList'])
+    query_metrics = _get_query_metrics(url, user, passwrd, clusterValues['serviceNodes']['n1ql'])
     metrics = metrics + query_metrics['metrics']
 
-    eventing_metrics = _get_eventing_metrics(url, user, passwrd, clusterValues['nodeList'])
+    eventing_metrics = _get_eventing_metrics(url, user, passwrd, clusterValues['serviceNodes']['eventing'])
     metrics = metrics + eventing_metrics['metrics']
 
-    fts_metrics = _get_fts_metrics(url, user, passwrd, clusterValues['nodeList'], bucket_metrics['buckets'])
+    fts_metrics = _get_fts_metrics(url, user, passwrd, clusterValues['serviceNodes']['fts'], bucket_metrics['buckets'])
     metrics = metrics + fts_metrics['metrics']
 
-    analytics_metrics = _get_analytics_metrics(url, user, passwrd, clusterValues['nodeList'])
+    analytics_metrics = _get_analytics_metrics(url, user, passwrd, clusterValues['serviceNodes']['cbas'])
     metrics = metrics + analytics_metrics['metrics']
 
     xdcr_metrics = _get_xdcr_metrics(url, user, passwrd, clusterValues['nodeList'], bucket_metrics['buckets'])
@@ -848,7 +872,7 @@ if __name__ == "__main__":
     passwrd = "password1"
 
     clusterValues = _getCluster(url, user, passwrd)
-    bucket_metrics = _get_bucket_metrics(url, user, passwrd)
-    metrics = _get_xdcr_metrics(url, user, passwrd, clusterValues['nodeList'], bucket_metrics['buckets'])
-    for entry in metrics['metrics']:
-        print(entry)
+    # bucket_metrics = _get_bucket_metrics(url, user, passwrd)
+    # metrics = _get_xdcr_metrics(url, user, passwrd, clusterValues['nodeList'], bucket_metrics['buckets'])
+    # for entry in metrics['metrics']:
+    #     print(entry)
