@@ -361,7 +361,7 @@ def _get_base_metrics(url, user, passwrd, nodeList):
         return("")
 
 #This needs to be updated to perNode metrics
-def _get_bucket_metrics(url, user, passwrd):
+def _get_bucket_metrics(url, user, passwrd, nodeList):
     bucket_info = {}
     bucket_info['buckets'] = []
     bucket_info['metrics'] = []
@@ -379,50 +379,50 @@ def _get_bucket_metrics(url, user, passwrd):
 
         f = (urllib2.urlopen(req)).read()
         f_json = json.loads(f)
+        for node in nodeList:
+            for bucket in f_json:
+                bucket_info['buckets'].append(bucket['name'])
+                bucket_url = "http://{}:8091/pools/default/buckets/{}/nodes/{}/stats".format(url, bucket['name'], node)
+                # print(bucket_url)
+                req = urllib2.Request(bucket_url,
+                                      headers={
+                                          "Authorization": basic_authorization(user, passwrd),
+                                          "Content-Type": "application/x-www-form-urlencoded",
 
-        for bucket in f_json:
-            bucket_info['buckets'].append(bucket['name'])
-            bucket_url = "http://{}:8091/pools/default/buckets/{}/stats?zoom=minute".format(url, bucket['name'])
-            # print(bucket_url)
-            req = urllib2.Request(bucket_url,
-                                  headers={
-                                      "Authorization": basic_authorization(user, passwrd),
-                                      "Content-Type": "application/x-www-form-urlencoded",
+                                          # Some extra headers for fun
+                                          "Accept": "*/*", # curl does this
+                                          "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                      })
 
-                                      # Some extra headers for fun
-                                      "Accept": "*/*", # curl does this
-                                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
-                                  })
-
-            b = (urllib2.urlopen(req)).read()
-            b_json = json.loads(b)
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("mem_used", bucket['name'], sum(b_json['op']['samples']['mem_used']) / len(b_json['op']['samples']['mem_used'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_kv_size", bucket['name'], sum(b_json['op']['samples']['ep_kv_size']) / len(b_json['op']['samples']['ep_kv_size'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_mem_high_wat", bucket['name'], sum(b_json['op']['samples']['ep_mem_high_wat']) / len(b_json['op']['samples']['ep_mem_high_wat'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("mem_total", bucket['name'], sum(b_json['op']['samples']['mem_total']) / len(b_json['op']['samples']['mem_total'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_meta_data_memory", bucket['name'], sum(b_json['op']['samples']['ep_meta_data_memory']) / len(b_json['op']['samples']['ep_meta_data_memory'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_queue_size", bucket['name'], sum(b_json['op']['samples']['ep_queue_size']) / len(b_json['op']['samples']['ep_queue_size'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_flusher_todo", bucket['name'], sum(b_json['op']['samples']['ep_flusher_todo']) / len(b_json['op']['samples']['ep_flusher_todo'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("vb_avg_total_queue_age", bucket['name'], sum(b_json['op']['samples']['vb_avg_total_queue_age']) / len(b_json['op']['samples']['vb_avg_total_queue_age'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_replica_items_remaining", bucket['name'], sum(b_json['op']['samples']['ep_dcp_replica_items_remaining']) / len(b_json['op']['samples']['ep_dcp_replica_items_remaining'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ops", bucket['name'], sum(b_json['op']['samples']['ops']) / len(b_json['op']['samples']['ops'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("cmd_get", bucket['name'], sum(b_json['op']['samples']['cmd_get']) / len(b_json['op']['samples']['cmd_get'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("cmd_set", bucket['name'], sum(b_json['op']['samples']['cmd_set']) / len(b_json['op']['samples']['cmd_set'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("delete_hits", bucket['name'], sum(b_json['op']['samples']['delete_hits']) / len(b_json['op']['samples']['delete_hits'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_bg_fetched", bucket['name'], sum(b_json['op']['samples']['ep_bg_fetched']) / len(b_json['op']['samples']['ep_bg_fetched'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("curr_connections", bucket['name'], sum(b_json['op']['samples']['curr_connections']) / len(b_json['op']['samples']['curr_connections'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("curr_items", bucket['name'], sum(b_json['op']['samples']['curr_items']) / len(b_json['op']['samples']['curr_items'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("vb_active_resident_items_ratio", bucket['name'], sum(b_json['op']['samples']['vb_active_resident_items_ratio']) / len(b_json['op']['samples']['vb_active_resident_items_ratio'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("vb_replica_resident_items_ratio", bucket['name'], sum(b_json['op']['samples']['vb_replica_resident_items_ratio']) / len(b_json['op']['samples']['vb_replica_resident_items_ratio'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_tmp_oom_errors", bucket['name'], sum(b_json['op']['samples']['ep_tmp_oom_errors']) / len(b_json['op']['samples']['ep_tmp_oom_errors'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_views_items_remaining", bucket['name'], sum(b_json['op']['samples']['ep_dcp_views_items_remaining']) / len(b_json['op']['samples']['ep_dcp_views_items_remaining'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_2i_items_remaining", bucket['name'], sum(b_json['op']['samples']['ep_queue_size']) / len(b_json['op']['samples']['ep_queue_size'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_replica_backoff", bucket['name'], sum(b_json['op']['samples']['ep_dcp_replica_backoff']) / len(b_json['op']['samples']['ep_dcp_replica_backoff'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_xdcr_backoff", bucket['name'], sum(b_json['op']['samples']['ep_dcp_xdcr_backoff']) / len(b_json['op']['samples']['ep_dcp_xdcr_backoff'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("couch_docs_fragmentation", bucket['name'], sum(b_json['op']['samples']['couch_docs_fragmentation']) / len(b_json['op']['samples']['couch_docs_fragmentation'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("couch_views_fragmentation", bucket['name'], sum(b_json['op']['samples']['couch_views_fragmentation']) / len(b_json['op']['samples']['couch_views_fragmentation'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("vb_replica_num", bucket['name'], sum(b_json['op']['samples']['vb_replica_num']) / len(b_json['op']['samples']['vb_replica_num'])))
-            bucket_info['metrics'].append("{} {{bucket=\"{}\", type=\"bucket\"}} {}".format("vb_active_num", bucket['name'], sum(b_json['op']['samples']['vb_active_num']) / len(b_json['op']['samples']['vb_active_num'])))
+                b = (urllib2.urlopen(req)).read()
+                b_json = json.loads(b)
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("mem_used", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['mem_used']) / len(b_json['op']['samples']['mem_used'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_kv_size", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_kv_size']) / len(b_json['op']['samples']['ep_kv_size'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_mem_high_wat", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_mem_high_wat']) / len(b_json['op']['samples']['ep_mem_high_wat'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("mem_total", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['mem_total']) / len(b_json['op']['samples']['mem_total'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_meta_data_memory", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_meta_data_memory']) / len(b_json['op']['samples']['ep_meta_data_memory'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_queue_size", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_queue_size']) / len(b_json['op']['samples']['ep_queue_size'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_flusher_todo", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_flusher_todo']) / len(b_json['op']['samples']['ep_flusher_todo'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("vb_avg_total_queue_age", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['vb_avg_total_queue_age']) / len(b_json['op']['samples']['vb_avg_total_queue_age'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_replica_items_remaining", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_dcp_replica_items_remaining']) / len(b_json['op']['samples']['ep_dcp_replica_items_remaining'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ops", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ops']) / len(b_json['op']['samples']['ops'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("cmd_get", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['cmd_get']) / len(b_json['op']['samples']['cmd_get'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("cmd_set", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['cmd_set']) / len(b_json['op']['samples']['cmd_set'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("delete_hits", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['delete_hits']) / len(b_json['op']['samples']['delete_hits'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_bg_fetched", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_bg_fetched']) / len(b_json['op']['samples']['ep_bg_fetched'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("curr_connections", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['curr_connections']) / len(b_json['op']['samples']['curr_connections'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("curr_items", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['curr_items']) / len(b_json['op']['samples']['curr_items'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("vb_active_resident_items_ratio", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['vb_active_resident_items_ratio']) / len(b_json['op']['samples']['vb_active_resident_items_ratio'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("vb_replica_resident_items_ratio", bucket['name'], node.split(":")[0], node.split(":")[0], sum(b_json['op']['samples']['vb_replica_resident_items_ratio']) / len(b_json['op']['samples']['vb_replica_resident_items_ratio'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_tmp_oom_errors", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_tmp_oom_errors']) / len(b_json['op']['samples']['ep_tmp_oom_errors'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_views_items_remaining", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_dcp_views_items_remaining']) / len(b_json['op']['samples']['ep_dcp_views_items_remaining'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_2i_items_remaining", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_queue_size']) / len(b_json['op']['samples']['ep_queue_size'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_replica_backoff", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_dcp_replica_backoff']) / len(b_json['op']['samples']['ep_dcp_replica_backoff'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_xdcr_backoff", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_dcp_xdcr_backoff']) / len(b_json['op']['samples']['ep_dcp_xdcr_backoff'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("couch_docs_fragmentation", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['couch_docs_fragmentation']) / len(b_json['op']['samples']['couch_docs_fragmentation'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("couch_views_fragmentation", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['couch_views_fragmentation']) / len(b_json['op']['samples']['couch_views_fragmentation'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("vb_replica_num", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['vb_replica_num']) / len(b_json['op']['samples']['vb_replica_num'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("vb_active_num", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['vb_active_num']) / len(b_json['op']['samples']['vb_active_num'])))
 
         return bucket_info
     except Exception as e:
@@ -477,7 +477,8 @@ def _get_view_metrics(url, user, passwrd, bucketList):
     metrics = []
     return metrics
 
-def _get_index_metrics(url, user, passwrd, nodes):
+#need to make buckets iterable
+def _get_index_metrics(url, user, passwrd, nodes, buckets):
     index_info = {}
     index_info['metrics'] = []
 
@@ -502,57 +503,58 @@ def _get_index_metrics(url, user, passwrd, nodes):
             index_info['metrics'].append("{} {{node = \"{}\", type=\"index\"}} {}".format("index_memory_quota", node.split(":")[0], sum(_i_json['op']['samples']['index_memory_quota']) / len(_i_json['op']['samples']['index_memory_quota'])))
             index_info['metrics'].append("{} {{node = \"{}\", type=\"index\"}} {}".format("index_remaining_ram", node.split(":")[0], sum(_i_json['op']['samples']['index_remaining_ram']) / len(_i_json['op']['samples']['index_remaining_ram'])))
         except Exception as e:
-            pass
+            print("index base: " + str(e))
 
 
     for node in nodes:
-        try:
-            index_info_url = "http://{}/pools/default/buckets/@index-main/stats".format(nodes[0])
-            req = urllib2.Request(index_info_url,
-                                  headers={
-                                      "Authorization": basic_authorization(user, passwrd),
-                                      "Content-Type": "application/x-www-form-urlencoded",
+        for bucket in buckets:
+            try:
+                index_info_url = "http://{}/pools/default/buckets/@index-{}/nodes/{}/stats".format(node, bucket, node)
+                req = urllib2.Request(index_info_url,
+                                      headers={
+                                          "Authorization": basic_authorization(user, passwrd),
+                                          "Content-Type": "application/x-www-form-urlencoded",
 
-                                      # Some extra headers for fun
-                                      "Accept": "*/*", # curl does this
-                                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
-                                  })
+                                          # Some extra headers for fun
+                                          "Accept": "*/*", # curl does this
+                                          "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                      })
 
-            ii = (urllib2.urlopen(req)).read()
-            ii_json = json.loads(ii)
-            for record in ii_json['op']['samples']:
-                name = ""
-                index_type=""
-                stat = ""
-                _node = node.split(":")[0]
-                try:
-                    split_record = record.split("/")
+                ii = (urllib2.urlopen(req)).read()
+                ii_json = json.loads(ii)
+                for record in ii_json['op']['samples']:
+                    name = ""
+                    index_type=""
+                    stat = ""
+                    _node = node.split(":")[0]
+                    try:
+                        split_record = record.split("/")
 
-                    if len(split_record) == 3:
-                        name = (split_record[1]).replace("+", "_")
-                        index_type = (split_record[2]).replace("+", "_")
-                        if type(ii_json['op']['samples'][record]) == type([]):
-                            stat = sum(ii_json['op']['samples'][record]) / len(ii_json['op']['samples'][record])
+                        if len(split_record) == 3:
+                            name = (split_record[1]).replace("+", "_")
+                            index_type = (split_record[2]).replace("+", "_")
+                            if type(ii_json['op']['samples'][record]) == type([]):
+                                stat = sum(ii_json['op']['samples'][record]) / len(ii_json['op']['samples'][record])
+                            else:
+                                stat = ii_json['op']['samples'][record]
+
+                            index_info['metrics'].append("{} {{node = \"{}\", index=\"{}\", bucket=\"{}\", type=\"index_stat\"}} {}".format(index_type, _node, name, bucket, stat))
+                        elif len(split_record) == 2:
+                            index_type = split_record[1]
+                            if type(ii_json['op']['samples'][record]) == type([]):
+                                stat = sum(ii_json['op']['samples'][record]) / len(ii_json['op']['samples'][record])
+                            else:
+                                stat = ii_json['op']['samples'][record]
+                            index_info['metrics'].append("{} {{node = \"{}\", bucket=\"{}\", type=\"index_stat\"}} {}".format(index_type, _node, bucket, stat))
                         else:
-                            stat = ii_json['op']['samples'][record]
-
-                        index_info['metrics'].append("{} {{node = \"{}\", index=\"{}\", type=\"index_stat\"}} {}".format(index_type, _node, name, stat))
-                    elif len(split_record) == 2:
-                        index_type = split_record[1]
-                        if type(ii_json['op']['samples'][record]) == type([]):
-                            stat = sum(ii_json['op']['samples'][record]) / len(ii_json['op']['samples'][record])
-                        else:
-                            stat = ii_json['op']['samples'][record]
-                        index_info['metrics'].append("{} {{node = \"{}\", type=\"index_stat\"}} {}".format(index_type, _node, stat))
-                    else:
-                        next
+                            next
 
 
-                except Exception as e:
-                    print(e)
+                    except Exception as e:
+                        print("index specific: " + str(e))
 
-        except Exception as e:
-            print(e)
+            except Exception as e:
+                print("index: " + str(e))
 
     return index_info
 
@@ -599,7 +601,7 @@ def _get_query_metrics(url, user, passwrd, nodeList):
             # for metric in query_info['metrics']:
             #     print(metric)
         except Exception as e:
-            print(e)
+            print("query base: " + str(e))
     return query_info
 
 def _get_eventing_metrics(url, user, passwrd, nodeList):
@@ -609,7 +611,6 @@ def _get_eventing_metrics(url, user, passwrd, nodeList):
     for node in nodeList:
         try:
             _event_url = "http://{}/pools/default/buckets/@eventing/nodes/{}/stats".format(node, node)
-            print(_event_url)
             req = urllib2.Request(_event_url,
                                   headers={
                                       "Authorization": basic_authorization(user, passwrd),
@@ -648,11 +649,9 @@ def _get_eventing_metrics(url, user, passwrd, nodeList):
                         next
 
                 except Exception as e:
-                    print(str(e) + str(record))
+                    pprint("eventing base: " + str(e))
         except Exception as e:
-            print(e)
-        # for result in eventing_metrics['metrics']:
-        #     print(result)
+            print("eventing: " + str(e))
     return eventing_metrics
 
 def _get_fts_metrics(url, user, passwrd, nodeList, bucketList):
@@ -700,9 +699,9 @@ def _get_fts_metrics(url, user, passwrd, nodeList, bucketList):
                             next
 
                     except Exception as e:
-                        print(str(e) + str(record))
+                        print("fts base: " + str(e))
             except Exception as e:
-                print(e)
+                print("fts: " + str(e))
     return fts_metrics
 
 def _get_analytics_metrics(url, user, passwrd, nodeList):
@@ -733,7 +732,7 @@ def _get_analytics_metrics(url, user, passwrd, nodeList):
             cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_thread_count", node, sum(_a_json['op']['samples']['cbas_thread_count']) / len(_a_json['op']['samples']['cbas_thread_count'])))
             cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_io_reads", node, sum(_a_json['op']['samples']['cbas_io_reads']) / len(_a_json['op']['samples']['cbas_io_reads'])))
         except Exception as e:
-            print
+            print("analytics base: " + str(e))
     return cbas_metrics
 
 def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
@@ -797,9 +796,9 @@ def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
                     # xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("", id, source, clusterDefinintion[id]['name'], clusterDefinintion[id]['hostname'], destBucket, ""))
 
         except Exception as e:
-            print("error in: " + str(e))
+            print("xdcr in: " + str(e))
     except Exception as e:
-        print("error out: " + str(e))
+        print("xcdr out: " + str(e))
 
     for node in nodes:
         for bucket in buckets:
@@ -823,7 +822,7 @@ def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
                     elif len(key_split) == 1 and entry != "timestamp":
                         xdcr_metrics['metrics'].append("{} {{level=\"bucket\", source=\"{}\", type=\"xdcr\", node=\"{}\"}} {}".format(entry, bucket, node, sum(_n_json['op']['samples'][entry])/len(_n_json['op']['samples'][entry])))
             except Exception as e:
-                print(e)
+                print("xdcr: " + str(e))
     return xdcr_metrics
 
 def get_metrics():
@@ -837,13 +836,13 @@ def get_metrics():
     node_metrics = _get_base_metrics(url, user, passwrd, clusterValues['nodeList'])
     metrics = metrics + node_metrics
 
-    bucket_metrics = _get_bucket_metrics(url, user, passwrd)
+    bucket_metrics = _get_bucket_metrics(url, user, passwrd, clusterValues['serviceNodes']['kv'])
     metrics = metrics + bucket_metrics['metrics']
 
     # view_metrics = _get_view_metrics(url, user, passwrd, bucket_metrics['buckets'])
     # metrics = metrics + view_metrics
 
-    index_metrics = _get_index_metrics(url, user, passwrd, clusterValues['serviceNodes']['index'])
+    index_metrics = _get_index_metrics(url, user, passwrd, clusterValues['serviceNodes']['index'], bucket_metrics['buckets'])
     metrics = metrics + index_metrics['metrics']
 
     query_metrics = _get_query_metrics(url, user, passwrd, clusterValues['serviceNodes']['n1ql'])
