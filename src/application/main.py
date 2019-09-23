@@ -12,6 +12,10 @@ import json
 def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1")
 
+def convert_ip_to_string(ip_address):
+    ip_address = ip_address.split(":")[0].replace(".", "_")
+    return ip_address
+
 def gt(dt_str):
     print(dt_str)
     dt, _, us= dt_str.partition(".")
@@ -215,141 +219,140 @@ def _get_base_metrics(url, user, passwrd, nodeList):
             f_json = json.loads(f)
 
             for _node in f_json['nodes']:
-                # dashUrl = url.replace(".", "-")
                 try:
                     if _node['thisNode']:
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("cpu_utilization_rate", url, _node['systemStats']['cpu_utilization_rate']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("cpu_utilization_rate", convert_ip_to_string(url), _node['systemStats']['cpu_utilization_rate']))
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("swap_total", url, _node['systemStats']['swap_total']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("swap_total", convert_ip_to_string(url), _node['systemStats']['swap_total']))
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("swap_used", url, _node['systemStats']['swap_used']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("swap_used", convert_ip_to_string(url), _node['systemStats']['swap_used']))
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("mem_total", url, _node['systemStats']['mem_total']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("mem_total", convert_ip_to_string(url), _node['systemStats']['mem_total']))
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("mem_free", url, _node['systemStats']['mem_free']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("mem_free", convert_ip_to_string(url), _node['systemStats']['mem_free']))
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("cmd_get", url, _node['interestingStats']['cmd_get']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("cmd_get", convert_ip_to_string(url), _node['interestingStats']['cmd_get']))
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("couch_docs_actual_disk_size", url, _node['interestingStats']['couch_docs_actual_disk_size']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("couch_docs_actual_disk_size", convert_ip_to_string(url), _node['interestingStats']['couch_docs_actual_disk_size']))
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("couch_docs_data_size", url, _node['interestingStats']['couch_docs_data_size']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("couch_docs_data_size", convert_ip_to_string(url), _node['interestingStats']['couch_docs_data_size']))
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("couch_spatial_data_size", url, _node['interestingStats']['couch_spatial_data_size']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("couch_spatial_data_size", convert_ip_to_string(url), _node['interestingStats']['couch_spatial_data_size']))
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("couch_spatial_disk_size", url, _node['interestingStats']['couch_spatial_disk_size']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("couch_spatial_disk_size", convert_ip_to_string(url), _node['interestingStats']['couch_spatial_disk_size']))
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("couch_views_actual_disk_size", url, _node['interestingStats']['couch_views_actual_disk_size']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("couch_views_actual_disk_size", convert_ip_to_string(url), _node['interestingStats']['couch_views_actual_disk_size']))
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("couch_views_data_size", url, _node['interestingStats']['couch_views_data_size']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("couch_views_data_size", convert_ip_to_string(url), _node['interestingStats']['couch_views_data_size']))
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("curr_items", url, _node['interestingStats']['curr_items']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("curr_items", convert_ip_to_string(url), _node['interestingStats']['curr_items']))
 
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("curr_items_tot", url, _node['interestingStats']['curr_items_tot']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("curr_items_tot", convert_ip_to_string(url), _node['interestingStats']['curr_items_tot']))
 
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("ep_bg_fetched", url, _node['interestingStats']['ep_bg_fetched']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("ep_bg_fetched", convert_ip_to_string(url), _node['interestingStats']['ep_bg_fetched']))
 
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("get_hits", url, _node['interestingStats']['get_hits']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("get_hits", convert_ip_to_string(url), _node['interestingStats']['get_hits']))
 
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("mem_used", url, _node['interestingStats']['mem_used']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("mem_used", convert_ip_to_string(url), _node['interestingStats']['mem_used']))
 
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("ops", url, _node['interestingStats']['ops']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("ops", convert_ip_to_string(url), _node['interestingStats']['ops']))
 
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("vb_active_num_non_resident", url, _node['interestingStats']['vb_active_num_non_resident']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("vb_active_num_non_resident", convert_ip_to_string(url), _node['interestingStats']['vb_active_num_non_resident']))
 
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("vb_replica_curr_items", url, _node['interestingStats']['vb_replica_curr_items']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("vb_replica_curr_items", convert_ip_to_string(url), _node['interestingStats']['vb_replica_curr_items']))
 
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("uptime", url, _node['uptime']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("uptime", convert_ip_to_string(url), _node['uptime']))
 
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("memoryTotal", url, _node['memoryTotal']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("memoryTotal", convert_ip_to_string(url), _node['memoryTotal']))
 
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("memoryFree", url, _node['memoryFree']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("memoryFree", convert_ip_to_string(url), _node['memoryFree']))
 
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("mcdMemoryReserved", url, _node['mcdMemoryReserved']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("mcdMemoryReserved", convert_ip_to_string(url), _node['mcdMemoryReserved']))
 
                         except Exception as e:
                             pass
                         try:
-                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("mcdMemoryAllocated", url, _node['mcdMemoryAllocated']))
+                            metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("mcdMemoryAllocated", convert_ip_to_string(url), _node['mcdMemoryAllocated']))
 
                         except Exception as e:
                             pass
                         try:
                             if _node['clusterMembership'] == "active":
-                                metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("clusterMembership", url, 1))
+                                metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("clusterMembership", convert_ip_to_string(url), 1))
                             else:
-                                metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("clusterMembership", url, 0))
+                                metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("clusterMembership", convert_ip_to_string(url), 0))
                         except Exception as e:
                             pass
                         try:
                             if _node['recoveryType'] == "none":
-                                metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("recoveryType", url, 0))
+                                metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("recoveryType", convert_ip_to_string(url), 0))
                             else:
-                                metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("recoveryType", url, 1))
+                                metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("recoveryType", convert_ip_to_string(url), 1))
                         except Exception as e:
                             pass
                         try:
                             if _node['status'] == "healthy":
-                                metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("status", url, 1))
+                                metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("status", convert_ip_to_string(url), 1))
                             else:
-                                metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("status", url, 1))
+                                metrics.append("{} {{node=\"{}\", type=\"nodes\"}} {}".format("status", convert_ip_to_string(url), 1))
                         except Exception as e:
                             pass
                 except Exception as e:
@@ -396,33 +399,34 @@ def _get_bucket_metrics(url, user, passwrd, nodeList):
 
                 b = (urllib2.urlopen(req)).read()
                 b_json = json.loads(b)
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("mem_used", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['mem_used']) / len(b_json['op']['samples']['mem_used'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_kv_size", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_kv_size']) / len(b_json['op']['samples']['ep_kv_size'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_mem_high_wat", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_mem_high_wat']) / len(b_json['op']['samples']['ep_mem_high_wat'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("mem_total", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['mem_total']) / len(b_json['op']['samples']['mem_total'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_meta_data_memory", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_meta_data_memory']) / len(b_json['op']['samples']['ep_meta_data_memory'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_queue_size", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_queue_size']) / len(b_json['op']['samples']['ep_queue_size'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_flusher_todo", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_flusher_todo']) / len(b_json['op']['samples']['ep_flusher_todo'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("vb_avg_total_queue_age", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['vb_avg_total_queue_age']) / len(b_json['op']['samples']['vb_avg_total_queue_age'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_replica_items_remaining", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_dcp_replica_items_remaining']) / len(b_json['op']['samples']['ep_dcp_replica_items_remaining'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ops", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ops']) / len(b_json['op']['samples']['ops'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("cmd_get", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['cmd_get']) / len(b_json['op']['samples']['cmd_get'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("cmd_set", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['cmd_set']) / len(b_json['op']['samples']['cmd_set'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("delete_hits", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['delete_hits']) / len(b_json['op']['samples']['delete_hits'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_bg_fetched", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_bg_fetched']) / len(b_json['op']['samples']['ep_bg_fetched'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("curr_connections", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['curr_connections']) / len(b_json['op']['samples']['curr_connections'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("curr_items", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['curr_items']) / len(b_json['op']['samples']['curr_items'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("vb_active_resident_items_ratio", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['vb_active_resident_items_ratio']) / len(b_json['op']['samples']['vb_active_resident_items_ratio'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("vb_replica_resident_items_ratio", bucket['name'], node.split(":")[0], node.split(":")[0], sum(b_json['op']['samples']['vb_replica_resident_items_ratio']) / len(b_json['op']['samples']['vb_replica_resident_items_ratio'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_tmp_oom_errors", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_tmp_oom_errors']) / len(b_json['op']['samples']['ep_tmp_oom_errors'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_views_items_remaining", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_dcp_views_items_remaining']) / len(b_json['op']['samples']['ep_dcp_views_items_remaining'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_2i_items_remaining", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_queue_size']) / len(b_json['op']['samples']['ep_queue_size'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_replica_backoff", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_dcp_replica_backoff']) / len(b_json['op']['samples']['ep_dcp_replica_backoff'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_xdcr_backoff", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['ep_dcp_xdcr_backoff']) / len(b_json['op']['samples']['ep_dcp_xdcr_backoff'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("couch_docs_fragmentation", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['couch_docs_fragmentation']) / len(b_json['op']['samples']['couch_docs_fragmentation'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("couch_views_fragmentation", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['couch_views_fragmentation']) / len(b_json['op']['samples']['couch_views_fragmentation'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("vb_replica_num", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['vb_replica_num']) / len(b_json['op']['samples']['vb_replica_num'])))
-                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("vb_active_num", bucket['name'], node.split(":")[0], sum(b_json['op']['samples']['vb_active_num']) / len(b_json['op']['samples']['vb_active_num'])))
+                _node = convert_ip_to_string(node)
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("mem_used", bucket['name'], _node, sum(b_json['op']['samples']['mem_used']) / len(b_json['op']['samples']['mem_used'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_kv_size", bucket['name'], _node, sum(b_json['op']['samples']['ep_kv_size']) / len(b_json['op']['samples']['ep_kv_size'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_mem_high_wat", bucket['name'], _node, sum(b_json['op']['samples']['ep_mem_high_wat']) / len(b_json['op']['samples']['ep_mem_high_wat'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("mem_total", bucket['name'], _node, sum(b_json['op']['samples']['mem_total']) / len(b_json['op']['samples']['mem_total'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_meta_data_memory", bucket['name'], _node, sum(b_json['op']['samples']['ep_meta_data_memory']) / len(b_json['op']['samples']['ep_meta_data_memory'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_queue_size", bucket['name'], _node, sum(b_json['op']['samples']['ep_queue_size']) / len(b_json['op']['samples']['ep_queue_size'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_flusher_todo", bucket['name'], _node, sum(b_json['op']['samples']['ep_flusher_todo']) / len(b_json['op']['samples']['ep_flusher_todo'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("vb_avg_total_queue_age", bucket['name'], _node, sum(b_json['op']['samples']['vb_avg_total_queue_age']) / len(b_json['op']['samples']['vb_avg_total_queue_age'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_replica_items_remaining", bucket['name'], _node, sum(b_json['op']['samples']['ep_dcp_replica_items_remaining']) / len(b_json['op']['samples']['ep_dcp_replica_items_remaining'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ops", bucket['name'], _node, sum(b_json['op']['samples']['ops']) / len(b_json['op']['samples']['ops'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("cmd_get", bucket['name'], _node, sum(b_json['op']['samples']['cmd_get']) / len(b_json['op']['samples']['cmd_get'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("cmd_set", bucket['name'], _node, sum(b_json['op']['samples']['cmd_set']) / len(b_json['op']['samples']['cmd_set'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("delete_hits", bucket['name'], _node, sum(b_json['op']['samples']['delete_hits']) / len(b_json['op']['samples']['delete_hits'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_bg_fetched", bucket['name'], _node, sum(b_json['op']['samples']['ep_bg_fetched']) / len(b_json['op']['samples']['ep_bg_fetched'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("curr_connections", bucket['name'], _node, sum(b_json['op']['samples']['curr_connections']) / len(b_json['op']['samples']['curr_connections'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("curr_items", bucket['name'], _node, sum(b_json['op']['samples']['curr_items']) / len(b_json['op']['samples']['curr_items'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("vb_active_resident_items_ratio", bucket['name'], _node, sum(b_json['op']['samples']['vb_active_resident_items_ratio']) / len(b_json['op']['samples']['vb_active_resident_items_ratio'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("vb_replica_resident_items_ratio", bucket['name'], _node, sum(b_json['op']['samples']['vb_replica_resident_items_ratio']) / len(b_json['op']['samples']['vb_replica_resident_items_ratio'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_tmp_oom_errors", bucket['name'], _node, sum(b_json['op']['samples']['ep_tmp_oom_errors']) / len(b_json['op']['samples']['ep_tmp_oom_errors'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_views_items_remaining", bucket['name'], _node, sum(b_json['op']['samples']['ep_dcp_views_items_remaining']) / len(b_json['op']['samples']['ep_dcp_views_items_remaining'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_2i_items_remaining", bucket['name'], _node, sum(b_json['op']['samples']['ep_queue_size']) / len(b_json['op']['samples']['ep_queue_size'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_replica_backoff", bucket['name'], _node, sum(b_json['op']['samples']['ep_dcp_replica_backoff']) / len(b_json['op']['samples']['ep_dcp_replica_backoff'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("ep_dcp_xdcr_backoff", bucket['name'], _node, sum(b_json['op']['samples']['ep_dcp_xdcr_backoff']) / len(b_json['op']['samples']['ep_dcp_xdcr_backoff'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("couch_docs_fragmentation", bucket['name'], _node, sum(b_json['op']['samples']['couch_docs_fragmentation']) / len(b_json['op']['samples']['couch_docs_fragmentation'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("couch_views_fragmentation", bucket['name'], _node, sum(b_json['op']['samples']['couch_views_fragmentation']) / len(b_json['op']['samples']['couch_views_fragmentation'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("vb_replica_num", bucket['name'], _node, sum(b_json['op']['samples']['vb_replica_num']) / len(b_json['op']['samples']['vb_replica_num'])))
+                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {}".format("vb_active_num", bucket['name'], _node, sum(b_json['op']['samples']['vb_active_num']) / len(b_json['op']['samples']['vb_active_num'])))
 
         return bucket_info
     except Exception as e:
@@ -470,9 +474,9 @@ def _get_view_metrics(url, user, passwrd, bucketList):
 
     for definition in viewInfo['definitions']:
         if definition['type'] == "spatial":
-            viewUrl = "http://{}:8092/{}/{}/_spatial/{}".format(url, bucket, definition['id'], definition['name'])
+            viewUrl = "http://{}:8092/{}/{}/_spatial/{}".format(convert_ip_to_string(url), bucket, definition['id'], definition['name'])
         elif definition['type'] == "views":
-            viewUrl = "http://{}:8092/{}/{}/_views/{}".format(url, bucket, definition['id'], definition['name'])
+            viewUrl = "http://{}:8092/{}/{}/_views/{}".format(convert_ip_to_string(url), bucket, definition['id'], definition['name'])
         print(viewUrl)
     metrics = []
     return metrics
@@ -498,10 +502,11 @@ def _get_index_metrics(url, user, passwrd, nodes, buckets):
 
             _i = (urllib2.urlopen(req)).read()
             _i_json = json.loads(_i)
-            index_info['metrics'].append("{} {{node = \"{}\", type=\"index\"}} {}".format("index_ram_percent", node.split(":")[0], sum(_i_json['op']['samples']['index_ram_percent']) / len(_i_json['op']['samples']['index_ram_percent'])))
-            index_info['metrics'].append("{} {{node = \"{}\", type=\"index\"}} {}".format("index_memory_used", node.split(":")[0],  sum(_i_json['op']['samples']['index_memory_used']) / len(_i_json['op']['samples']['index_memory_used'])))
-            index_info['metrics'].append("{} {{node = \"{}\", type=\"index\"}} {}".format("index_memory_quota", node.split(":")[0], sum(_i_json['op']['samples']['index_memory_quota']) / len(_i_json['op']['samples']['index_memory_quota'])))
-            index_info['metrics'].append("{} {{node = \"{}\", type=\"index\"}} {}".format("index_remaining_ram", node.split(":")[0], sum(_i_json['op']['samples']['index_remaining_ram']) / len(_i_json['op']['samples']['index_remaining_ram'])))
+            _node = convert_ip_to_string(node)
+            index_info['metrics'].append("{} {{node = \"{}\", type=\"index\"}} {}".format("index_ram_percent", _node, sum(_i_json['op']['samples']['index_ram_percent']) / len(_i_json['op']['samples']['index_ram_percent'])))
+            index_info['metrics'].append("{} {{node = \"{}\", type=\"index\"}} {}".format("index_memory_used", _node,  sum(_i_json['op']['samples']['index_memory_used']) / len(_i_json['op']['samples']['index_memory_used'])))
+            index_info['metrics'].append("{} {{node = \"{}\", type=\"index\"}} {}".format("index_memory_quota", _node, sum(_i_json['op']['samples']['index_memory_quota']) / len(_i_json['op']['samples']['index_memory_quota'])))
+            index_info['metrics'].append("{} {{node = \"{}\", type=\"index\"}} {}".format("index_remaining_ram", _node, sum(_i_json['op']['samples']['index_remaining_ram']) / len(_i_json['op']['samples']['index_remaining_ram'])))
         except Exception as e:
             print("index base: " + str(e))
 
@@ -526,7 +531,7 @@ def _get_index_metrics(url, user, passwrd, nodes, buckets):
                     name = ""
                     index_type=""
                     stat = ""
-                    _node = node.split(":")[0]
+                    _node = convert_ip_to_string(node)
                     try:
                         split_record = record.split("/")
 
@@ -577,26 +582,27 @@ def _get_query_metrics(url, user, passwrd, nodeList):
 
             _q = (urllib2.urlopen(req)).read()
             _q_json = json.loads(_q)
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_warnings", node.split(":")[0], sum(_q_json['op']['samples']['query_warnings']) / len(_q_json['op']['samples']['query_warnings'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_request_time", node.split(":")[0], sum(_q_json['op']['samples']['query_request_time']) / len(_q_json['op']['samples']['query_request_time'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_result_count", node.split(":")[0], sum(_q_json['op']['samples']['query_result_count']) / len(_q_json['op']['samples']['query_result_count'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_selects", node.split(":")[0], sum(_q_json['op']['samples']['query_selects']) / len(_q_json['op']['samples']['query_selects'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_requests_500ms", node.split(":")[0], sum(_q_json['op']['samples']['query_requests_500ms']) / len(_q_json['op']['samples']['query_requests_500ms'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_active_requests", node.split(":")[0], sum(_q_json['op']['samples']['query_active_requests']) / len(_q_json['op']['samples']['query_active_requests'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_requests_5000ms", node.split(":")[0], sum(_q_json['op']['samples']['query_requests_5000ms']) / len(_q_json['op']['samples']['query_requests_5000ms'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_requests_1000ms", node.split(":")[0], sum(_q_json['op']['samples']['query_requests_1000ms']) / len(_q_json['op']['samples']['query_requests_1000ms'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_invalid_requests", node.split(":")[0], sum(_q_json['op']['samples']['query_invalid_requests']) / len(_q_json['op']['samples']['query_invalid_requests'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_queued_requests", node.split(":")[0], sum(_q_json['op']['samples']['query_queued_requests']) / len(_q_json['op']['samples']['query_queued_requests'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_avg_result_count", node.split(":")[0], sum(_q_json['op']['samples']['query_avg_result_count']) / len(_q_json['op']['samples']['query_avg_result_count'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_service_time", node.split(":")[0], sum(_q_json['op']['samples']['query_service_time']) / len(_q_json['op']['samples']['query_service_time'])))
-            # query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("timestamp", node.split(":")[0], sum(_q_json['op']['samples']['timestamp']) / len(_q_json['op']['samples']['timestamp'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_avg_svc_time", node.split(":")[0], sum(_q_json['op']['samples']['query_avg_svc_time']) / len(_q_json['op']['samples']['query_avg_svc_time'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_errors", node.split(":")[0], sum(_q_json['op']['samples']['query_errors']) / len(_q_json['op']['samples']['query_errors'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_requests", node.split(":")[0], sum(_q_json['op']['samples']['query_requests']) / len(_q_json['op']['samples']['query_requests'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_avg_response_size", node.split(":")[0], sum(_q_json['op']['samples']['query_avg_response_size']) / len(_q_json['op']['samples']['query_avg_response_size'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_result_size", node.split(":")[0], sum(_q_json['op']['samples']['query_result_size']) / len(_q_json['op']['samples']['query_result_size'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_avg_req_time", node.split(":")[0], sum(_q_json['op']['samples']['query_avg_req_time']) / len(_q_json['op']['samples']['query_avg_req_time'])))
-            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_requests_250ms", node.split(":")[0], sum(_q_json['op']['samples']['query_requests_250ms']) / len(_q_json['op']['samples']['query_requests_250ms'])))
+            _node = convert_ip_to_string(node)
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_warnings", _node, sum(_q_json['op']['samples']['query_warnings']) / len(_q_json['op']['samples']['query_warnings'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_request_time", _node, sum(_q_json['op']['samples']['query_request_time']) / len(_q_json['op']['samples']['query_request_time'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_result_count", _node, sum(_q_json['op']['samples']['query_result_count']) / len(_q_json['op']['samples']['query_result_count'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_selects", _node, sum(_q_json['op']['samples']['query_selects']) / len(_q_json['op']['samples']['query_selects'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_requests_500ms", _node, sum(_q_json['op']['samples']['query_requests_500ms']) / len(_q_json['op']['samples']['query_requests_500ms'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_active_requests", _node, sum(_q_json['op']['samples']['query_active_requests']) / len(_q_json['op']['samples']['query_active_requests'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_requests_5000ms", _node, sum(_q_json['op']['samples']['query_requests_5000ms']) / len(_q_json['op']['samples']['query_requests_5000ms'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_requests_1000ms", _node, sum(_q_json['op']['samples']['query_requests_1000ms']) / len(_q_json['op']['samples']['query_requests_1000ms'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_invalid_requests", _node, sum(_q_json['op']['samples']['query_invalid_requests']) / len(_q_json['op']['samples']['query_invalid_requests'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_queued_requests", _node, sum(_q_json['op']['samples']['query_queued_requests']) / len(_q_json['op']['samples']['query_queued_requests'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_avg_result_count", _node, sum(_q_json['op']['samples']['query_avg_result_count']) / len(_q_json['op']['samples']['query_avg_result_count'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_service_time", _node, sum(_q_json['op']['samples']['query_service_time']) / len(_q_json['op']['samples']['query_service_time'])))
+            # query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("timestamp", _node, sum(_q_json['op']['samples']['timestamp']) / len(_q_json['op']['samples']['timestamp'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_avg_svc_time", _node, sum(_q_json['op']['samples']['query_avg_svc_time']) / len(_q_json['op']['samples']['query_avg_svc_time'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_errors", _node, sum(_q_json['op']['samples']['query_errors']) / len(_q_json['op']['samples']['query_errors'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_requests", _node, sum(_q_json['op']['samples']['query_requests']) / len(_q_json['op']['samples']['query_requests'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_avg_response_size", _node, sum(_q_json['op']['samples']['query_avg_response_size']) / len(_q_json['op']['samples']['query_avg_response_size'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_result_size", _node, sum(_q_json['op']['samples']['query_result_size']) / len(_q_json['op']['samples']['query_result_size'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_avg_req_time", _node, sum(_q_json['op']['samples']['query_avg_req_time']) / len(_q_json['op']['samples']['query_avg_req_time'])))
+            query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {}".format("query_requests_250ms", _node, sum(_q_json['op']['samples']['query_requests_250ms']) / len(_q_json['op']['samples']['query_requests_250ms'])))
 
             # for metric in query_info['metrics']:
             #     print(metric)
@@ -627,7 +633,7 @@ def _get_eventing_metrics(url, user, passwrd, nodeList):
                 name = ""
                 metric_type=""
                 stat = ""
-                _node = node.split(":")[0]
+                _node = convert_ip_to_string(node)
                 try:
                     split_record = record.split("/")
                     if len(split_record) == 3:
@@ -649,7 +655,7 @@ def _get_eventing_metrics(url, user, passwrd, nodeList):
                         next
 
                 except Exception as e:
-                    pprint("eventing base: " + str(e))
+                    print("eventing base: " + str(e))
         except Exception as e:
             print("eventing: " + str(e))
     return eventing_metrics
@@ -677,7 +683,7 @@ def _get_fts_metrics(url, user, passwrd, nodeList, bucketList):
                     name = ""
                     metric_type=""
                     stat = ""
-                    _node = node.split(":")[0]
+                    _node = convert_ip_to_string(node)
                     try:
                         split_record = record.split("/")
                         if len(split_record) == 3:
@@ -722,15 +728,15 @@ def _get_analytics_metrics(url, user, passwrd, nodeList):
 
             _a = (urllib2.urlopen(req)).read()
             _a_json = json.loads(_a)
-
-            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_disk_used", node, sum(_a_json['op']['samples']['cbas_disk_used']) / len(_a_json['op']['samples']['cbas_disk_used'])))
-            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_gc_time", node, sum(_a_json['op']['samples']['cbas_gc_time']) / len(_a_json['op']['samples']['cbas_gc_time'])))
-            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_io_writes", node, sum(_a_json['op']['samples']['cbas_io_writes']) / len(_a_json['op']['samples']['cbas_io_writes'])))
-            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_gc_count", node, sum(_a_json['op']['samples']['cbas_gc_count']) / len(_a_json['op']['samples']['cbas_gc_count'])))
-            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_heap_used", node, sum(_a_json['op']['samples']['cbas_heap_used']) / len(_a_json['op']['samples']['cbas_heap_used'])))
-            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_system_load_average", node, sum(_a_json['op']['samples']['cbas_system_load_average']) / len(_a_json['op']['samples']['cbas_system_load_average'])))
-            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_thread_count", node, sum(_a_json['op']['samples']['cbas_thread_count']) / len(_a_json['op']['samples']['cbas_thread_count'])))
-            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_io_reads", node, sum(_a_json['op']['samples']['cbas_io_reads']) / len(_a_json['op']['samples']['cbas_io_reads'])))
+            _node = convert_ip_to_string(node)
+            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_disk_used", _node, sum(_a_json['op']['samples']['cbas_disk_used']) / len(_a_json['op']['samples']['cbas_disk_used'])))
+            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_gc_time", _node, sum(_a_json['op']['samples']['cbas_gc_time']) / len(_a_json['op']['samples']['cbas_gc_time'])))
+            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_io_writes", _node, sum(_a_json['op']['samples']['cbas_io_writes']) / len(_a_json['op']['samples']['cbas_io_writes'])))
+            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_gc_count", _node, sum(_a_json['op']['samples']['cbas_gc_count']) / len(_a_json['op']['samples']['cbas_gc_count'])))
+            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_heap_used", _node, sum(_a_json['op']['samples']['cbas_heap_used']) / len(_a_json['op']['samples']['cbas_heap_used'])))
+            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_system_load_average", _node, sum(_a_json['op']['samples']['cbas_system_load_average']) / len(_a_json['op']['samples']['cbas_system_load_average'])))
+            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_thread_count", _node, sum(_a_json['op']['samples']['cbas_thread_count']) / len(_a_json['op']['samples']['cbas_thread_count'])))
+            cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {}".format("cbas_io_reads", _node, sum(_a_json['op']['samples']['cbas_io_reads']) / len(_a_json['op']['samples']['cbas_io_reads'])))
         except Exception as e:
             print("analytics base: " + str(e))
     return cbas_metrics
@@ -788,12 +794,12 @@ def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
                     else:
                         status = 2
 
-                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("status", id, source, clusterDefinintion[id]['name'], clusterDefinintion[id]['hostname'], destBucket, status))
-                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("changesLeft", id, source, clusterDefinintion[id]['name'], clusterDefinintion[id]['hostname'], destBucket, record['changesLeft']))
-                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("docsChecked", id, source, clusterDefinintion[id]['name'], clusterDefinintion[id]['hostname'], destBucket, record['docsChecked']))
-                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("docsWritten", id, source, clusterDefinintion[id]['name'], clusterDefinintion[id]['hostname'], destBucket, record['docsWritten']))
-                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("errors", id, source, clusterDefinintion[id]['name'], clusterDefinintion[id]['hostname'], destBucket, len(record['errors'])))
-                    # xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("", id, source, clusterDefinintion[id]['name'], clusterDefinintion[id]['hostname'], destBucket, ""))
+                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("status", id, source, clusterDefinintion[id]['name'], convert_ip_to_string(clusterDefinintion[id]['hostname']), destBucket, status))
+                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("changesLeft", id, source, clusterDefinintion[id]['name'], convert_ip_to_string(clusterDefinintion[id]['hostname']), destBucket, record['changesLeft']))
+                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("docsChecked", id, source, clusterDefinintion[id]['name'], convert_ip_to_string(clusterDefinintion[id]['hostname']), destBucket, record['docsChecked']))
+                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("docsWritten", id, source, clusterDefinintion[id]['name'], convert_ip_to_string(clusterDefinintion[id]['hostname']), destBucket, record['docsWritten']))
+                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("errors", id, source, clusterDefinintion[id]['name'], convert_ip_to_string(clusterDefinintion[id]['hostname']), destBucket, len(record['errors'])))
+                    # xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("", id, source, clusterDefinintion[id]['name'], convert_ip_to_string(clusterDefinintion[id]['hostname']), destBucket, ""))
 
         except Exception as e:
             print("xdcr in: " + str(e))
@@ -818,9 +824,9 @@ def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
                 for entry in _n_json['op']['samples']:
                     key_split = entry.split("/")
                     if len(key_split) == 5:
-                        xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"node\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\", node=\"{}\"}} {}".format(key_split[4], key_split[1], key_split[2], clusterDefinintion[key_split[1]]['name'], clusterDefinintion[key_split[1]]['hostname'], key_split[3], node, sum(_n_json['op']['samples'][entry])/len(_n_json['op']['samples'][entry])))
+                        xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"node\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\", node=\"{}\"}} {}".format(key_split[4], key_split[1], key_split[2], convert_ip_to_string(clusterDefinintion[key_split[1]]['name']), convert_ip_to_string(clusterDefinintion[key_split[1]]['hostname']), key_split[3], convert_ip_to_string(node), sum(_n_json['op']['samples'][entry])/len(_n_json['op']['samples'][entry])))
                     elif len(key_split) == 1 and entry != "timestamp":
-                        xdcr_metrics['metrics'].append("{} {{level=\"bucket\", source=\"{}\", type=\"xdcr\", node=\"{}\"}} {}".format(entry, bucket, node, sum(_n_json['op']['samples'][entry])/len(_n_json['op']['samples'][entry])))
+                        xdcr_metrics['metrics'].append("{} {{level=\"bucket\", source=\"{}\", type=\"xdcr\", node=\"{}\"}} {}".format(entry, bucket, convert_ip_to_string(node), sum(_n_json['op']['samples'][entry])/len(_n_json['op']['samples'][entry])))
             except Exception as e:
                 print("xdcr: " + str(e))
     return xdcr_metrics
@@ -871,7 +877,7 @@ if __name__ == "__main__":
     passwrd = "password1"
 
     clusterValues = _getCluster(url, user, passwrd)
-    # bucket_metrics = _get_bucket_metrics(url, user, passwrd)
-    # metrics = _get_xdcr_metrics(url, user, passwrd, clusterValues['nodeList'], bucket_metrics['buckets'])
-    # for entry in metrics['metrics']:
-    #     print(entry)
+    bucket_metrics = _get_bucket_metrics(url, user, passwrd, clusterValues['serviceNodes']['kv'])
+    metrics = _get_xdcr_metrics(url, user, passwrd, clusterValues['nodeList'], bucket_metrics['buckets'])
+    for entry in metrics['metrics']:
+        print(entry)
