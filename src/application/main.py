@@ -831,11 +831,7 @@ def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
                 print("xdcr: " + str(e))
     return xdcr_metrics
 
-def get_metrics():
-    url = "10.112.191.101"
-    user = "Administrator"
-    passwrd = "password1"
-
+def get_metrics(url="127.0.0.1", user="Administrator", passwrd="password"):
     clusterValues = _getCluster(url, user, passwrd)
     metrics = clusterValues['metrics']
 

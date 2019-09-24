@@ -9,7 +9,10 @@ class BaseConfig(object):
     LOGGING_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     LOGGING_LOCATION = '../logs/messaging.log'
     LOGGING_LEVEL = logging.INFO
-
+    CB_DATABASE = os.environ.get("CB_DATABASE", "localhost:8091")
+    CB_USERNAME = os.environ.get("CB_USERNAME", "Administrator")
+    CB_PASSWORD = os.environ.get("CB_PASSWORD", "password")
+    
 config = {
     "default": "config.BaseConfig"
 }
