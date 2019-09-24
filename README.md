@@ -1,7 +1,9 @@
 # cbstats
 
 set environment variables:<br/>
-```export CB_DATABASE='<>' 
+
+```
+export CB_DATABASE='<>' 
 export CB_USERNAME='<>'
 export CB_PASSWORD='<>'
 ```
