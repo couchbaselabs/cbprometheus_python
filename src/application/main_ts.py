@@ -48,7 +48,6 @@ def _getCluster(url, user, passwrd, nodeList = []):
         service_nodes['fts'] = []
         service_nodes['cbas'] = []
 
-
         result['metrics'] = []
         convrt_url = convert_ip_to_string(url)
         for record in stats:
@@ -442,7 +441,6 @@ def _get_cbas_metrics(url, user, passwrd, nodeList):
             print("analytics base: " + str(e))
     return cbas_metrics
 
-
 def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
     xdcr_metrics = {}
     xdcr_metrics['metrics']= []
@@ -490,9 +488,20 @@ def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
                     id = record['id'].split("/")[0]
                     hostname = convert_ip_to_string(clusterDefinintion[id]['hostname'])
                     for metric in record:
-                        if metric in ["source","target", "id", "filterExpression", "continuous", "settingsURI", "maxVBReps", "replicationType", "type", "cancelURI"]:
+                        if metric in ["source",
+                                      "target",
+                                      "id",
+                                      "filterExpression",
+                                      "continuous",
+                                      "settingsURI",
+                                      "maxVBReps",
+                                      "replicationType",
+                                      "type",
+                                      "cancelURI"]:
                             next
-                        elif metric in ["status", "pauseRequested", "errors"]:
+                        elif metric in ["status",
+                                        "pauseRequested",
+                                        "errors"]:
                             if metric == "status":
                                 if record['status'] == "running":
                                     status = 0
@@ -515,31 +524,81 @@ def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
             print("xdcr in: " + str(e))
     except Exception as e:
         print("xcdr out: " + str(e))
-    #
-    # for node in nodes:
-    #     for bucket in buckets:
-    #         try:
-    #             _node_url = "http://{}/pools/default/buckets/@xdcr-{}/nodes/{}/stats".format(node, bucket, node)
-    #             req = urllib2.Request(_node_url,
-    #                                   headers={
-    #                                       "Authorization": basic_authorization(user, passwrd),
-    #                                       "Content-Type": "application/x-www-form-urlencoded",
-    #
-    #                                       # Some extra headers for fun
-    #                                       "Accept": "*/*", # curl does this
-    #                                       "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
-    #                                   })
-    #             _n = (urllib2.urlopen(req)).read()
-    #             _n_json = json.loads(_n)
-    #             for entry in _n_json['op']['samples']:
-    #                 key_split = entry.split("/")
-    #                 if len(key_split) == 5:
-    #                     xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"node\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\", node=\"{}\"}} {}".format(key_split[4], key_split[1], key_split[2], convert_ip_to_string(clusterDefinintion[key_split[1]]['name']), convert_ip_to_string(clusterDefinintion[key_split[1]]['hostname']), key_split[3], convert_ip_to_string(node), sum(_n_json['op']['samples'][entry])/len(_n_json['op']['samples'][entry])))
-    #                 elif len(key_split) == 1 and entry != "timestamp":
-    #                     xdcr_metrics['metrics'].append("{} {{level=\"bucket\", source=\"{}\", type=\"xdcr\", node=\"{}\"}} {}".format(entry, bucket, convert_ip_to_string(node), sum(_n_json['op']['samples'][entry])/len(_n_json['op']['samples'][entry])))
-    #         except Exception as e:
-    #             print("xdcr: " + str(e))
+
+    for node in nodes:
+        for bucket in buckets:
+            try:
+                _node_url = "http://{}/pools/default/buckets/@xdcr-{}/nodes/{}/stats".format(node, bucket, node)
+                req = urllib2.Request(_node_url,
+                                      headers={
+                                          "Authorization": basic_authorization(user, passwrd),
+                                          "Content-Type": "application/x-www-form-urlencoded",
+
+                                          # Some extra headers for fun
+                                          "Accept": "*/*", # curl does this
+                                          "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                      })
+                n = (urllib2.urlopen(req)).read()
+                n_json = json.loads(n)
+                for entry in n_json['op']['samples']:
+                    key_split = entry.split("/")
+                    if len(key_split) == 5:
+                        if entry not in ["timestamp"]:
+                            if type(n_json['op']['samples'][entry]) == type([]):
+                                for idx, datapoint in enumerate(n_json['op']['samples'][entry]):
+                                    xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"node\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\", node=\"{}\"}} {} {}".format(key_split[4], key_split[1], key_split[2], convert_ip_to_string(clusterDefinintion[key_split[1]]['name']), convert_ip_to_string(clusterDefinintion[key_split[1]]['hostname']), key_split[3], convert_ip_to_string(node), datapoint, n_json['op']['samples']['timestamp'][idx]))
+                            elif len(key_split) == 1:
+                                for idx, datapoint in enumerate(n_json['op']['samples'][entry]):
+                                    xdcr_metrics['metrics'].append("{} {{level=\"bucket\", source=\"{}\", type=\"xdcr\", node=\"{}\"}} {} {}".format(entry, bucket, convert_ip_to_string(node), datapoint, n_json['op']['samples']['timestamp'][idx]))
+            except Exception as e:
+                print("xdcr: " + str(e))
     return xdcr_metrics
+
+def get_metrics(url="10.112.192.101", user="Administrator", passwrd="password"):
+    metrics = []
+    clusterValues = {'metrics':[]}
+
+    clusterValues = _getCluster(url, user, passwrd)
+
+    print(clusterValues)
+
+    metrics = clusterValues['metrics']
+
+    nodeMetrics = _getCluster(url, user, passwrd, clusterValues['nodeList'])
+    metrics = metrics + nodeMetrics['metrics']
+
+    if len(clusterValues['serviceNodes']['kv']) > 0:
+        bucketMetrics = _get_bucket_metrics(url, user, passwrd, clusterValues['serviceNodes']['kv'])
+        metrics = metrics + bucketMetrics['metrics']
+
+    if len(clusterValues['serviceNodes']['index']) > 0 and bucketMetrics['buckets']:
+        indexMetrics = _get_index_metrics(url, user, passwrd, clusterValues['serviceNodes']['index'], bucketMetrics['buckets'])
+        metrics = metrics + indexMetrics['metrics']
+
+    if len(clusterValues['serviceNodes']['n1ql']) > 0:
+        queryMetrics = _get_query_metrics(url, user, passwrd, clusterValues['serviceNodes']['n1ql'])
+        metrics = metrics + queryMetrics['metrics']
+
+    if len(clusterValues['serviceNodes']['eventing']) > 0:
+        eventingMetrics = _get_eventing_metrics(url, user, passwrd, clusterValues['serviceNodes']['eventing'])
+        metrics = metrics + eventingMetrics['metrics']
+
+    if len(clusterValues['serviceNodes']['fts']) > 0:
+        ftsMetrics = _get_fts_metrics(url, user, passwrd, clusterValues['serviceNodes']['fts'], bucketMetrics['buckets'])
+        metrics = metrics + ftsMetrics['metrics']
+
+    if len(clusterValues['serviceNodes']['cbas']) > 0:
+        cbasMetrics = _get_cbas_metrics(url, user, passwrd, clusterValues['serviceNodes']['cbas'])
+        metrics = metrics + cbasMetrics['metrics']
+
+    xdcrMetrics = _get_xdcr_metrics(url, user, passwrd, clusterValues['serviceNodes']['kv'], bucketMetrics['buckets'])
+    metrics = metrics + cbasMetrics['metrics']
+
+    metrics_str = "\n"
+    metrics_str = metrics_str.join(metrics)
+
+    return metrics_str
+
 
 
 if __name__ == "__main__":
@@ -549,7 +608,7 @@ if __name__ == "__main__":
 
     metrics = []
 
-    clusterValues = _getCluster(url, user, passwrd)
+    clusterValues = _getCluster(url, user, passwrd, [])
     metrics = clusterValues['metrics']
 
     nodeMetrics = _getCluster(url, user, passwrd, clusterValues['nodeList'])
@@ -574,5 +633,7 @@ if __name__ == "__main__":
     metrics = metrics + cbasMetrics['metrics']
 
     xdcrMetrics = _get_xdcr_metrics(url, user, passwrd, clusterValues['serviceNodes']['kv'], bucketMetrics['buckets'])
+    metrics = metrics + cbasMetrics['metrics']
+
     for metric in xdcrMetrics['metrics']:
         print(metric)
