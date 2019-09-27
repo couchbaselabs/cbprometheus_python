@@ -199,9 +199,18 @@ def _get_bucket_metrics(url, user, passwrd, nodeList):
                     b_json = json.loads(b)
                     _node = convert_ip_to_string(node)
                     for record in  b_json['op']['samples']:
+
                         if record != "timestamp":
-                            for idx, datapoint in enumerate(b_json['op']['samples'][record]):
-                                bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {} {}".format(record, bucket['name'], _node, datapoint, b_json['op']['samples']['timestamp'][idx]))
+                            if len(record.split("/")) == 3:
+                                ddocType = record.split("/")[0]
+                                ddocUUID = record.split("/")[1]
+                                ddocStat = record.split("/")[2]
+                                for idx, datapoint in enumerate(b_json['op']['samples'][record]):
+                                    bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"view\" viewType=\"{}\", view=\"{}\"}} {} {}".format(ddocStat, bucket['name'], _node, ddocType, ddocUUID, datapoint, b_json['op']['samples']['timestamp'][idx]))
+
+                            else:
+                                for idx, datapoint in enumerate(b_json['op']['samples'][record]):
+                                    bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {} {}".format(record, bucket['name'], _node, datapoint, b_json['op']['samples']['timestamp'][idx]))
             except Exception as e:
                 pass
     except Exception as e:
@@ -565,6 +574,8 @@ def get_metrics(url="10.112.192.101", user="Administrator", passwrd="password"):
     if len(clusterValues['serviceNodes']['kv']) > 0:
         bucketMetrics = _get_bucket_metrics(url, user, passwrd, clusterValues['serviceNodes']['kv'])
         metrics = metrics + bucketMetrics['metrics']
+        for entry in bucketMetrics['metrics']:
+            print(entry)
 
     if len(clusterValues['serviceNodes']['index']) > 0 and bucketMetrics['buckets']:
         indexMetrics = _get_index_metrics(url, user, passwrd, clusterValues['serviceNodes']['index'], bucketMetrics['buckets'])
