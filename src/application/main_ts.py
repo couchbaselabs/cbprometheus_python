@@ -574,8 +574,6 @@ def get_metrics(url="10.112.192.101", user="Administrator", passwrd="password"):
     if len(clusterValues['serviceNodes']['kv']) > 0:
         bucketMetrics = _get_bucket_metrics(url, user, passwrd, clusterValues['serviceNodes']['kv'])
         metrics = metrics + bucketMetrics['metrics']
-        for entry in bucketMetrics['metrics']:
-            print(entry)
 
     if len(clusterValues['serviceNodes']['index']) > 0 and bucketMetrics['buckets']:
         indexMetrics = _get_index_metrics(url, user, passwrd, clusterValues['serviceNodes']['index'], bucketMetrics['buckets'])
