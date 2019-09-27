@@ -88,7 +88,7 @@ def _getCluster(url, user, passwrd, nodeList = []):
                                         else:
                                             result['metrics'].append("{} {{node=\"{}\", type=\"nodes\"}} {}".format(metric, convrt_url, node[metric]))
                         except Exception as e:
-                            print(e)
+                            print("buckets: " + str(e))
 
             else:
                 if record == "nodes":
@@ -186,7 +186,6 @@ def _get_bucket_metrics(url, user, passwrd, nodeList):
                 for bucket in f_json:
                     bucket_info['buckets'].append(bucket['name'])
                     bucket_url = "http://{}:8091/pools/default/buckets/{}/nodes/{}/stats".format(url, bucket['name'], node)
-                    print(bucket_url)
                     req = urllib2.Request(bucket_url,
                                           headers={
                                               "Authorization": basic_authorization(user, passwrd),
@@ -242,7 +241,6 @@ def _get_index_metrics(url, user, passwrd, nodes, buckets):
         for bucket in buckets:
             try:
                 index_info_url = "http://{}/pools/default/buckets/@index-{}/nodes/{}/stats".format(node, bucket, node)
-                print(index_info_url)
                 req = urllib2.Request(index_info_url,
                                       headers={
                                           "Authorization": basic_authorization(user, passwrd),
@@ -324,7 +322,6 @@ def _get_eventing_metrics(url, user, passwrd, nodeList):
     for node in nodeList:
         try:
             _event_url = "http://{}/pools/default/buckets/@eventing/nodes/{}/stats".format(node, node)
-            print(_event_url)
             req = urllib2.Request(_event_url,
                                   headers={
                                       "Authorization": basic_authorization(user, passwrd),
@@ -374,7 +371,6 @@ def _get_fts_metrics(url, user, passwrd, nodeList, bucketList):
         for bucket in bucketList:
             try:
                 _fts_url = "http://{}/pools/default/buckets/@fts-{}/nodes/{}/stats".format(node, bucket, node)
-                print(_fts_url)
                 req = urllib2.Request(_fts_url,
                                       headers={
                                           "Authorization": basic_authorization(user, passwrd),
@@ -446,6 +442,106 @@ def _get_cbas_metrics(url, user, passwrd, nodeList):
             print("analytics base: " + str(e))
     return cbas_metrics
 
+
+def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
+    xdcr_metrics = {}
+    xdcr_metrics['metrics']= []
+
+    try:
+        clusterDefinintion = {}
+        _remote_cluster_url = "http://{}:8091/pools/default/remoteClusters".format(url)
+        req = urllib2.Request(_remote_cluster_url,
+                              headers={
+                                  "Authorization": basic_authorization(user, passwrd),
+                                  "Content-Type": "application/x-www-form-urlencoded",
+
+                                  # Some extra headers for fun
+                                  "Accept": "*/*", # curl does this
+                                  "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                              })
+        _rc = (urllib2.urlopen(req)).read()
+        _rc_json = json.loads(_rc)
+        for entry in _rc_json:
+            clusterDefinintion[entry['uuid']] = {}
+            clusterDefinintion[entry['uuid']]['hostname'] = entry['hostname']
+            clusterDefinintion[entry['uuid']]['name'] = entry['name']
+
+        try:
+            _xdcr_url = "http://{}:8091/pools/default/tasks".format(url)
+
+            req = urllib2.Request(_xdcr_url,
+                                  headers={
+                                      "Authorization": basic_authorization(user, passwrd),
+                                      "Content-Type": "application/x-www-form-urlencoded",
+
+                                      # Some extra headers for fun
+                                      "Accept": "*/*", # curl does this
+                                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                  })
+
+            _x = (urllib2.urlopen(req)).read()
+            _x_json = json.loads(_x)
+
+            #get generic stats for each replication
+            for index, record in enumerate(_x_json):
+                if record['type']=="xdcr":
+                    source = record['source']
+                    destBucket = record['target'].split("/")[4]
+                    id = record['id'].split("/")[0]
+                    hostname = convert_ip_to_string(clusterDefinintion[id]['hostname'])
+                    for metric in record:
+                        if metric in ["source","target", "id", "filterExpression", "continuous", "settingsURI", "maxVBReps", "replicationType", "type", "cancelURI"]:
+                            next
+                        elif metric in ["status", "pauseRequested", "errors"]:
+                            if metric == "status":
+                                if record['status'] == "running":
+                                    status = 0
+                                elif record['status'] == "paused":
+                                    status = 1
+                                else:
+                                    status = 2
+                                xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("status", id, source, clusterDefinintion[id]['name'], hostname, destBucket, status))
+                            elif metric == "pauseRequested":
+                                if record['pauseRequested']:
+                                    pauseRequested = 1
+                                else:
+                                    pauseRequested = 2
+                                xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("pauseRequested", id, source, clusterDefinintion[id]['name'], hostname, destBucket, pauseRequested))
+                            elif metric == "errors":
+                                xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("errors", id, source, clusterDefinintion[id]['name'], hostname, destBucket, len(record[metric])))
+                        else:
+                            xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format(metric, id, source, clusterDefinintion[id]['name'], hostname, destBucket, record[metric]))
+        except Exception as e:
+            print("xdcr in: " + str(e))
+    except Exception as e:
+        print("xcdr out: " + str(e))
+    #
+    # for node in nodes:
+    #     for bucket in buckets:
+    #         try:
+    #             _node_url = "http://{}/pools/default/buckets/@xdcr-{}/nodes/{}/stats".format(node, bucket, node)
+    #             req = urllib2.Request(_node_url,
+    #                                   headers={
+    #                                       "Authorization": basic_authorization(user, passwrd),
+    #                                       "Content-Type": "application/x-www-form-urlencoded",
+    #
+    #                                       # Some extra headers for fun
+    #                                       "Accept": "*/*", # curl does this
+    #                                       "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+    #                                   })
+    #             _n = (urllib2.urlopen(req)).read()
+    #             _n_json = json.loads(_n)
+    #             for entry in _n_json['op']['samples']:
+    #                 key_split = entry.split("/")
+    #                 if len(key_split) == 5:
+    #                     xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"node\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\", node=\"{}\"}} {}".format(key_split[4], key_split[1], key_split[2], convert_ip_to_string(clusterDefinintion[key_split[1]]['name']), convert_ip_to_string(clusterDefinintion[key_split[1]]['hostname']), key_split[3], convert_ip_to_string(node), sum(_n_json['op']['samples'][entry])/len(_n_json['op']['samples'][entry])))
+    #                 elif len(key_split) == 1 and entry != "timestamp":
+    #                     xdcr_metrics['metrics'].append("{} {{level=\"bucket\", source=\"{}\", type=\"xdcr\", node=\"{}\"}} {}".format(entry, bucket, convert_ip_to_string(node), sum(_n_json['op']['samples'][entry])/len(_n_json['op']['samples'][entry])))
+    #         except Exception as e:
+    #             print("xdcr: " + str(e))
+    return xdcr_metrics
+
+
 if __name__ == "__main__":
     url = "10.112.192.101"
     user = "Administrator"
@@ -477,5 +573,6 @@ if __name__ == "__main__":
     cbasMetrics = _get_cbas_metrics(url, user, passwrd, clusterValues['serviceNodes']['cbas'])
     metrics = metrics + cbasMetrics['metrics']
 
-    for metric in cbasMetrics['metrics']:
+    xdcrMetrics = _get_xdcr_metrics(url, user, passwrd, clusterValues['serviceNodes']['kv'], bucketMetrics['buckets'])
+    for metric in xdcrMetrics['metrics']:
         print(metric)
