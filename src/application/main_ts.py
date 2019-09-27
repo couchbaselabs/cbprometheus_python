@@ -163,7 +163,6 @@ def _getCluster(url, user, passwrd, nodeList = []):
                     result['metrics'].append("{} {{type=\"cluster\"}} {}".format(record, stats[record]))
     return(result)
 
-
 def _get_bucket_metrics(url, user, passwrd, nodeList):
     bucket_info = {}
     bucket_info['buckets'] = []
@@ -318,7 +317,6 @@ def _get_query_metrics(url, user, passwrd, nodeList):
             print("query base: " + str(e))
     return query_info
 
-
 def _get_eventing_metrics(url, user, passwrd, nodeList):
     eventing_metrics = {}
     eventing_metrics['metrics'] = []
@@ -421,7 +419,32 @@ def _get_fts_metrics(url, user, passwrd, nodeList, bucketList):
                 print("fts: " + str(e))
     return fts_metrics
 
+def _get_cbas_metrics(url, user, passwrd, nodeList):
+    cbas_metrics = {}
+    cbas_metrics['metrics'] = []
+    for node in nodeList:
+        try:
+            _cbas_url = "http://{}/pools/default/buckets/@cbas/nodes/{}/stats".format(node, node)
+            req = urllib2.Request(_cbas_url,
+                                  headers={
+                                      "Authorization": basic_authorization(user, passwrd),
+                                      "Content-Type": "application/x-www-form-urlencoded",
 
+                                      # Some extra headers for fun
+                                      "Accept": "*/*", # curl does this
+                                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                  })
+
+            a = (urllib2.urlopen(req)).read()
+            a_json = json.loads(a)
+            _node = convert_ip_to_string(node)
+            for record in a_json['op']['samples']:
+                if record != "timestamp":
+                    for idx, datapoint in enumerate(a_json['op']['samples'][record]):
+                        cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {} {}".format(record, _node, datapoint, a_json['op']['samples']['timestamp'][idx]))
+        except Exception as e:
+            print("analytics base: " + str(e))
+    return cbas_metrics
 
 if __name__ == "__main__":
     url = "10.112.192.101"
@@ -451,5 +474,8 @@ if __name__ == "__main__":
     ftsMetrics = _get_fts_metrics(url, user, passwrd, clusterValues['serviceNodes']['fts'], bucketMetrics['buckets'])
     metrics = metrics + ftsMetrics['metrics']
 
-    for metric in ftsMetrics['metrics']:
+    cbasMetrics = _get_cbas_metrics(url, user, passwrd, clusterValues['serviceNodes']['cbas'])
+    metrics = metrics + cbasMetrics['metrics']
+
+    for metric in cbasMetrics['metrics']:
         print(metric)
