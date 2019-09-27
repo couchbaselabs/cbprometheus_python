@@ -19,7 +19,7 @@ def basic_authorization(user, password):
     s = user + ":" + password
     return "Basic " + s.encode("base64").rstrip()
 
-def _getCluster(url, user, passwrd, nodeList = []):
+def _getCluster(url, user, passwrd, nodeList):
     result = {}
     original_nodeLen = len(nodeList)
     if original_nodeLen == 0:
@@ -55,7 +55,7 @@ def _getCluster(url, user, passwrd, nodeList = []):
                 if record == "nodes":
                     for node in stats[record]:
                         try:
-                            if node['thisNode']:
+                            if 'thisNode' in node.keys():
                                 for metric in node:
                                     if metric in ["thisNode"]:
                                         next
@@ -555,12 +555,7 @@ def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
     return xdcr_metrics
 
 def get_metrics(url="10.112.192.101", user="Administrator", passwrd="password"):
-    metrics = []
-    clusterValues = {'metrics':[]}
-
-    clusterValues = _getCluster(url, user, passwrd)
-
-    print(clusterValues)
+    clusterValues = _getCluster(url, user, passwrd, [])
 
     metrics = clusterValues['metrics']
 
@@ -606,34 +601,4 @@ if __name__ == "__main__":
     user = "Administrator"
     passwrd = "password"
 
-    metrics = []
-
-    clusterValues = _getCluster(url, user, passwrd, [])
-    metrics = clusterValues['metrics']
-
-    nodeMetrics = _getCluster(url, user, passwrd, clusterValues['nodeList'])
-    metrics = metrics + nodeMetrics['metrics']
-
-    bucketMetrics = _get_bucket_metrics(url, user, passwrd, clusterValues['serviceNodes']['kv'])
-    metrics = metrics + bucketMetrics['metrics']
-
-    indexMetrics = _get_index_metrics(url, user, passwrd, clusterValues['serviceNodes']['index'], bucketMetrics['buckets'])
-    metrics = metrics + indexMetrics['metrics']
-
-    queryMetrics = _get_query_metrics(url, user, passwrd, clusterValues['serviceNodes']['n1ql'])
-    metrics = metrics + queryMetrics['metrics']
-
-    eventingMetrics = _get_eventing_metrics(url, user, passwrd, clusterValues['serviceNodes']['eventing'])
-    metrics = metrics + eventingMetrics['metrics']
-
-    ftsMetrics = _get_fts_metrics(url, user, passwrd, clusterValues['serviceNodes']['fts'], bucketMetrics['buckets'])
-    metrics = metrics + ftsMetrics['metrics']
-
-    cbasMetrics = _get_cbas_metrics(url, user, passwrd, clusterValues['serviceNodes']['cbas'])
-    metrics = metrics + cbasMetrics['metrics']
-
-    xdcrMetrics = _get_xdcr_metrics(url, user, passwrd, clusterValues['serviceNodes']['kv'], bucketMetrics['buckets'])
-    metrics = metrics + cbasMetrics['metrics']
-
-    for metric in xdcrMetrics['metrics']:
-        print(metric)
+    get_metrics()
