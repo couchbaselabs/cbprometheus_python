@@ -596,7 +596,8 @@ def get_metrics(url="10.112.192.101", user="Administrator", passwrd="password"):
         metrics = metrics + cbasMetrics['metrics']
 
     xdcrMetrics = _get_xdcr_metrics(url, user, passwrd, clusterValues['serviceNodes']['kv'], bucketMetrics['buckets'])
-    metrics = metrics + cbasMetrics['metrics']
+    metrics = metrics + xdcrMetrics['metrics']
+
 
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
@@ -610,4 +611,4 @@ if __name__ == "__main__":
     user = "Administrator"
     passwrd = "password"
 
-    get_metrics()
+    print(get_metrics())
