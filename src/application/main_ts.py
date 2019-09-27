@@ -369,6 +369,60 @@ def _get_eventing_metrics(url, user, passwrd, nodeList):
             print("eventing: " + str(e))
     return eventing_metrics
 
+def _get_fts_metrics(url, user, passwrd, nodeList, bucketList):
+    fts_metrics = {}
+    fts_metrics['metrics'] = []
+    for node in nodeList:
+        for bucket in bucketList:
+            try:
+                _fts_url = "http://{}/pools/default/buckets/@fts-{}/nodes/{}/stats".format(node, bucket, node)
+                print(_fts_url)
+                req = urllib2.Request(_fts_url,
+                                      headers={
+                                          "Authorization": basic_authorization(user, passwrd),
+                                          "Content-Type": "application/x-www-form-urlencoded",
+
+                                          # Some extra headers for fun
+                                          "Accept": "*/*", # curl does this
+                                          "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                      })
+
+                f = (urllib2.urlopen(req)).read()
+                f_json = json.loads(f)
+                for record in f_json['op']['samples']:
+                    name = ""
+                    metric_type=""
+                    stat = ""
+                    _node = convert_ip_to_string(node)
+                    try:
+                        split_record = record.split("/")
+                        if len(split_record) == 3:
+                            name = (split_record[1]).replace("+", "_")
+                            metric_type = (split_record[2]).replace("+", "_")
+                            if type(f_json['op']['samples'][record]) == type([]):
+                                for idx, datapoint in enumerate(f_json['op']['samples'][record]):
+                                    fts_metrics['metrics'].append("{} {{node = \"{}\", index=\"{}\", type=\"fts_stat\"}} {} {}".format(metric_type, _node, name, datapoint, f_json['op']['samples']['timestamp'][idx]))
+                            else:
+                                fts_metrics['metrics'].append("{} {{node = \"{}\", index=\"{}\", type=\"fts_stat\"}} {}".format(metric_type, _node, name, f_json['op']['samples'][record]))
+                        elif len(split_record) == 2:
+                            metric_type = (split_record[1]).replace("+", "_")
+                            if type(f_json['op']['samples'][record]) == type([]):
+                                for idx, datapoint in enumerate(f_json['op']['samples'][record]):
+                                    fts_metrics['metrics'].append("{} {{node = \"{}\", type=\"fts_stat\"}} {} {}".format(metric_type, _node, datapoint, f_json['op']['samples']['timestamp'][idx]))
+
+                            else:
+                                fts_metrics['metrics'].append("{} {{node = \"{}\", type=\"fts_stat\"}} {}".format(metric_type, _node, f_json['op']['samples'][record]))
+                        else:
+                            next
+
+                    except Exception as e:
+                        print("fts base: " + str(e))
+            except Exception as e:
+                print("fts: " + str(e))
+    return fts_metrics
+
+
+
 if __name__ == "__main__":
     url = "10.112.192.101"
     user = "Administrator"
@@ -394,5 +448,8 @@ if __name__ == "__main__":
     eventingMetrics = _get_eventing_metrics(url, user, passwrd, clusterValues['serviceNodes']['eventing'])
     metrics = metrics + eventingMetrics['metrics']
 
-    for metric in eventingMetrics['metrics']:
+    ftsMetrics = _get_fts_metrics(url, user, passwrd, clusterValues['serviceNodes']['fts'], bucketMetrics['buckets'])
+    metrics = metrics + ftsMetrics['metrics']
+
+    for metric in ftsMetrics['metrics']:
         print(metric)
