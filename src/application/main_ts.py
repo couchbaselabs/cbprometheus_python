@@ -299,8 +299,7 @@ def _get_bucket_metrics(user, passwrd, node_list):
                                 ddoc_type = record.split("/")[0]
                                 ddoc_uuid = record.split("/")[1]
                                 ddoc_stat = record.split("/")[2]
-                                for idx, datapoint in enumerate(
-                                        b_json['op']['samples'][record]):
+                                for idx, datapoint in enumerate(b_json['op']['samples'][_record]):
                                     bucket_info['metrics'].append(
                                         "{} {{bucket=\"{}\", "
                                         "node=\"{}\", "
@@ -316,8 +315,7 @@ def _get_bucket_metrics(user, passwrd, node_list):
                                             b_json['op']['samples']['timestamp'][idx]))
 
                             else:
-                                for idx, datapoint in enumerate(
-                                        b_json['op']['samples'][record]):
+                                for idx, datapoint in enumerate(b_json['op']['samples'][_record]):
                                     bucket_info['metrics'].append(
                                         "{} {{bucket=\"{}\", "
                                         "node=\"{}\", "
@@ -328,7 +326,7 @@ def _get_bucket_metrics(user, passwrd, node_list):
                                             datapoint,
                                             b_json['op']['samples']['timestamp'][idx]))
             except Exception as e:
-                pass
+                print(e)
     except Exception as e:
         pass
     return bucket_info
@@ -358,8 +356,7 @@ def _get_index_metrics(user, passwrd, nodes, buckets):
             _node = value_to_string(node)
             for record in i_json['op']['samples']:
                 if record != "timestamp":
-                    for idx, datapoint in enumerate(
-                            i_json['op']['samples'][record]):
+                    for idx, datapoint in enumerate(i_json['op']['samples'][record]):
                         index_info['metrics'].append(
                             "{} {{node=\"{}\", "
                             "type=\"index\"}} {} {}".format(
@@ -478,8 +475,7 @@ def _get_query_metrics(user, passwrd, node_list):
             _node = value_to_string(node)
             for record in q_json['op']['samples']:
                 if record != "timestamp":
-                    for idx, datapoint in enumerate(
-                            q_json['op']['samples'][record]):
+                    for idx, datapoint in enumerate(q_json['op']['samples'][record]):
                         query_info['metrics'].append(
                             "{} {{node = \"{}\", "
                             "type=\"query\"}} {} {}".format(
