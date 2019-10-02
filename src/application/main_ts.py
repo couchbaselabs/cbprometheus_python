@@ -37,7 +37,7 @@ def _get_cluster(url, user, passwrd, node_list):
     service_nodes['fts'] = []
     service_nodes['cbas'] = []
     current_url = ""
-
+    nodes = []
     if len(node_list) > 0:
         pass
     else:
@@ -57,7 +57,6 @@ def _get_cluster(url, user, passwrd, node_list):
                                   })
 
             f = (urllib2.urlopen(req)).read()
-            nodes = []
             stats = json.loads(f)
             current_url = value_to_string(current_url)
             break
@@ -67,7 +66,7 @@ def _get_cluster(url, user, passwrd, node_list):
     for record in stats:
         if record == "nodes":
             for node in stats[record]:
-                node_list.append(node['hostname'])
+                nodes.append(node['hostname'])
                 if "kv" in node['services']:
                     service_nodes['kv'].append(node['hostname'])
 
@@ -158,8 +157,8 @@ def _get_node_metrics(user, passwrd, node_list):
     '''gets the metrics for each node'''
     result = {}
     result['metrics'] = []
-
     for url in node_list:
+
         try:
             _url = "http://{}:8091/pools/default".format(url.split(":")[0])
             req = urllib2.Request(_url,
@@ -175,6 +174,7 @@ def _get_node_metrics(user, passwrd, node_list):
             f = (urllib2.urlopen(req)).read()
             stats = json.loads(f)
         except Exception as e:
+            print(e)
             return(result)
 
         convrt_url = value_to_string(url)
@@ -277,7 +277,7 @@ def _get_bucket_metrics(user, passwrd, node_list):
             try:
                 for bucket in f_json:
                     bucket_info['buckets'].append(bucket['name'])
-                    bucket_url = "http://{}:8091/pools/default/buckets/{}/nodes/{}/stats".format(
+                    bucket_url = "http://{}/pools/default/buckets/{}/nodes/{}/stats".format(
                         node, bucket['name'], node)
                     req = urllib2.Request(bucket_url,
                                           headers={
@@ -901,7 +901,6 @@ def get_metrics(url="10.112.192.101", user="Administrator", passwrd="password"):
     '''This is the entry point for this script. Gets each type of metric and
     combines them to present'''
     cluster_values = _get_cluster(url, user, passwrd, [])
-
     metrics = cluster_values['metrics']
 
     node_metrics = _get_node_metrics(
@@ -959,7 +958,6 @@ def get_metrics(url="10.112.192.101", user="Administrator", passwrd="password"):
 
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
-    # metrics += "\n"
     return metrics_str
 
 
@@ -969,4 +967,3 @@ if __name__ == "__main__":
     PASSWD = "password"
 
     get_metrics(URL, USER, PASSWD)
-    print(get_metrics(URL, USER, PASSWD))
