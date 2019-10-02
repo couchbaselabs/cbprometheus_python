@@ -1,25 +1,32 @@
-import datetime
+#! /usr/bin/python
+''''This is the main script for the python exporter for exporting Couchbase RestAPI metrics to Prometheus format.'''
+
+# pylint: disable=C0303, C0325, C1801
+
 import urllib2
 import json
 
+
 def str2bool(v):
+    '''Converts string values to boolean'''
     return v.lower() in ("yes", "true", "t", "1")
 
-def convert_ip_to_string(ip_address):
+
+def value_to_string(ip_address):
+    '''converts IP addresses and other values to strings without special characters'''
     ip_address = ip_address.split(":")[0].replace(".", "_").replace("+", "_")
     return ip_address
 
-def gt(dt_str):
-    print(dt_str)
-    dt, _, us= dt_str.partition(".")
-    dt= datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
-    return dt
 
 def basic_authorization(user, password):
+    '''Doc String'''
     s = user + ":" + password
     return "Basic " + s.encode("base64").rstrip()
 
-def _getCluster(url, user, passwrd, nodeList):
+
+def _get_cluster(url, user, passwrd, node_list):
+    '''Starts by getting the cluster definition, then creates a node list, then gets metrics for
+    the cluster from each node'''
     result = {}
     result['metrics'] = []
     service_nodes = {}
@@ -29,33 +36,33 @@ def _getCluster(url, user, passwrd, nodeList):
     service_nodes['eventing'] = []
     service_nodes['fts'] = []
     service_nodes['cbas'] = []
-    currentUrl = ""
+    current_url = ""
 
-    if len(nodeList) > 0:
+    if len(node_list) > 0:
         pass
     else:
-        nodeList.append(url)
+        node_list.append(url)
 
-    for url in nodeList:
+    for uri in node_list:
         try:
-            _url = "http://{}:8091/pools/default".format(url.split(":")[0])
+            _url = "http://{}:8091/pools/default".format(uri.split(":")[0])
             req = urllib2.Request(_url,
                                   headers={
                                       "Authorization": basic_authorization(user, passwrd),
                                       "Content-Type": "application/x-www-form-urlencoded",
 
                                       # Some extra headers for fun
-                                      "Accept": "*/*", # curl does this
-                                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                      "Accept": "*/*",  # curl does this
+                                      "User-Agent": "check_version/1",
                                   })
 
             f = (urllib2.urlopen(req)).read()
-            node_list = []
+            nodes = []
             stats = json.loads(f)
-            currentUrl = convert_ip_to_string(currentUrl)
+            current_url = value_to_string(current_url)
             break
         except Exception as e:
-            continue
+            return (result)
 
     for record in stats:
         if record == "nodes":
@@ -79,37 +86,51 @@ def _getCluster(url, user, passwrd, nodeList):
                 if "cbas" in node['services']:
                     service_nodes['cbas'].append(node['hostname'])
             result['serviceNodes'] = service_nodes
-            result['nodeList'] = node_list
+            result['nodeList'] = nodes
 
         elif record in ["rebalanceStatus", "balanced"]:
             if record == "rebalanceStatus":
                 if stats['rebalanceStatus'] == "none":
-                    result['metrics'].append("{} {{type=\"cluster\"}} {}".format(record, 0))
+                    result['metrics'].append(
+                        "{} {{type=\"cluster\"}} {}".format(
+                            record, 0))
                 else:
-                    result['metrics'].append("{} {{type=\"cluster\"}} {}".format(record, 1))
+                    result['metrics'].append(
+                        "{} {{type=\"cluster\"}} {}".format(
+                            record, 1))
             elif record == "balanced":
-                if stats[record] == True:
-                    result['metrics'].append("{} {{type=\"cluster\"}} {}".format(record, 0))
+                if stats[record]:
+                    result['metrics'].append(
+                        "{} {{type=\"cluster\"}} {}".format(
+                            record, 0))
                 else:
-                    result['metrics'].append("{} {{type=\"cluster\"}} {}".format(record, 1))
+                    result['metrics'].append(
+                        "{} {{type=\"cluster\"}} {}".format(
+                            record, 1))
 
         elif record in ["autoCompactionSettings"]:
-            for compactionType in stats[record]:
-                if compactionType in ["databaseFragmentationThreshold", "viewFragmentationThreshold"]:
-                    for _metric in stats[record][compactionType]:
+            for compaction_type in stats[record]:
+                if compaction_type in ["databaseFragmentationThreshold",
+                                       "viewFragmentationThreshold"]:
+                    for _metric in stats[record][compaction_type]:
                         try:
-                            int(stats[record][compactionType][_metric])
-                            result['metrics'].append("{} {{type=\"cluster\"}} {}".format(_metric, stats[record][compactionType][_metric]))
+                            int(stats[record][compaction_type][_metric])
+                            result['metrics'].append(
+                                "{} {{type=\"cluster\"}} {}".format(
+                                    _metric, stats[record][compaction_type][_metric]))
                         except Exception as e:
                             pass
         elif record in ["counters"]:
             for counter in stats[record]:
-                result['metrics'].append("{} {{type=\"cluster\"}} {}".format(counter, stats[record][counter]))
+                result['metrics'].append(
+                    "{} {{type=\"cluster\"}} {}".format(
+                        counter, stats[record][counter]))
 
         elif record in ["storageTotals"]:
-            for storageType in stats[record]:
-                for _metric in stats[record][storageType]:
-                    result['metrics'].append("{}{} {{type=\"cluster\"}} {}".format(storageType, _metric, stats[record][storageType][_metric]))
+            for storage_type in stats[record]:
+                for _metric in stats[record][storage_type]:
+                    result['metrics'].append("{}{} {{type=\"cluster\"}} {}".format(
+                        storage_type, _metric, stats[record][storage_type][_metric]))
 
         elif record in ["buckets",
                         "remoteClusters",
@@ -125,70 +146,101 @@ def _getCluster(url, user, passwrd, nodeList):
                         "serverGroupsUri",
                         "clusterName",
                         "name"]:
-            next
+            pass
         else:
-            result['metrics'].append("{} {{type=\"cluster\"}} {}".format(record, stats[record]))
-    print(node_list)
+            result['metrics'].append(
+                "{} {{type=\"cluster\"}} {}".format(
+                    record, stats[record]))
     return(result)
 
-def _get_node_metrics(url, user, passwrd, nodeList):
+
+def _get_node_metrics(user, passwrd, node_list):
+    '''gets the metrics for each node'''
     result = {}
     result['metrics'] = []
 
-    for url in nodeList:
-        _url = "http://{}:8091/pools/default".format(url.split(":")[0])
-        req = urllib2.Request(_url,
-            headers={
-                  "Authorization": basic_authorization(user, passwrd),
-                  "Content-Type": "application/x-www-form-urlencoded",
+    for url in node_list:
+        try:
+            _url = "http://{}:8091/pools/default".format(url.split(":")[0])
+            req = urllib2.Request(_url,
+                                  headers={
+                                      "Authorization": basic_authorization(user, passwrd),
+                                      "Content-Type": "application/x-www-form-urlencoded",
 
-                  # Some extra headers for fun
-                  "Accept": "*/*", # curl does this
-                  "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
-            })
+                                      # Some extra headers for fun
+                                      "Accept": "*/*",  # curl does this
+                                      "User-Agent": "check_version/1",
+                                  })
 
-        f = (urllib2.urlopen(req)).read()
-        node_list = []
-        stats = json.loads(f)
+            f = (urllib2.urlopen(req)).read()
+            stats = json.loads(f)
+        except Exception as e:
+            return(result)
 
-        convrt_url = convert_ip_to_string(url)
+        convrt_url = value_to_string(url)
         for _record in stats:
-            record = convert_ip_to_string(_record)
+            record = value_to_string(_record)
             if record == "nodes":
                 for node in stats[record]:
                     try:
                         if 'thisNode' in node.keys():
                             for _metric in node:
-                                metric = convert_ip_to_string(_metric)
+                                metric = value_to_string(_metric)
                                 if metric in ["thisNode"]:
-                                    next
+                                    pass
                                 else:
-                                    if metric in ["clusterMembership", "recoveryType", "status"]:
+                                    if metric in [
+                                            "clusterMembership", "recoveryType", "status"]:
                                         if metric == "clusterMembership":
                                             if node[metric] == "active":
-                                                result['metrics'].append("{} {{node=\"{}\", type=\"nodes\"}} {}".format(metric, convrt_url, 1))
+                                                result['metrics'].append(
+                                                    "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
+                                                        metric, convrt_url, 1))
                                             else:
-                                                result['metrics'].append("{} {{node=\"{}\", type=\"nodes\"}} {}".format(metric, convrt_url, 0))
+                                                result['metrics'].append(
+                                                    "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
+                                                        metric, convrt_url, 0))
                                         if metric == "recoveryType":
                                             if node[metric] == "none":
-                                                result['metrics'].append("{} {{node=\"{}\", type=\"nodes\"}} {}".format(metric, convrt_url, 0))
+                                                result['metrics'].append(
+                                                    "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
+                                                        metric, convrt_url, 0))
                                             else:
-                                                result['metrics'].append("{} {{node=\"{}\", type=\"nodes\"}} {}".format(metric, convrt_url, 1))
+                                                result['metrics'].append(
+                                                    "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
+                                                        metric, convrt_url, 1))
                                         if metric == "status":
                                             if node[metric] == "healthy":
-                                                result['metrics'].append("{} {{node=\"{}\", type=\"nodes\"}} {}".format(metric, convrt_url, 1))
+                                                result['metrics'].append(
+                                                    "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
+                                                        metric, convrt_url, 1))
                                             else:
-                                                result['metrics'].append("{} {{node=\"{}\", type=\"nodes\"}} {}".format(metric, convrt_url, 0))
-                                    elif metric in ["ports", "services", "couchApiBase", "couchApiBaseHTTPS", "version", "os", "hostname", "otpNode"]:
-                                        next
+                                                result['metrics'].append(
+                                                    "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
+                                                        metric, convrt_url, 0))
+                                    elif metric in ["ports",
+                                                    "services",
+                                                    "couchApiBase",
+                                                    "couchApiBaseHTTPS",
+                                                    "version",
+                                                    "os",
+                                                    "hostname",
+                                                    "otpNode"]:
+                                        pass
                                     elif metric == "interestingStats":
                                         for _metric in node[metric]:
-                                            result['metrics'].append("{} {{node=\"{}\", type=\"nodes\"}} {}".format(_metric, convrt_url, node[metric][_metric]))
+                                            result['metrics'].append(
+                                                "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
+                                                    _metric, convrt_url, node[metric][_metric]))
                                     elif metric == "systemStats":
                                         for _metric in node[metric]:
-                                            result['metrics'].append("{} {{node=\"{}\", type=\"nodes\"}} {}".format(_metric, convrt_url, node[metric][_metric]))
+                                            result['metrics'].append(
+                                                "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
+                                                    _metric, convrt_url, node[metric][_metric]))
                                     else:
-                                        result['metrics'].append("{} {{node=\"{}\", type=\"nodes\"}} {}".format(metric, convrt_url, node[metric]))
+                                        result['metrics'].append(
+                                            "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
+                                                metric, convrt_url, node[metric]))
                     except Exception as e:
                         print("buckets: " + str(e))
 
@@ -196,67 +248,100 @@ def _get_node_metrics(url, user, passwrd, nodeList):
 
     return(result)
 
-def _get_bucket_metrics(url, user, passwrd, nodeList):
+
+def _get_bucket_metrics(user, passwrd, node_list):
+    '''Gets the metrics for each bucket'''
     bucket_info = {}
     bucket_info['buckets'] = []
     bucket_info['metrics'] = []
     try:
-        _url = "http://{}:8091/pools/default/buckets".format(url)
-        req = urllib2.Request(_url,
-                              headers={
-                                  "Authorization": basic_authorization(user, passwrd),
-                                  "Content-Type": "application/x-www-form-urlencoded",
+        for uri in node_list:
+            try:
+                _url = "http://{}/pools/default/buckets".format(uri)
+                req = urllib2.Request(_url,
+                                      headers={
+                                          "Authorization": basic_authorization(user, passwrd),
+                                          "Content-Type": "application/x-www-form-urlencoded",
 
-                                  # Some extra headers for fun
-                                  "Accept": "*/*", # curl does this
-                                  "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
-                              })
+                                          # Some extra headers for fun
+                                          "Accept": "*/*",  # curl does this
+                                          "User-Agent": "check_version/1",
+                                      })
 
-        f = (urllib2.urlopen(req)).read()
-        f_json = json.loads(f)
-        for node in nodeList:
+                f = (urllib2.urlopen(req)).read()
+                f_json = json.loads(f)
+                break
+            except Exception as e:
+                print("Error getting buckets from node: {}: {}".format(uri, str(e.args)))
+        for node in node_list:
             try:
                 for bucket in f_json:
                     bucket_info['buckets'].append(bucket['name'])
-                    bucket_url = "http://{}:8091/pools/default/buckets/{}/nodes/{}/stats".format(url, bucket['name'], node)
+                    bucket_url = "http://{}:8091/pools/default/buckets/{}/nodes/{}/stats".format(
+                        node, bucket['name'], node)
                     req = urllib2.Request(bucket_url,
                                           headers={
                                               "Authorization": basic_authorization(user, passwrd),
                                               "Content-Type": "application/x-www-form-urlencoded",
 
                                               # Some extra headers for fun
-                                              "Accept": "*/*", # curl does this
-                                              "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                              "Accept": "*/*",  # curl does this
+                                              "User-Agent": "check_version/1",
                                           })
 
                     b = (urllib2.urlopen(req)).read()
                     b_json = json.loads(b)
-                    _node = convert_ip_to_string(node)
-                    for _record in  b_json['op']['samples']:
-                        record = convert_ip_to_string(_record)
+                    _node = value_to_string(node)
+                    for _record in b_json['op']['samples']:
+                        record = value_to_string(_record)
                         if record != "timestamp":
                             if len(record.split("/")) == 3:
-                                ddocType = record.split("/")[0]
-                                ddocUUID = record.split("/")[1]
-                                ddocStat = record.split("/")[2]
-                                for idx, datapoint in enumerate(b_json['op']['samples'][record]):
-                                    bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"view\" viewType=\"{}\", view=\"{}\"}} {} {}".format(ddocStat, bucket['name'], _node, ddocType, ddocUUID, datapoint, b_json['op']['samples']['timestamp'][idx]))
+                                ddoc_type = record.split("/")[0]
+                                ddoc_uuid = record.split("/")[1]
+                                ddoc_stat = record.split("/")[2]
+                                for idx, datapoint in enumerate(
+                                        b_json['op']['samples'][record]):
+                                    bucket_info['metrics'].append(
+                                        "{} {{bucket=\"{}\", "
+                                        "node=\"{}\", "
+                                        "type=\"view\" "
+                                        "viewType=\"{}\", "
+                                        "view=\"{}\"}} {} {}".format(
+                                            ddoc_stat,
+                                            bucket['name'],
+                                            _node,
+                                            ddoc_type,
+                                            ddoc_uuid,
+                                            datapoint,
+                                            b_json['op']['samples']['timestamp'][idx]))
 
                             else:
-                                for idx, datapoint in enumerate(b_json['op']['samples'][record]):
-                                    bucket_info['metrics'].append("{} {{bucket=\"{}\", node=\"{}\", type=\"bucket\"}} {} {}".format(record, bucket['name'], _node, datapoint, b_json['op']['samples']['timestamp'][idx]))
+                                for idx, datapoint in enumerate(
+                                        b_json['op']['samples'][record]):
+                                    bucket_info['metrics'].append(
+                                        "{} {{bucket=\"{}\", "
+                                        "node=\"{}\", "
+                                        "type=\"bucket\"}} {} {}".format(
+                                            record,
+                                            bucket['name'],
+                                            _node,
+                                            datapoint,
+                                            b_json['op']['samples']['timestamp'][idx]))
             except Exception as e:
                 pass
     except Exception as e:
         pass
     return bucket_info
 
-def _get_index_metrics(url, user, passwrd, nodes, buckets):
+
+def _get_index_metrics(user, passwrd, nodes, buckets):
+    '''Gets the metrics for the indexes nodes, then gets the metrics for each index'''
     index_info = {}
     index_info['metrics'] = []
     # get cluster index info
     for node in nodes:
-        _index_url = "http://{}/pools/default/buckets/@index/nodes/{}/stats".format(node, node)
+        _index_url = "http://{}/pools/default/buckets/@index/nodes/{}/stats".format(
+            node, node)
         try:
             req = urllib2.Request(_index_url,
                                   headers={
@@ -264,17 +349,23 @@ def _get_index_metrics(url, user, passwrd, nodes, buckets):
                                       "Content-Type": "application/x-www-form-urlencoded",
 
                                       # Some extra headers for fun
-                                      "Accept": "*/*", # curl does this
-                                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                      "Accept": "*/*",  # curl does this
+                                      "User-Agent": "check_version/1",
                                   })
 
             i = (urllib2.urlopen(req)).read()
             i_json = json.loads(i)
-            _node = convert_ip_to_string(node)
+            _node = value_to_string(node)
             for record in i_json['op']['samples']:
                 if record != "timestamp":
-                    for idx, datapoint in enumerate(i_json['op']['samples'][record]):
-                        index_info['metrics'].append("{} {{node=\"{}\", type=\"index\"}} {} {}".format(record, _node, datapoint, i_json['op']['samples']['timestamp'][idx]))
+                    for idx, datapoint in enumerate(
+                            i_json['op']['samples'][record]):
+                        index_info['metrics'].append(
+                            "{} {{node=\"{}\", "
+                            "type=\"index\"}} {} {}".format(
+                                record, _node,
+                                datapoint,
+                                i_json['op']['samples']['timestamp'][idx]))
 
         except Exception as e:
             print("index base: " + str(e))
@@ -282,42 +373,76 @@ def _get_index_metrics(url, user, passwrd, nodes, buckets):
     for node in nodes:
         for bucket in buckets:
             try:
-                index_info_url = "http://{}/pools/default/buckets/@index-{}/nodes/{}/stats".format(node, bucket, node)
+                index_info_url = "http://{}/pools/default/buckets/@index-{}/nodes/{}/stats".format(
+                    node, bucket, node)
                 req = urllib2.Request(index_info_url,
                                       headers={
                                           "Authorization": basic_authorization(user, passwrd),
                                           "Content-Type": "application/x-www-form-urlencoded",
 
                                           # Some extra headers for fun
-                                          "Accept": "*/*", # curl does this
-                                          "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                          "Accept": "*/*",  # curl does this
+                                          "User-Agent": "check_version/1",
                                       })
 
                 ii = (urllib2.urlopen(req)).read()
                 ii_json = json.loads(ii)
                 for record in ii_json['op']['samples']:
                     name = ""
-                    index_type=""
-                    stat = ""
-                    _node = convert_ip_to_string(node)
+                    index_type = ""
+                    _node = value_to_string(node)
                     try:
                         split_record = record.split("/")
                         if len(split_record) == 3:
                             name = (split_record[1]).replace("+", "_")
                             index_type = (split_record[2]).replace("+", "_")
-                            if type(ii_json['op']['samples'][record]) == type([]):
+                            if isinstance(ii_json['op']['samples'][record], type([])):
                                 for idx, datapoint in enumerate(ii_json['op']['samples'][record]):
-                                    index_info['metrics'].append("{} {{node = \"{}\", index=\"{}\", bucket=\"{}\", type=\"index_stat\"}} {} {}".format(index_type, _node, name, bucket, datapoint, ii_json['op']['samples']['timestamp'][idx]))
+                                    index_info['metrics'].append(
+                                        "{} {{node = \"{}\","
+                                        "index=\"{}\", "
+                                        "bucket=\"{}\", "
+                                        "type=\"index_stat\"}} {} {}".format(
+                                            index_type,
+                                            _node,
+                                            name,
+                                            bucket,
+                                            datapoint,
+                                            ii_json['op']['samples']['timestamp'][idx]))
                             else:
-                                index_info['metrics'].append("{} {{node = \"{}\", index=\"{}\", bucket=\"{}\", type=\"index_stat\"}} {}".format(index_type, _node, name, bucket, ii_json['op']['samples'][record]))
+                                index_info['metrics'].append(
+                                    "{} {{node = \"{}\", "
+                                    "index=\"{}\", "
+                                    "bucket=\"{}\", "
+                                    "type=\"index_stat\"}} {}".format(
+                                        index_type,
+                                        _node,
+                                        name,
+                                        bucket,
+                                        ii_json['op']['samples'][record]))
 
                         elif len(split_record) == 2:
                             index_type = split_record[1]
-                            if type(ii_json['op']['samples'][record]) == type([]):
+                            if isinstance(ii_json['op']['samples'][record], type([])):
                                 for idx, datapoint in enumerate(ii_json['op']['samples'][record]):
-                                    index_info['metrics'].append("{} {{node = \"{}\", bucket=\"{}\", type=\"index_stat\"}} {} {}".format(index_type, _node, bucket, datapoint, ii_json['op']['samples']['timestamp'][idx]))
+                                    index_info['metrics'].append(
+                                        "{} {{node = \"{}\", "
+                                        "bucket=\"{}\", "
+                                        "type=\"index_stat\"}} {} {}".format(
+                                            index_type,
+                                            _node,
+                                            bucket,
+                                            datapoint,
+                                            ii_json['op']['samples']['timestamp'][idx]))
                             else:
-                                index_info['metrics'].append("{} {{node = \"{}\", bucket=\"{}\", type=\"index_stat\"}} {}".format(index_type, _node, bucket, ii_json['op']['samples'][record]))
+                                index_info['metrics'].append(
+                                    "{} {{node = \"{}\", "
+                                    "bucket=\"{}\", "
+                                    "type=\"index_stat\"}} {}".format(
+                                        index_type,
+                                        _node,
+                                        bucket,
+                                        ii_json['op']['samples'][record]))
                         else:
                             next
                     except Exception as e:
@@ -328,76 +453,115 @@ def _get_index_metrics(url, user, passwrd, nodes, buckets):
 
     return index_info
 
-def _get_query_metrics(url, user, passwrd, nodeList):
+
+def _get_query_metrics(user, passwrd, node_list):
+    '''Doc String'''
     query_info = {}
     query_info['metrics'] = []
 
-    for node in nodeList:
+    for node in node_list:
         try:
-            _query_url = "http://{}/pools/default/buckets/@query/nodes/{}/stats".format(node, node)
+            _query_url = "http://{}/pools/default/buckets/@query/nodes/{}/stats".format(
+                node, node)
             req = urllib2.Request(_query_url,
                                   headers={
                                       "Authorization": basic_authorization(user, passwrd),
                                       "Content-Type": "application/x-www-form-urlencoded",
 
                                       # Some extra headers for fun
-                                      "Accept": "*/*", # curl does this
-                                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                      "Accept": "*/*",  # curl does this
+                                      "User-Agent": "check_version/1",
                                   })
 
             q = (urllib2.urlopen(req)).read()
             q_json = json.loads(q)
-            _node = convert_ip_to_string(node)
+            _node = value_to_string(node)
             for record in q_json['op']['samples']:
                 if record != "timestamp":
-                    for idx, datapoint in enumerate(q_json['op']['samples'][record]):
-                        query_info['metrics'].append("{} {{node = \"{}\", type=\"query\"}} {} {}".format(record, _node, datapoint, q_json['op']['samples']['timestamp'][idx]))
+                    for idx, datapoint in enumerate(
+                            q_json['op']['samples'][record]):
+                        query_info['metrics'].append(
+                            "{} {{node = \"{}\", "
+                            "type=\"query\"}} {} {}".format(
+                                record,
+                                _node,
+                                datapoint,
+                                q_json['op']['samples']['timestamp'][idx]))
 
         except Exception as e:
             print("query base: " + str(e))
     return query_info
 
-def _get_eventing_metrics(url, user, passwrd, nodeList):
+
+def _get_eventing_metrics(user, passwrd, node_list):
+    '''Doc String'''
     eventing_metrics = {}
     eventing_metrics['metrics'] = []
 
-    for node in nodeList:
+    for node in node_list:
         try:
-            _event_url = "http://{}/pools/default/buckets/@eventing/nodes/{}/stats".format(node, node)
+            _event_url = "http://{}/pools/default/buckets/@eventing/nodes/{}/stats".format(
+                node, node)
             req = urllib2.Request(_event_url,
                                   headers={
                                       "Authorization": basic_authorization(user, passwrd),
                                       "Content-Type": "application/x-www-form-urlencoded",
 
                                       # Some extra headers for fun
-                                      "Accept": "*/*", # curl does this
-                                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                      "Accept": "*/*",  # curl does this
+                                      "User-Agent": "check_version/1",
                                   })
 
             e = (urllib2.urlopen(req)).read()
             e_json = json.loads(e)
             for record in e_json['op']['samples']:
                 name = ""
-                metric_type=""
-                stat = ""
-                _node = convert_ip_to_string(node)
+                metric_type = ""
+                _node = value_to_string(node)
                 try:
                     split_record = record.split("/")
                     if len(split_record) == 3:
                         name = (split_record[1]).replace("+", "_")
                         metric_type = (split_record[2]).replace("+", "_")
-                        if type(e_json['op']['samples'][record]) == type([]):
+                        if isinstance(e_json['op']['samples'][record], type([])):
                             for idx, datapoint in enumerate(e_json['op']['samples'][record]):
-                                eventing_metrics['metrics'].append("{} {{node = \"{}\", function=\"{}\", type=\"eventing_stat\"}} {} {}".format(metric_type, _node, name, datapoint, e_json['op']['samples']['timestamp'][idx]))
+                                eventing_metrics['metrics'].append(
+                                    "{} {{node = \"{}\", "
+                                    "function=\"{}\", "
+                                    "type=\"eventing_stat\"}} {} {}".format(
+                                        metric_type,
+                                        _node,
+                                        name,
+                                        datapoint,
+                                        e_json['op']['samples']['timestamp'][idx]))
                         else:
-                            eventing_metrics['metrics'].append("{} {{node = \"{}\", function=\"{}\", type=\"eventing_stat\"}} {}".format(metric_type, _node, name, e_json['op']['samples'][record]))
+                            eventing_metrics['metrics'].append(
+                                "{} {{node = \"{}\", "
+                                "function=\"{}\", "
+                                "type=\"eventing_stat\"}} {}".format(
+                                    metric_type,
+                                    _node,
+                                    name,
+                                    e_json['op']['samples'][record]))
                     elif len(split_record) == 2:
                         metric_type = (split_record[1]).replace("+", "_")
-                        if type(e_json['op']['samples'][record]) == type([]):
-                            for idx, datapoint in enumerate(e_json['op']['samples'][record]):
-                                eventing_metrics['metrics'].append("{} {{node = \"{}\", type=\"eventing_stat\"}} {} {}".format(metric_type, _node, datapoint, e_json['op']['samples']['timestamp'][idx]))
+                        if isinstance(e_json['op']['samples'][record], type([])):
+                            for idx, datapoint in enumerate(
+                                    e_json['op']['samples'][record]):
+                                eventing_metrics['metrics'].append(
+                                    "{} {{node = \"{}\", "
+                                    "type=\"eventing_stat\"}} {} {}".format(
+                                        metric_type,
+                                        _node,
+                                        datapoint,
+                                        e_json['op']['samples']['timestamp'][idx]))
                         else:
-                            eventing_metrics['metrics'].append("{} {{node = \"{}\", type=\"eventing_stat\"}} {}".format(metric_type, _node, datapoint))
+                            eventing_metrics['metrics'].append(
+                                "{} {{node = \"{}\", "
+                                "type=\"eventing_stat\"}} {}".format(
+                                    metric_type,
+                                    _node,
+                                    datapoint))
                     else:
                         next
                 except Exception as e:
@@ -406,50 +570,79 @@ def _get_eventing_metrics(url, user, passwrd, nodeList):
             print("eventing: " + str(e))
     return eventing_metrics
 
-def _get_fts_metrics(url, user, passwrd, nodeList, bucketList):
+
+def _get_fts_metrics(user, passwrd, node_list, bucket_list):
+    '''gets metrics for FTS'''
     fts_metrics = {}
     fts_metrics['metrics'] = []
-    for node in nodeList:
-        for bucket in bucketList:
+    for node in node_list:
+        for bucket in bucket_list:
             try:
-                _fts_url = "http://{}/pools/default/buckets/@fts-{}/nodes/{}/stats".format(node, bucket, node)
+                _fts_url = "http://{}/pools/default/buckets/@fts-{}/nodes/{}/stats".format(
+                    node, bucket, node)
                 req = urllib2.Request(_fts_url,
                                       headers={
                                           "Authorization": basic_authorization(user, passwrd),
                                           "Content-Type": "application/x-www-form-urlencoded",
 
                                           # Some extra headers for fun
-                                          "Accept": "*/*", # curl does this
-                                          "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                          "Accept": "*/*",  # curl does this
+                                          "User-Agent": "check_version/1",
                                       })
 
                 f = (urllib2.urlopen(req)).read()
                 f_json = json.loads(f)
                 for record in f_json['op']['samples']:
                     name = ""
-                    metric_type=""
-                    stat = ""
-                    _node = convert_ip_to_string(node)
+                    metric_type = ""
+                    _node = value_to_string(node)
                     try:
                         split_record = record.split("/")
                         if len(split_record) == 3:
                             name = (split_record[1]).replace("+", "_")
                             metric_type = (split_record[2]).replace("+", "_")
-                            if type(f_json['op']['samples'][record]) == type([]):
-                                for idx, datapoint in enumerate(f_json['op']['samples'][record]):
-                                    fts_metrics['metrics'].append("{} {{node = \"{}\", index=\"{}\", type=\"fts_stat\"}} {} {}".format(metric_type, _node, name, datapoint, f_json['op']['samples']['timestamp'][idx]))
+                            if isinstance(f_json['op']['samples'][record], type([])):
+                                for idx, datapoint in enumerate(
+                                        f_json['op']['samples'][record]):
+                                    fts_metrics['metrics'].append(
+                                        "{} {{node = \"{}\", "
+                                        "index=\"{}\", "
+                                        "type=\"fts_stat\"}} {} {}".format(
+                                            metric_type,
+                                            _node,
+                                            name,
+                                            datapoint,
+                                            f_json['op']['samples']['timestamp'][idx]))
                             else:
-                                fts_metrics['metrics'].append("{} {{node = \"{}\", index=\"{}\", type=\"fts_stat\"}} {}".format(metric_type, _node, name, f_json['op']['samples'][record]))
+                                fts_metrics['metrics'].append(
+                                    "{} {{node = \"{}\", "
+                                    "index=\"{}\", "
+                                    "type=\"fts_stat\"}} {}".format(
+                                        metric_type,
+                                        _node,
+                                        name,
+                                        f_json['op']['samples'][record]))
                         elif len(split_record) == 2:
                             metric_type = (split_record[1]).replace("+", "_")
-                            if type(f_json['op']['samples'][record]) == type([]):
+                            if isinstance(f_json['op']['samples'][record], type([])):
                                 for idx, datapoint in enumerate(f_json['op']['samples'][record]):
-                                    fts_metrics['metrics'].append("{} {{node = \"{}\", type=\"fts_stat\"}} {} {}".format(metric_type, _node, datapoint, f_json['op']['samples']['timestamp'][idx]))
+                                    fts_metrics['metrics'].append(
+                                        "{} {{node = \"{}\", "
+                                        "type=\"fts_stat\"}} {} {}".format(
+                                            metric_type,
+                                            _node,
+                                            datapoint,
+                                            f_json['op']['samples']['timestamp'][idx]))
 
                             else:
-                                fts_metrics['metrics'].append("{} {{node = \"{}\", type=\"fts_stat\"}} {}".format(metric_type, _node, f_json['op']['samples'][record]))
+                                fts_metrics['metrics'].append(
+                                    "{} {{node = \"{}\", "
+                                    "type=\"fts_stat\"}} {}".format(
+                                        metric_type,
+                                        _node,
+                                        f_json['op']['samples'][record]))
                         else:
-                            next
+                            pass
 
                     except Exception as e:
                         print("fts base: " + str(e))
@@ -457,58 +650,78 @@ def _get_fts_metrics(url, user, passwrd, nodeList, bucketList):
                 print("fts: " + str(e))
     return fts_metrics
 
-def _get_cbas_metrics(url, user, passwrd, nodeList):
+
+def _get_cbas_metrics(user, passwrd, node_list):
+    '''Analytics metrics'''
     cbas_metrics = {}
     cbas_metrics['metrics'] = []
-    for node in nodeList:
+    for node in node_list:
         try:
-            _cbas_url = "http://{}/pools/default/buckets/@cbas/nodes/{}/stats".format(node, node)
+            _cbas_url = "http://{}/pools/default/buckets/@cbas/nodes/{}/stats".format(
+                node, node)
             req = urllib2.Request(_cbas_url,
                                   headers={
                                       "Authorization": basic_authorization(user, passwrd),
                                       "Content-Type": "application/x-www-form-urlencoded",
 
                                       # Some extra headers for fun
-                                      "Accept": "*/*", # curl does this
-                                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                      "Accept": "*/*",  # curl does this
+                                      "User-Agent": "check_version/1",
                                   })
 
             a = (urllib2.urlopen(req)).read()
             a_json = json.loads(a)
-            _node = convert_ip_to_string(node)
+            _node = value_to_string(node)
             for record in a_json['op']['samples']:
                 if record != "timestamp":
-                    for idx, datapoint in enumerate(a_json['op']['samples'][record]):
-                        cbas_metrics['metrics'].append("{} {{node = \"{}\", type=\"cbas\"}} {} {}".format(record, _node, datapoint, a_json['op']['samples']['timestamp'][idx]))
+                    for idx, datapoint in enumerate(
+                            a_json['op']['samples'][record]):
+                        cbas_metrics['metrics'].append(
+                            "{} {{node = \"{}\", "
+                            "type=\"cbas\"}} {} {}".format(
+                                record,
+                                _node, 
+                                datapoint, 
+                                a_json['op']['samples']['timestamp'][idx]))
         except Exception as e:
             print("analytics base: " + str(e))
     return cbas_metrics
 
-def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
+
+def _get_xdcr_metrics(user, passwrd, nodes, buckets):
+    '''XDCR metrics are gatherd here. First the links are queried, then it gathers
+    the metrics for each link'''
     xdcr_metrics = {}
-    xdcr_metrics['metrics']= []
+    xdcr_metrics['metrics'] = []
 
+    uri = ""
     try:
-        clusterDefinintion = {}
-        _remote_cluster_url = "http://{}:8091/pools/default/remoteClusters".format(url)
-        req = urllib2.Request(_remote_cluster_url,
-                              headers={
-                                  "Authorization": basic_authorization(user, passwrd),
-                                  "Content-Type": "application/x-www-form-urlencoded",
+        for _uri in nodes:
+            try:
+                cluster_definition = {}
+                _remote_cluster_url = "http://{}/pools/default/remoteClusters".format(_uri)
+                req = urllib2.Request(_remote_cluster_url,
+                                      headers={
+                                          "Authorization": basic_authorization(user, passwrd),
+                                          "Content-Type": "application/x-www-form-urlencoded",
 
-                                  # Some extra headers for fun
-                                  "Accept": "*/*", # curl does this
-                                  "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
-                              })
-        _rc = (urllib2.urlopen(req)).read()
-        _rc_json = json.loads(_rc)
+                                          # Some extra headers for fun
+                                          "Accept": "*/*",  # curl does this
+                                          "User-Agent": "check_version/1",
+                                      })
+                _rc = (urllib2.urlopen(req)).read()
+                _rc_json = json.loads(_rc)
+                uri = _uri
+                break
+            except Exception as e:
+                print("Error getting xdcr node {}: {}".format(uri, str(e.args)))
         for entry in _rc_json:
-            clusterDefinintion[entry['uuid']] = {}
-            clusterDefinintion[entry['uuid']]['hostname'] = entry['hostname']
-            clusterDefinintion[entry['uuid']]['name'] = entry['name']
+            cluster_definition[entry['uuid']] = {}
+            cluster_definition[entry['uuid']]['hostname'] = entry['hostname']
+            cluster_definition[entry['uuid']]['name'] = entry['name']
 
         try:
-            _xdcr_url = "http://{}:8091/pools/default/tasks".format(url)
+            _xdcr_url = "http://{}/pools/default/tasks".format(uri)
 
             req = urllib2.Request(_xdcr_url,
                                   headers={
@@ -516,20 +729,20 @@ def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
                                       "Content-Type": "application/x-www-form-urlencoded",
 
                                       # Some extra headers for fun
-                                      "Accept": "*/*", # curl does this
-                                      "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                      "Accept": "*/*",  # curl does this
+                                      "User-Agent": "check_version/1",
                                   })
 
             _x = (urllib2.urlopen(req)).read()
             _x_json = json.loads(_x)
 
-            #get generic stats for each replication
-            for index, record in enumerate(_x_json):
-                if record['type']=="xdcr":
+            # get generic stats for each replication
+            for record in _x_json:
+                if record['type'] == "xdcr":
                     source = record['source']
-                    destBucket = record['target'].split("/")[4]
-                    id = record['id'].split("/")[0]
-                    hostname = convert_ip_to_string(clusterDefinintion[id]['hostname'])
+                    dest_bucket = record['target'].split("/")[4]
+                    _id = record['id'].split("/")[0]
+                    hostname = value_to_string(cluster_definition[_id]['hostname'])
                     for metric in record:
                         if metric in ["source",
                                       "target",
@@ -541,7 +754,7 @@ def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
                                       "replicationType",
                                       "type",
                                       "cancelURI"]:
-                            next
+                            pass
                         elif metric in ["status",
                                         "pauseRequested",
                                         "errors"]:
@@ -552,17 +765,73 @@ def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
                                     status = 1
                                 else:
                                     status = 2
-                                xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("status", id, source, clusterDefinintion[id]['name'], hostname, destBucket, status))
+                                xdcr_metrics['metrics'].append(
+                                    "{} {{instanceID=\"{}\", "
+                                    "level=\"cluster\", "
+                                    "source=\"{}\", "
+                                    "destClusterName=\"{}\", "
+                                    "destClusterAddress=\"{}\", "
+                                    "dest_bucket=\"{}\", "
+                                    "type=\"xdcr\"}} {}".format(
+                                        "status",
+                                        _id,
+                                        source,
+                                        cluster_definition[id]['name'],
+                                        hostname,
+                                        dest_bucket,
+                                        status))
                             elif metric == "pauseRequested":
                                 if record['pauseRequested']:
-                                    pauseRequested = 1
+                                    pause_requested = 1
                                 else:
-                                    pauseRequested = 2
-                                xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("pauseRequested", id, source, clusterDefinintion[id]['name'], hostname, destBucket, pauseRequested))
+                                    pause_requested = 2
+                                xdcr_metrics['metrics'].append(
+                                    "{} {{instanceID=\"{}\", "
+                                    "level=\"cluster\", "
+                                    "source=\"{}\", "
+                                    "destClusterName=\"{}\", "
+                                    "destClusterAddress=\"{}\", "
+                                    "dest_bucket=\"{}\", "
+                                    "type=\"xdcr\"}} {}".format(
+                                        "pauseRequested",
+                                        _id,
+                                        source,
+                                        cluster_definition[id]['name'],
+                                        hostname,
+                                        dest_bucket,
+                                        pause_requested))
                             elif metric == "errors":
-                                xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format("errors", id, source, clusterDefinintion[id]['name'], hostname, destBucket, len(record[metric])))
+                                xdcr_metrics['metrics'].append(
+                                    "{} {{instanceID=\"{}\", "
+                                    "level=\"cluster\", "
+                                    "source=\"{}\", "
+                                    "destClusterName=\"{}\", "
+                                    "destClusterAddress=\"{}\", "
+                                    "dest_bucket=\"{}\", "
+                                    "type=\"xdcr\"}} {}".format(
+                                        "errors",
+                                        _id,
+                                        source,
+                                        cluster_definition[id]['name'],
+                                        hostname,
+                                        dest_bucket,
+                                        len(record[metric])))
                         else:
-                            xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"cluster\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\"}} {}".format(metric, id, source, clusterDefinintion[id]['name'], hostname, destBucket, record[metric]))
+                            xdcr_metrics['metrics'].append(
+                                "{} {{instanceID=\"{}\", "
+                                "level=\"cluster\", "
+                                "source=\"{}\", "
+                                "destClusterName=\"{}\", "
+                                "destClusterAddress=\"{}\", "
+                                "dest_bucket=\"{}\", "
+                                "type=\"xdcr\"}} {}".format(
+                                    metric,
+                                    _id,
+                                    source,
+                                    cluster_definition[id]['name'],
+                                    hostname,
+                                    dest_bucket,
+                                    record[metric]))
         except Exception as e:
             print("xdcr in: " + str(e))
     except Exception as e:
@@ -571,15 +840,16 @@ def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
     for node in nodes:
         for bucket in buckets:
             try:
-                _node_url = "http://{}/pools/default/buckets/@xdcr-{}/nodes/{}/stats".format(node, bucket, node)
+                _node_url = "http://{}/pools/default/buckets/@xdcr-{}/nodes/{}/stats".format(
+                    node, bucket, node)
                 req = urllib2.Request(_node_url,
                                       headers={
                                           "Authorization": basic_authorization(user, passwrd),
                                           "Content-Type": "application/x-www-form-urlencoded",
 
                                           # Some extra headers for fun
-                                          "Accept": "*/*", # curl does this
-                                          "User-Agent": "check_version/1", # otherwise it uses "Python-urllib/..."
+                                          "Accept": "*/*",  # curl does this
+                                          "User-Agent": "check_version/1",
                                       })
                 n = (urllib2.urlopen(req)).read()
                 n_json = json.loads(n)
@@ -588,52 +858,104 @@ def _get_xdcr_metrics(url, user, passwrd, nodes, buckets):
                     if "timestamp" not in key_split:
                         if len(key_split) == 5:
                             if key_split[4] != "":
-                                if type(n_json['op']['samples'][entry]) == type([]):
+                                if isinstance(n_json['op']['samples'][entry], type([])):
                                     for idx, datapoint in enumerate(n_json['op']['samples'][entry]):
-                                        xdcr_metrics['metrics'].append("{} {{instanceID=\"{}\", level=\"node\", source=\"{}\", destClusterName=\"{}\", destClusterAddress=\"{}\", destBucket=\"{}\", type=\"xdcr\", node=\"{}\"}} {} {}".format(key_split[4], key_split[1], key_split[2], convert_ip_to_string(clusterDefinintion[key_split[1]]['name']), convert_ip_to_string(clusterDefinintion[key_split[1]]['hostname']), key_split[3], convert_ip_to_string(node), datapoint, n_json['op']['samples']['timestamp'][idx]))
+                                        xdcr_metrics['metrics'].append(
+                                            "{} {{instanceID=\"{}\", "
+                                            "level=\"node\", "
+                                            "source=\"{}\", "
+                                            "destClusterName=\"{}\", "
+                                            "destClusterAddress=\"{}\", "
+                                            "dest_bucket=\"{}\", "
+                                            "type=\"xdcr\", "
+                                            "node=\"{}\"}} {} {}".format(
+                                                key_split[4],
+                                                key_split[1],
+                                                key_split[2],
+                                                value_to_string(
+                                                    cluster_definition[key_split[1]]['name']),
+                                                value_to_string(
+                                                    cluster_definition[key_split[1]]['hostname']),
+                                                key_split[3], value_to_string(node),
+                                                datapoint,
+                                                n_json['op']['samples']['timestamp'][idx]))
                         elif len(key_split) == 1:
-                            for idx, datapoint in enumerate(n_json['op']['samples'][entry]):
-                                xdcr_metrics['metrics'].append("{} {{level=\"bucket\", source=\"{}\", type=\"xdcr\", node=\"{}\"}} {} {}".format(entry, bucket, convert_ip_to_string(node), datapoint, n_json['op']['samples']['timestamp'][idx]))
+                            for idx, datapoint in enumerate(
+                                    n_json['op']['samples'][entry]):
+                                xdcr_metrics['metrics'].append(
+                                    "{} {{level=\"bucket\", "
+                                    "source=\"{}\", "
+                                    "type=\"xdcr\", "
+                                    "node=\"{}\"}} {} {}".format(
+                                        entry,
+                                        bucket,
+                                        value_to_string(node),
+                                        datapoint,
+                                        n_json['op']['samples']['timestamp'][idx]))
             except Exception as e:
                 print("xdcr: " + str(e))
     return xdcr_metrics
 
+
 def get_metrics(url="10.112.192.101", user="Administrator", passwrd="password"):
-    clusterValues = _getCluster(url, user, passwrd, [])
+    '''This is the entry point for this script. Gets each type of metric and
+    combines them to present'''
+    cluster_values = _get_cluster(url, user, passwrd, [])
 
-    metrics = clusterValues['metrics']
+    metrics = cluster_values['metrics']
 
-    nodeMetrics = _get_node_metrics(url, user, passwrd, clusterValues['nodeList'])
-    metrics = metrics + nodeMetrics['metrics']
+    node_metrics = _get_node_metrics(
+        user, passwrd, cluster_values['nodeList'])
+    metrics = metrics + node_metrics['metrics']
 
-    if len(clusterValues['serviceNodes']['kv']) > 0:
-        bucketMetrics = _get_bucket_metrics(url, user, passwrd, clusterValues['serviceNodes']['kv'])
-        metrics = metrics + bucketMetrics['metrics']
+    if len(cluster_values['serviceNodes']['kv']) > 0:
+        bucket_metrics = _get_bucket_metrics(
+            user, passwrd, cluster_values['serviceNodes']['kv'])
+        metrics = metrics + bucket_metrics['metrics']
 
-    if len(clusterValues['serviceNodes']['index']) > 0 and bucketMetrics['buckets']:
-        indexMetrics = _get_index_metrics(url, user, passwrd, clusterValues['serviceNodes']['index'], bucketMetrics['buckets'])
-        metrics = metrics + indexMetrics['metrics']
+    if len(cluster_values['serviceNodes']['index']) > 0 and bucket_metrics['buckets']:
+        index_metrics = _get_index_metrics(
+            user,
+            passwrd,
+            cluster_values['serviceNodes']['index'],
+            bucket_metrics['buckets'])
+        metrics = metrics + index_metrics['metrics']
 
-    if len(clusterValues['serviceNodes']['n1ql']) > 0:
-        queryMetrics = _get_query_metrics(url, user, passwrd, clusterValues['serviceNodes']['n1ql'])
-        metrics = metrics + queryMetrics['metrics']
+    if len(cluster_values['serviceNodes']['n1ql']) > 0:
+        query_metrics = _get_query_metrics(
+            user,
+            passwrd,
+            cluster_values['serviceNodes']['n1ql'])
+        metrics = metrics + query_metrics['metrics']
 
-    if len(clusterValues['serviceNodes']['eventing']) > 0:
-        eventingMetrics = _get_eventing_metrics(url, user, passwrd, clusterValues['serviceNodes']['eventing'])
-        metrics = metrics + eventingMetrics['metrics']
+    if len(cluster_values['serviceNodes']['eventing']) > 0:
+        eventing_metrics = _get_eventing_metrics(
+            user,
+            passwrd,
+            cluster_values['serviceNodes']['eventing'])
+        metrics = metrics + eventing_metrics['metrics']
 
-    if len(clusterValues['serviceNodes']['fts']) > 0:
-        ftsMetrics = _get_fts_metrics(url, user, passwrd, clusterValues['serviceNodes']['fts'], bucketMetrics['buckets'])
-        metrics = metrics + ftsMetrics['metrics']
+    if len(cluster_values['serviceNodes']['fts']) > 0:
+        fts_metrics = _get_fts_metrics(
+            user,
+            passwrd,
+            cluster_values['serviceNodes']['fts'],
+            bucket_metrics['buckets'])
+        metrics = metrics + fts_metrics['metrics']
 
-    if len(clusterValues['serviceNodes']['cbas']) > 0:
-        cbasMetrics = _get_cbas_metrics(url, user, passwrd, clusterValues['serviceNodes']['cbas'])
-        metrics = metrics + cbasMetrics['metrics']
+    if len(cluster_values['serviceNodes']['cbas']) > 0:
+        cbas_metrics = _get_cbas_metrics(
+            user,
+            passwrd,
+            cluster_values['serviceNodes']['cbas'])
+        metrics = metrics + cbas_metrics['metrics']
 
-    xdcrMetrics = _get_xdcr_metrics(url, user, passwrd, clusterValues['serviceNodes']['kv'], bucketMetrics['buckets'])
-    metrics = metrics + xdcrMetrics['metrics']
-
-
+    xdcr_metrics = _get_xdcr_metrics(
+        user,
+        passwrd,
+        cluster_values['serviceNodes']['kv'],
+        bucket_metrics['buckets'])
+    metrics = metrics + xdcr_metrics['metrics']
 
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
@@ -641,10 +963,10 @@ def get_metrics(url="10.112.192.101", user="Administrator", passwrd="password"):
     return metrics_str
 
 
-
 if __name__ == "__main__":
-    url = "10.112.192.101"
-    user = "Administrator"
-    passwrd = "password"
+    URL = "10.112.192.101"
+    USER = "Administrator"
+    PASSWD = "password"
 
-    print(get_metrics())
+    get_metrics(URL, USER, PASSWD)
+    print(get_metrics(URL, USER, PASSWD))
