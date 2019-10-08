@@ -11,18 +11,15 @@ def str2bool(v):
     '''Converts string values to boolean'''
     return v.lower() in ("yes", "true", "t", "1")
 
-
 def value_to_string(ip_address):
     '''converts IP addresses and other values to strings without special characters'''
     ip_address = ip_address.split(":")[0].replace(".", "_").replace("+", "_")
     return ip_address
 
-
 def basic_authorization(user, password):
     '''Doc String'''
     s = user + ":" + password
     return "Basic " + s.encode("base64").rstrip()
-
 
 def _get_cluster(url, user, passwrd, node_list):
     '''Starts by getting the cluster definition, then creates a node list, then gets metrics for
@@ -152,7 +149,6 @@ def _get_cluster(url, user, passwrd, node_list):
                     record, stats[record]))
     return(result)
 
-
 def _get_node_metrics(user, passwrd, node_list):
     '''gets the metrics for each node'''
     result = {}
@@ -248,8 +244,7 @@ def _get_node_metrics(user, passwrd, node_list):
 
     return(result)
 
-
-def _get_bucket_metrics(user, passwrd, node_list):
+def _get_bucket_metrics(user, passwrd, node_list, bucket_names = []):
     '''Gets the metrics for each bucket'''
     bucket_info = {}
     bucket_info['buckets'] = []
@@ -257,7 +252,8 @@ def _get_bucket_metrics(user, passwrd, node_list):
     try:
         for uri in node_list:
             try:
-                _url = "http://{}/pools/default/buckets".format(uri)
+                _url = "http://{}:8091/pools/default/buckets".format(uri.split(":")[0])
+                print(_url)
                 req = urllib2.Request(_url,
                                       headers={
                                           "Authorization": basic_authorization(user, passwrd),
@@ -275,62 +271,115 @@ def _get_bucket_metrics(user, passwrd, node_list):
                 print("Error getting buckets from node: {}: {}".format(uri, str(e.args)))
         for node in node_list:
             try:
-                for bucket in f_json:
-                    bucket_info['buckets'].append(bucket['name'])
-                    bucket_url = "http://{}/pools/default/buckets/{}/nodes/{}/stats".format(
-                        node, bucket['name'], node)
-                    req = urllib2.Request(bucket_url,
-                                          headers={
-                                              "Authorization": basic_authorization(user, passwrd),
-                                              "Content-Type": "application/x-www-form-urlencoded",
+                if len(bucket_names) == 0:
+                    for bucket in f_json:
+                        bucket_info['buckets'].append(bucket['name'])
+                        bucket_url = "http://{}:8091/pools/default/buckets/{}/nodes/{}:8091/stats".format(
+                            node.split(":")[0], bucket['name'], node.split(":")[0])
+                        print(bucket_url)
+                        req = urllib2.Request(bucket_url,
+                                              headers={
+                                                  "Authorization": basic_authorization(user, passwrd),
+                                                  "Content-Type": "application/x-www-form-urlencoded",
 
-                                              # Some extra headers for fun
-                                              "Accept": "*/*",  # curl does this
-                                              "User-Agent": "check_version/1",
-                                          })
+                                                  # Some extra headers for fun
+                                                  "Accept": "*/*",  # curl does this
+                                                  "User-Agent": "check_version/1",
+                                              })
 
-                    b = (urllib2.urlopen(req)).read()
-                    b_json = json.loads(b)
-                    _node = value_to_string(node)
-                    for _record in b_json['op']['samples']:
-                        record = value_to_string(_record)
-                        if record != "timestamp":
-                            if len(record.split("/")) == 3:
-                                ddoc_type = record.split("/")[0]
-                                ddoc_uuid = record.split("/")[1]
-                                ddoc_stat = record.split("/")[2]
-                                for idx, datapoint in enumerate(b_json['op']['samples'][_record]):
-                                    bucket_info['metrics'].append(
-                                        "{} {{bucket=\"{}\", "
-                                        "node=\"{}\", "
-                                        "type=\"view\" "
-                                        "viewType=\"{}\", "
-                                        "view=\"{}\"}} {} {}".format(
-                                            ddoc_stat,
-                                            bucket['name'],
-                                            _node,
-                                            ddoc_type,
-                                            ddoc_uuid,
-                                            datapoint,
-                                            b_json['op']['samples']['timestamp'][idx]))
+                        b = (urllib2.urlopen(req)).read()
+                        b_json = json.loads(b)
+                        _node = value_to_string(node)
+                        for _record in b_json['op']['samples']:
+                            record = value_to_string(_record)
+                            if record != "timestamp":
+                                if len(record.split("/")) == 3:
+                                    ddoc_type = record.split("/")[0]
+                                    ddoc_uuid = record.split("/")[1]
+                                    ddoc_stat = record.split("/")[2]
+                                    for idx, datapoint in enumerate(b_json['op']['samples'][_record]):
+                                        bucket_info['metrics'].append(
+                                            "{} {{bucket=\"{}\", "
+                                            "node=\"{}\", "
+                                            "type=\"view\" "
+                                            "viewType=\"{}\", "
+                                            "view=\"{}\"}} {} {}".format(
+                                                ddoc_stat,
+                                                bucket['name'],
+                                                _node,
+                                                ddoc_type,
+                                                ddoc_uuid,
+                                                datapoint,
+                                                b_json['op']['samples']['timestamp'][idx]))
 
-                            else:
-                                for idx, datapoint in enumerate(b_json['op']['samples'][_record]):
-                                    bucket_info['metrics'].append(
-                                        "{} {{bucket=\"{}\", "
-                                        "node=\"{}\", "
-                                        "type=\"bucket\"}} {} {}".format(
-                                            record,
-                                            bucket['name'],
-                                            _node,
-                                            datapoint,
-                                            b_json['op']['samples']['timestamp'][idx]))
+                                else:
+                                    for idx, datapoint in enumerate(b_json['op']['samples'][_record]):
+                                        bucket_info['metrics'].append(
+                                            "{} {{bucket=\"{}\", "
+                                            "node=\"{}\", "
+                                            "type=\"bucket\"}} {} {}".format(
+                                                record,
+                                                bucket['name'],
+                                                _node,
+                                                datapoint,
+                                                b_json['op']['samples']['timestamp'][idx]))
+                else:
+                    for bucket in bucket_names:
+                        bucket_info['buckets'].append(bucket)
+                        bucket_url = "http://{}:8091/pools/default/buckets/{}/nodes/{}:8091/stats".format(
+                            node.split(":")[0], bucket, node.split(":")[0])
+                        print(bucket_url)
+                        req = urllib2.Request(bucket_url,
+                                              headers={
+                                                  "Authorization": basic_authorization(user, passwrd),
+                                                  "Content-Type": "application/x-www-form-urlencoded",
+
+                                                  # Some extra headers for fun
+                                                  "Accept": "*/*",  # curl does this
+                                                  "User-Agent": "check_version/1",
+                                              })
+
+                        b = (urllib2.urlopen(req)).read()
+                        b_json = json.loads(b)
+                        _node = value_to_string(node)
+                        for _record in b_json['op']['samples']:
+                            record = value_to_string(_record)
+                            if record != "timestamp":
+                                if len(record.split("/")) == 3:
+                                    ddoc_type = record.split("/")[0]
+                                    ddoc_uuid = record.split("/")[1]
+                                    ddoc_stat = record.split("/")[2]
+                                    for idx, datapoint in enumerate(b_json['op']['samples'][_record]):
+                                        bucket_info['metrics'].append(
+                                            "{} {{bucket=\"{}\", "
+                                            "node=\"{}\", "
+                                            "type=\"view\" "
+                                            "viewType=\"{}\", "
+                                            "view=\"{}\"}} {} {}".format(
+                                                ddoc_stat,
+                                                bucket,
+                                                _node,
+                                                ddoc_type,
+                                                ddoc_uuid,
+                                                datapoint,
+                                                b_json['op']['samples']['timestamp'][idx]))
+
+                                else:
+                                    for idx, datapoint in enumerate(b_json['op']['samples'][_record]):
+                                        bucket_info['metrics'].append(
+                                            "{} {{bucket=\"{}\", "
+                                            "node=\"{}\", "
+                                            "type=\"bucket\"}} {} {}".format(
+                                                record,
+                                                bucket,
+                                                _node,
+                                                datapoint,
+                                                b_json['op']['samples']['timestamp'][idx]))
             except Exception as e:
                 print(e)
     except Exception as e:
         pass
     return bucket_info
-
 
 def _get_index_metrics(user, passwrd, nodes, buckets):
     '''Gets the metrics for the indexes nodes, then gets the metrics for each index'''
@@ -338,8 +387,8 @@ def _get_index_metrics(user, passwrd, nodes, buckets):
     index_info['metrics'] = []
     # get cluster index info
     for node in nodes:
-        _index_url = "http://{}/pools/default/buckets/@index/nodes/{}/stats".format(
-            node, node)
+        _index_url = "http://{}:8091/pools/default/buckets/@index/nodes/{}:8091/stats".format(
+            node.split(":")[0], node.split(":")[0])
         try:
             req = urllib2.Request(_index_url,
                                   headers={
@@ -370,8 +419,8 @@ def _get_index_metrics(user, passwrd, nodes, buckets):
     for node in nodes:
         for bucket in buckets:
             try:
-                index_info_url = "http://{}/pools/default/buckets/@index-{}/nodes/{}/stats".format(
-                    node, bucket, node)
+                index_info_url = "http://{}:8091/pools/default/buckets/@index-{}/nodes/{}:8091/stats".format(
+                    node.split(":")[0], bucket, node.split(":")[0])
                 req = urllib2.Request(index_info_url,
                                       headers={
                                           "Authorization": basic_authorization(user, passwrd),
@@ -450,7 +499,6 @@ def _get_index_metrics(user, passwrd, nodes, buckets):
 
     return index_info
 
-
 def _get_query_metrics(user, passwrd, node_list):
     '''Doc String'''
     query_info = {}
@@ -458,8 +506,8 @@ def _get_query_metrics(user, passwrd, node_list):
 
     for node in node_list:
         try:
-            _query_url = "http://{}/pools/default/buckets/@query/nodes/{}/stats".format(
-                node, node)
+            _query_url = "http://{}:8091/pools/default/buckets/@query/nodes/{}:8091/stats".format(
+                node.split(":")[0], node.split(":")[0])
             req = urllib2.Request(_query_url,
                                   headers={
                                       "Authorization": basic_authorization(user, passwrd),
@@ -488,7 +536,6 @@ def _get_query_metrics(user, passwrd, node_list):
             print("query base: " + str(e))
     return query_info
 
-
 def _get_eventing_metrics(user, passwrd, node_list):
     '''Doc String'''
     eventing_metrics = {}
@@ -496,8 +543,8 @@ def _get_eventing_metrics(user, passwrd, node_list):
 
     for node in node_list:
         try:
-            _event_url = "http://{}/pools/default/buckets/@eventing/nodes/{}/stats".format(
-                node, node)
+            _event_url = "http://{}:8091/pools/default/buckets/@eventing/nodes/{}:8091/stats".format(
+                node.split(":")[0], node.split(":")[0])
             req = urllib2.Request(_event_url,
                                   headers={
                                       "Authorization": basic_authorization(user, passwrd),
@@ -566,7 +613,6 @@ def _get_eventing_metrics(user, passwrd, node_list):
             print("eventing: " + str(e))
     return eventing_metrics
 
-
 def _get_fts_metrics(user, passwrd, node_list, bucket_list):
     '''gets metrics for FTS'''
     fts_metrics = {}
@@ -574,8 +620,8 @@ def _get_fts_metrics(user, passwrd, node_list, bucket_list):
     for node in node_list:
         for bucket in bucket_list:
             try:
-                _fts_url = "http://{}/pools/default/buckets/@fts-{}/nodes/{}/stats".format(
-                    node, bucket, node)
+                _fts_url = "http://{}:8091/pools/default/buckets/@fts-{}/nodes/{}:8091/stats".format(
+                    node.split(":")[0], bucket, node.split(":")[0])
                 req = urllib2.Request(_fts_url,
                                       headers={
                                           "Authorization": basic_authorization(user, passwrd),
@@ -646,15 +692,14 @@ def _get_fts_metrics(user, passwrd, node_list, bucket_list):
                 print("fts: " + str(e))
     return fts_metrics
 
-
 def _get_cbas_metrics(user, passwrd, node_list):
     '''Analytics metrics'''
     cbas_metrics = {}
     cbas_metrics['metrics'] = []
     for node in node_list:
         try:
-            _cbas_url = "http://{}/pools/default/buckets/@cbas/nodes/{}/stats".format(
-                node, node)
+            _cbas_url = "http://{}:8091/pools/default/buckets/@cbas/nodes/{}:8091/stats".format(
+                node.split(":")[0], node.split(":")[0])
             req = urllib2.Request(_cbas_url,
                                   headers={
                                       "Authorization": basic_authorization(user, passwrd),
@@ -683,7 +728,6 @@ def _get_cbas_metrics(user, passwrd, node_list):
             print("analytics base: " + str(e))
     return cbas_metrics
 
-
 def _get_xdcr_metrics(user, passwrd, nodes, buckets):
     '''XDCR metrics are gatherd here. First the links are queried, then it gathers
     the metrics for each link'''
@@ -695,7 +739,7 @@ def _get_xdcr_metrics(user, passwrd, nodes, buckets):
         for _uri in nodes:
             try:
                 cluster_definition = {}
-                _remote_cluster_url = "http://{}/pools/default/remoteClusters".format(_uri)
+                _remote_cluster_url = "http://{}:8091/pools/default/remoteClusters".format(_uri.split(":")[0])
                 req = urllib2.Request(_remote_cluster_url,
                                       headers={
                                           "Authorization": basic_authorization(user, passwrd),
@@ -717,7 +761,7 @@ def _get_xdcr_metrics(user, passwrd, nodes, buckets):
             cluster_definition[entry['uuid']]['name'] = entry['name']
 
         try:
-            _xdcr_url = "http://{}/pools/default/tasks".format(uri)
+            _xdcr_url = "http://{}:8091/pools/default/tasks".format(uri.split(":")[0])
 
             req = urllib2.Request(_xdcr_url,
                                   headers={
@@ -836,8 +880,8 @@ def _get_xdcr_metrics(user, passwrd, nodes, buckets):
     for node in nodes:
         for bucket in buckets:
             try:
-                _node_url = "http://{}/pools/default/buckets/@xdcr-{}/nodes/{}/stats".format(
-                    node, bucket, node)
+                _node_url = "http://{}:8091/pools/default/buckets/@xdcr-{}/nodes/{}:8091/stats".format(
+                    node.split(":")[0], bucket, node.split(":")[0])
                 req = urllib2.Request(_node_url,
                                       headers={
                                           "Authorization": basic_authorization(user, passwrd),
@@ -892,87 +936,139 @@ def _get_xdcr_metrics(user, passwrd, nodes, buckets):
                 print("xdcr: " + str(e))
     return xdcr_metrics
 
-def get_system(url="10.112.192.101", user="Administrator", passwrd="password", nodes=[]):
+def get_system(url="", user="", passwrd="", nodes=[]):
     metrics = []
-    cluster_values = _get_cluster(url, user, passwrd, [])
-    node_metrics = _get_node_metrics(
-        user, passwrd, cluster_values['nodeList'])
+    if len(nodes) == 0:
+        cluster_values = _get_cluster(url, user, passwrd, [])
+        node_metrics = _get_node_metrics(
+            user, passwrd, cluster_values['nodeList'])
+    else:
+        cluster_values = _get_cluster(url, user, passwrd, [])
+        node_metrics = _get_node_metrics(
+            user, passwrd, nodes)
     metrics = cluster_values['metrics']
     metrics += node_metrics['metrics']
 
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
+    metrics_str += "\n"
     return metrics_str
 
-def get_buckets(url="10.112.192.101", user="Administrator", passwrd="password", bucket="", nodes=[]):
+def get_buckets(url="", user="", passwrd="", buckets=[], nodes=[]):
     metrics = []
-    cluster_values = _get_cluster(url, user, passwrd, [])
-    if len(cluster_values['serviceNodes']['kv']) > 0:
+    print(buckets)
+    if len(nodes) == 0:
+        cluster_values = _get_cluster(url, user, passwrd, [])
+        if len(cluster_values['serviceNodes']['kv']) > 0:
+            bucket_metrics = _get_bucket_metrics(
+                user, passwrd, cluster_values['serviceNodes']['kv'], buckets)
+            metrics = bucket_metrics['metrics']
+    else:
         bucket_metrics = _get_bucket_metrics(
-            user, passwrd, cluster_values['serviceNodes']['kv'])
-
+            user, passwrd, nodes, buckets)
         metrics = bucket_metrics['metrics']
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
+    metrics_str += "\n"
     return metrics_str
 
-def get_query(url="10.112.192.101", user="Administrator", passwrd="password", nodes=[]):
+def get_query(url="", user="", passwrd="", nodes=[]):
     metrics = []
     cluster_values = _get_cluster(url, user, passwrd, [])
 
-    if len(cluster_values['serviceNodes']['n1ql']) > 0:
+    if len(node) == 0:
+        if len(cluster_values['serviceNodes']['n1ql']) > 0:
+            query_metrics = _get_query_metrics(
+                user,
+                passwrd,
+                cluster_values['serviceNodes']['n1ql'])
+            metrics = query_metrics['metrics']
+    else:
         query_metrics = _get_query_metrics(
             user,
             passwrd,
-            cluster_values['serviceNodes']['n1ql'])
-
+            nodes)
         metrics = query_metrics['metrics']
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
+    metrics_str += "\n"
     return metrics_str
 
-def get_indexes(url="10.112.192.101", user="Administrator", passwrd="password", index="", bucket="", nodes=[]):
+def get_indexes(url="", user="", passwrd="", index="", buckets=[], nodes=[]):
     metrics = []
-    cluster_values = _get_cluster(url, user, passwrd, [])
 
-    if len(cluster_values['serviceNodes']['kv']) > 0:
-        bucket_metrics = _get_bucket_metrics(
-            user, passwrd, cluster_values['serviceNodes']['kv'])
+    if len(nodes) == 0:
+        cluster_values = _get_cluster(url, user, passwrd, [])
 
-    if len(cluster_values['serviceNodes']['index']) > 0 and bucket_metrics['buckets']:
-        index_metrics = _get_index_metrics(
-            user,
-            passwrd,
-            cluster_values['serviceNodes']['index'],
-            bucket_metrics['buckets'])
+        if len(buckets) == 0:
+            if len(cluster_values['serviceNodes']['kv']) > 0:
+                bucket_metrics = _get_bucket_metrics(
+                    user, passwrd, cluster_values['serviceNodes']['kv'])
+        else:
+            bucket_metrics = {"buckets": buckets}
 
-        metrics = index_metrics['metrics']
+        if len(cluster_values['serviceNodes']['index']) > 0 and bucket_metrics['buckets']:
+            index_metrics = _get_index_metrics(
+                user,
+                passwrd,
+                cluster_values['serviceNodes']['index'],
+                bucket_metrics['buckets'])
+
+            metrics = index_metrics['metrics']
+    else:
+        if len(buckets) == 0:
+            bucket_metrics = _get_bucket_metrics(
+                user, passwrd, nodes)
+        else:
+            bucket_metrics = {"buckets": buckets}
+
+        if bucket_metrics['buckets']:
+            index_metrics = _get_index_metrics(
+                user,
+                passwrd,
+                nodes,
+                bucket_metrics['buckets'])
+
+            metrics = index_metrics['metrics']
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
+    metrics_str += "\n"
     return metrics_str
 
-def get_eventing(url="10.112.192.101", user="Administrator", passwrd="password", nodes=[]):
+def get_eventing(url="", user="", passwrd="", nodes=[]):
     metrics = []
-    cluster_values = _get_cluster(url, user, passwrd, [])
 
-    if len(cluster_values['serviceNodes']['eventing']) > 0:
+    if len(nodes) == 0:
+        cluster_values = _get_cluster(url, user, passwrd, [])
+        if len(cluster_values['serviceNodes']['eventing']) > 0:
+            eventing_metrics = _get_eventing_metrics(
+                user,
+                passwrd,
+                cluster_values['serviceNodes']['eventing'])
+
+            metrics = eventing_metrics['metrics']
+    else:
         eventing_metrics = _get_eventing_metrics(
             user,
             passwrd,
-            cluster_values['serviceNodes']['eventing'])
+            nodes)
 
         metrics = eventing_metrics['metrics']
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
+    metrics_str += "\n"
     return metrics_str
 
-def get_xdcr(url="10.112.192.101", user="Administrator", passwrd="password", nodes=[]):
+def get_xdcr(url="", user="", passwrd="", nodes=[], buckets=[]):
     metrics = []
-    cluster_values = _get_cluster(url, user, passwrd, [])
-
-    if len(cluster_values['serviceNodes']['kv']) > 0:
-        bucket_metrics = _get_bucket_metrics(
-            user, passwrd, cluster_values['serviceNodes']['kv'])
+    if len(nodes) == 0:
+        cluster_values = _get_cluster(url, user, passwrd, [])
+        if len(buckets) == 0:
+            if len(cluster_values['serviceNodes']['kv']) > 0:
+                bucket_metrics = _get_bucket_metrics(
+                    user, passwrd, cluster_values['serviceNodes']['kv'])
+        else:
+            bucket_metrics= {"buckets": buckets}
 
         xdcr_metrics = _get_xdcr_metrics(
             user,
@@ -981,46 +1077,88 @@ def get_xdcr(url="10.112.192.101", user="Administrator", passwrd="password", nod
             bucket_metrics['buckets'])
 
         metrics = xdcr_metrics['metrics']
+
+    else:
+        if len(buckets) == 0:
+            bucket_metrics = _get_bucket_metrics(
+                user, passwrd, nodes)
+        else:
+            bucket_metrics= {"buckets": buckets}
+
+        xdcr_metrics = _get_xdcr_metrics(
+            user,
+            passwrd,
+            nodes,
+            bucket_metrics['buckets'])
+
+        metrics = xdcr_metrics['metrics']
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
+    metrics_str += "\n"
     return metrics_str
 
-def get_cbas(url="10.112.192.101", user="Administrator", passwrd="password", nodes=[]):
+def get_cbas(url="", user="", passwrd="", nodes=[]):
     metrics = []
-    cluster_values = _get_cluster(url, user, passwrd, [])
+    if len(nodes) == 0:
+        cluster_values = _get_cluster(url, user, passwrd, [])
 
-    if len(cluster_values['serviceNodes']['cbas']) > 0:
+        if len(cluster_values['serviceNodes']['cbas']) > 0:
+            cbas_metrics = _get_cbas_metrics(
+                user,
+                passwrd,
+                cluster_values['serviceNodes']['cbas'])
+
+        metrics = cbas_metrics['metrics']
+    else:
         cbas_metrics = _get_cbas_metrics(
             user,
             passwrd,
-            cluster_values['serviceNodes']['cbas'])
-
-    metrics = cbas_metrics['metrics']
+            nodes)
+        metrics = cbas_metrics['metrics']
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
+    metrics_str += "\n"
     return metrics_str
 
-def get_fts(url="10.112.192.101", user="Administrator", passwrd="password", nodes=[]):
+def get_fts(url="", user="", passwrd="", nodes=[], buckets=[]):
     metrics = []
-    cluster_values = _get_cluster(url, user, passwrd, [])
+    if len(nodes) == 0:
+        cluster_values = _get_cluster(url, user, passwrd, [])
 
-    if len(cluster_values['serviceNodes']['kv']) > 0:
-        bucket_metrics = _get_bucket_metrics(
-        user, passwrd, cluster_values['serviceNodes']['kv'])
+        if len(buckets) == 0:
+            if len(cluster_values['serviceNodes']['kv']) > 0:
+                bucket_metrics = _get_bucket_metrics(
+                user, passwrd, cluster_values['serviceNodes']['kv'])
+        else:
+            bucket_metrics = {"buckets": buckets}
 
-    if len(cluster_values['serviceNodes']['fts']) > 0:
+        if len(cluster_values['serviceNodes']['fts']) > 0:
+            fts_metrics = _get_fts_metrics(
+                user,
+                passwrd,
+                cluster_values['serviceNodes']['fts'],
+                bucket_metrics['buckets'])
+
+            metrics = fts_metrics['metrics']
+    else:
+        if len(buckets) == 0:
+            bucket_metrics = _get_bucket_metrics(
+                user, passwrd, nodes)
+        else:
+            bucket_metrics = {"buckets": buckets}
+
         fts_metrics = _get_fts_metrics(
             user,
             passwrd,
-            cluster_values['serviceNodes']['fts'],
+            nodes,
             bucket_metrics['buckets'])
 
-        metrics = bucket_metrics['metrics']
+        metrics = fts_metrics['metrics']
+
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
+    metrics_str += "\n"
     return metrics_str
-
-
 
 def get_metrics(url="10.112.192.101", user="Administrator", passwrd="password"):
     '''This is the entry point for this script. Gets each type of metric and
@@ -1084,7 +1222,6 @@ def get_metrics(url="10.112.192.101", user="Administrator", passwrd="password"):
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
     return metrics_str
-
 
 if __name__ == "__main__":
     URL = "10.112.192.101"
