@@ -1,0 +1,108 @@
+# my global config
+global:
+  scrape_interval:     60s
+  evaluation_interval: 30s 
+  scrape_timeout:      30s 
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      # - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  - job_name: 'Cluster1'
+
+    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+    scrape_timeout:      15s
+    
+    metrics_path: '/metrics'
+
+    static_configs:
+    - targets: ['localhost:5000']
+
+  - job_name: 'Cluster1_buckets'
+
+    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+    scrape_timeout:      15s
+    
+    metrics_path: '/metrics/buckets'
+
+    static_configs:
+    - targets: ['localhost:5000']
+
+  - job_name: 'Cluster1_query'
+
+    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+    scrape_timeout:      15s
+    
+    metrics_path: '/metrics/query'
+
+    static_configs:
+    - targets: ['localhost:5000']
+
+  - job_name: 'Cluster1_indexes'
+
+    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+    scrape_timeout:      15s
+    
+    metrics_path: '/metrics/indexes'
+
+    static_configs:
+    - targets: ['localhost:5000']
+
+  - job_name: 'Cluster1_eventing'
+
+    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+    scrape_timeout:      15s
+    
+    metrics_path: '/metrics/eventing'
+
+    static_configs:
+    - targets: ['localhost:5000']
+
+  - job_name: 'Cluster1_xdcr'
+
+    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+    scrape_timeout:      15s
+    
+    metrics_path: '/metrics/xdcr'
+
+    static_configs:
+    - targets: ['localhost:5000']
+
+  - job_name: 'Cluster1_analytics'
+
+    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+    scrape_timeout:      15s
+    
+    metrics_path: '/metrics/analytics'
+
+    static_configs:
+    - targets: ['localhost:5000']
+
+  - job_name: 'Cluster1_fts'
+
+    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+    scrape_timeout:      15s
+    
+    metrics_path: '/metrics/fts'
+
+    static_configs:
+    - targets: ['localhost:5000']
+
+  - job_name: 'Cluster1_system'
+
+    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+    scrape_timeout:      15s
+    
+    metrics_path: '/metrics/system'
+
+    static_configs:
+    - targets: ['localhost:5000']
