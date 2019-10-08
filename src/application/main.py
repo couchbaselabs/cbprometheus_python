@@ -976,7 +976,7 @@ def get_query(url="", user="", passwrd="", nodes=[]):
     metrics = []
     cluster_values = _get_cluster(url, user, passwrd, [])
 
-    if len(node) == 0:
+    if len(nodes) == 0:
         if len(cluster_values['serviceNodes']['n1ql']) > 0:
             query_metrics = _get_query_metrics(
                 user,
