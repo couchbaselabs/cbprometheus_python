@@ -892,6 +892,135 @@ def _get_xdcr_metrics(user, passwrd, nodes, buckets):
                 print("xdcr: " + str(e))
     return xdcr_metrics
 
+def get_system(url="10.112.192.101", user="Administrator", passwrd="password", nodes=[]):
+    metrics = []
+    cluster_values = _get_cluster(url, user, passwrd, [])
+    node_metrics = _get_node_metrics(
+        user, passwrd, cluster_values['nodeList'])
+    metrics = cluster_values['metrics']
+    metrics += node_metrics['metrics']
+
+    metrics_str = "\n"
+    metrics_str = metrics_str.join(metrics)
+    return metrics_str
+
+def get_buckets(url="10.112.192.101", user="Administrator", passwrd="password", bucket="", nodes=[]):
+    metrics = []
+    cluster_values = _get_cluster(url, user, passwrd, [])
+    if len(cluster_values['serviceNodes']['kv']) > 0:
+        bucket_metrics = _get_bucket_metrics(
+            user, passwrd, cluster_values['serviceNodes']['kv'])
+
+        metrics = bucket_metrics['metrics']
+    metrics_str = "\n"
+    metrics_str = metrics_str.join(metrics)
+    return metrics_str
+
+def get_query(url="10.112.192.101", user="Administrator", passwrd="password", nodes=[]):
+    metrics = []
+    cluster_values = _get_cluster(url, user, passwrd, [])
+
+    if len(cluster_values['serviceNodes']['n1ql']) > 0:
+        query_metrics = _get_query_metrics(
+            user,
+            passwrd,
+            cluster_values['serviceNodes']['n1ql'])
+
+        metrics = query_metrics['metrics']
+    metrics_str = "\n"
+    metrics_str = metrics_str.join(metrics)
+    return metrics_str
+
+def get_indexes(url="10.112.192.101", user="Administrator", passwrd="password", index="", bucket="", nodes=[]):
+    metrics = []
+    cluster_values = _get_cluster(url, user, passwrd, [])
+
+    if len(cluster_values['serviceNodes']['kv']) > 0:
+        bucket_metrics = _get_bucket_metrics(
+            user, passwrd, cluster_values['serviceNodes']['kv'])
+
+    if len(cluster_values['serviceNodes']['index']) > 0 and bucket_metrics['buckets']:
+        index_metrics = _get_index_metrics(
+            user,
+            passwrd,
+            cluster_values['serviceNodes']['index'],
+            bucket_metrics['buckets'])
+
+        metrics = index_metrics['metrics']
+    metrics_str = "\n"
+    metrics_str = metrics_str.join(metrics)
+    return metrics_str
+
+def get_eventing(url="10.112.192.101", user="Administrator", passwrd="password", nodes=[]):
+    metrics = []
+    cluster_values = _get_cluster(url, user, passwrd, [])
+
+    if len(cluster_values['serviceNodes']['eventing']) > 0:
+        eventing_metrics = _get_eventing_metrics(
+            user,
+            passwrd,
+            cluster_values['serviceNodes']['eventing'])
+
+        metrics = eventing_metrics['metrics']
+    metrics_str = "\n"
+    metrics_str = metrics_str.join(metrics)
+    return metrics_str
+
+def get_xdcr(url="10.112.192.101", user="Administrator", passwrd="password", nodes=[]):
+    metrics = []
+    cluster_values = _get_cluster(url, user, passwrd, [])
+
+    if len(cluster_values['serviceNodes']['kv']) > 0:
+        bucket_metrics = _get_bucket_metrics(
+            user, passwrd, cluster_values['serviceNodes']['kv'])
+
+        xdcr_metrics = _get_xdcr_metrics(
+            user,
+            passwrd,
+            cluster_values['serviceNodes']['kv'],
+            bucket_metrics['buckets'])
+
+        metrics = xdcr_metrics['metrics']
+    metrics_str = "\n"
+    metrics_str = metrics_str.join(metrics)
+    return metrics_str
+
+def get_cbas(url="10.112.192.101", user="Administrator", passwrd="password", nodes=[]):
+    metrics = []
+    cluster_values = _get_cluster(url, user, passwrd, [])
+
+    if len(cluster_values['serviceNodes']['cbas']) > 0:
+        cbas_metrics = _get_cbas_metrics(
+            user,
+            passwrd,
+            cluster_values['serviceNodes']['cbas'])
+
+    metrics = cbas_metrics['metrics']
+    metrics_str = "\n"
+    metrics_str = metrics_str.join(metrics)
+    return metrics_str
+
+def get_fts(url="10.112.192.101", user="Administrator", passwrd="password", nodes=[]):
+    metrics = []
+    cluster_values = _get_cluster(url, user, passwrd, [])
+
+    if len(cluster_values['serviceNodes']['kv']) > 0:
+        bucket_metrics = _get_bucket_metrics(
+        user, passwrd, cluster_values['serviceNodes']['kv'])
+
+    if len(cluster_values['serviceNodes']['fts']) > 0:
+        fts_metrics = _get_fts_metrics(
+            user,
+            passwrd,
+            cluster_values['serviceNodes']['fts'],
+            bucket_metrics['buckets'])
+
+        metrics = bucket_metrics['metrics']
+    metrics_str = "\n"
+    metrics_str = metrics_str.join(metrics)
+    return metrics_str
+
+
 
 def get_metrics(url="10.112.192.101", user="Administrator", passwrd="password"):
     '''This is the entry point for this script. Gets each type of metric and
