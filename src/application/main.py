@@ -1038,13 +1038,13 @@ def get_system(url="", user="", passwrd="", nodes=[]):
             query_metrics = _get_system_metrics(
                 user,
                 passwrd,
-                cluster_values['nodeList'])
+                cluster_values['nodeList'], cluster_values['clusterName'])
             metrics = query_metrics['metrics']
     else:
         query_metrics = _get_system_metrics(
             user,
             passwrd,
-            nodes)
+            nodes, cluster_values['clusterName'])
         metrics = query_metrics['metrics']
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
@@ -1077,13 +1077,13 @@ def get_query(url="", user="", passwrd="", nodes=[]):
             query_metrics = _get_query_metrics(
                 user,
                 passwrd,
-                cluster_values['serviceNodes']['n1ql'])
+                cluster_values['serviceNodes']['n1ql'], cluster_values['clusterName'])
             metrics = query_metrics['metrics']
     else:
         query_metrics = _get_query_metrics(
             user,
             passwrd,
-            nodes)
+            nodes, cluster_values['clusterName'])
         metrics = query_metrics['metrics']
     metrics_str = "\n"
     metrics_str = metrics_str.join(metrics)
@@ -1124,21 +1124,21 @@ def get_indexes(url="", user="", passwrd="", index="", buckets=[], nodes=[]):
 
 def get_eventing(url="", user="", passwrd="", nodes=[]):
     metrics = []
+    cluster_values = _get_cluster(url, user, passwrd, [])
 
     if len(nodes) == 0:
-        cluster_values = _get_cluster(url, user, passwrd, [])
         if len(cluster_values['serviceNodes']['eventing']) > 0:
             eventing_metrics = _get_eventing_metrics(
                 user,
                 passwrd,
-                cluster_values['serviceNodes']['eventing'])
+                cluster_values['serviceNodes']['eventing'], cluster_values['clusterName'])
 
             metrics = eventing_metrics['metrics']
     else:
         eventing_metrics = _get_eventing_metrics(
             user,
             passwrd,
-            nodes)
+            nodes, cluster_values['clusterName'])
 
         metrics = eventing_metrics['metrics']
     metrics_str = "\n"
