@@ -1034,11 +1034,11 @@ def get_system(url="", user="", passwrd="", nodes=[]):
     cluster_values = _get_cluster(url, user, passwrd, [])
 
     if len(nodes) == 0:
-        if len(cluster_values['serviceNodes']['all']) > 0:
+        if len(cluster_values['nodeList']) > 0:
             query_metrics = _get_system_metrics(
                 user,
                 passwrd,
-                cluster_values['serviceNodes']['all'])
+                cluster_values['nodeList'])
             metrics = query_metrics['metrics']
     else:
         query_metrics = _get_system_metrics(
