@@ -721,8 +721,8 @@ def _get_cbas_metrics(user, passwrd, node_list):
                             "{} {{node = \"{}\", "
                             "type=\"cbas\"}} {} {}".format(
                                 record,
-                                _node, 
-                                datapoint, 
+                                _node,
+                                datapoint,
                                 a_json['op']['samples']['timestamp'][idx]))
         except Exception as e:
             print("analytics base: " + str(e))
@@ -808,10 +808,10 @@ def _get_xdcr_metrics(user, passwrd, nodes, buckets):
                                 xdcr_metrics['metrics'].append(
                                     "{} {{instanceID=\"{}\", "
                                     "level=\"cluster\", "
-                                    "source=\"{}\", "
+                                    "sourceBucket=\"{}\", "
                                     "destClusterName=\"{}\", "
                                     "destClusterAddress=\"{}\", "
-                                    "dest_bucket=\"{}\", "
+                                    "destBucket=\"{}\", "
                                     "type=\"xdcr\"}} {}".format(
                                         "status",
                                         _id,
