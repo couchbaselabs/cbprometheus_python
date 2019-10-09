@@ -454,10 +454,10 @@ def _get_index_metrics(user, passwrd, nodes, buckets, clusterName = ""):
                             if isinstance(ii_json['op']['samples'][record], type([])):
                                 for idx, datapoint in enumerate(ii_json['op']['samples'][record]):
                                     index_info['metrics'].append(
-                                        "{} {{cluster=\"{}\", node = \"{}\","
+                                        "{} {{cluster=\"{}\", node=\"{}\","
                                         "index=\"{}\", "
                                         "bucket=\"{}\", "
-                                        "type=\"index_stat\"}} {} {}".format(
+                                        "type=\"index\"}} {} {}".format(
                                             index_type,
                                             clusterName,
                                             _node,
@@ -467,10 +467,10 @@ def _get_index_metrics(user, passwrd, nodes, buckets, clusterName = ""):
                                             ii_json['op']['samples']['timestamp'][idx]))
                             else:
                                 index_info['metrics'].append(
-                                    "{} {{cluster=\"{}\", node = \"{}\", "
+                                    "{} {{cluster=\"{}\", node=\"{}\", "
                                     "index=\"{}\", "
                                     "bucket=\"{}\", "
-                                    "type=\"index_stat\"}} {}".format(
+                                    "type=\"index\"}} {}".format(
                                         index_type,
                                         clusterName,
                                         _node,
@@ -483,9 +483,9 @@ def _get_index_metrics(user, passwrd, nodes, buckets, clusterName = ""):
                             if isinstance(ii_json['op']['samples'][record], type([])):
                                 for idx, datapoint in enumerate(ii_json['op']['samples'][record]):
                                     index_info['metrics'].append(
-                                        "{} {{cluster=\"{}\", node = \"{}\", "
+                                        "{} {{cluster=\"{}\", node=\"{}\", "
                                         "bucket=\"{}\", "
-                                        "type=\"index_stat\"}} {} {}".format(
+                                        "type=\"index\"}} {} {}".format(
                                             index_type,
                                             clusterName,
                                             _node,
@@ -494,9 +494,9 @@ def _get_index_metrics(user, passwrd, nodes, buckets, clusterName = ""):
                                             ii_json['op']['samples']['timestamp'][idx]))
                             else:
                                 index_info['metrics'].append(
-                                    "{} {{cluster=\"{}\", node = \"{}\", "
+                                    "{} {{cluster=\"{}\", node=\"{}\", "
                                     "bucket=\"{}\", "
-                                    "type=\"index_stat\"}} {}".format(
+                                    "type=\"index\"}} {}".format(
                                         index_type,
                                         clusterName,
                                         _node,
@@ -538,7 +538,7 @@ def _get_query_metrics(user, passwrd, node_list, clusterName = ""):
                 if record != "timestamp":
                     for idx, datapoint in enumerate(q_json['op']['samples'][record]):
                         query_info['metrics'].append(
-                            "{} {{cluster=\"{}\", node = \"{}\", "
+                            "{} {{cluster=\"{}\", node=\"{}\", "
                             "type=\"query\"}} {} {}".format(
                                 record,
                                 clusterName,
@@ -583,7 +583,7 @@ def _get_eventing_metrics(user, passwrd, node_list, clusterName = ""):
                         if isinstance(e_json['op']['samples'][record], type([])):
                             for idx, datapoint in enumerate(e_json['op']['samples'][record]):
                                 eventing_metrics['metrics'].append(
-                                    "{} {{cluster=\"{}\", node = \"{}\", "
+                                    "{} {{cluster=\"{}\", node=\"{}\", "
                                     "function=\"{}\", "
                                     "type=\"eventing_stat\"}} {} {}".format(
                                         metric_type,
@@ -594,7 +594,7 @@ def _get_eventing_metrics(user, passwrd, node_list, clusterName = ""):
                                         e_json['op']['samples']['timestamp'][idx]))
                         else:
                             eventing_metrics['metrics'].append(
-                                "{} {{cluster=\"{}\", node = \"{}\", "
+                                "{} {{cluster=\"{}\", node=\"{}\", "
                                 "function=\"{}\", "
                                 "type=\"eventing_stat\"}} {}".format(
                                     metric_type,
@@ -608,7 +608,7 @@ def _get_eventing_metrics(user, passwrd, node_list, clusterName = ""):
                             for idx, datapoint in enumerate(
                                     e_json['op']['samples'][record]):
                                 eventing_metrics['metrics'].append(
-                                    "{} {{cluster=\"{}\", node = \"{}\", "
+                                    "{} {{cluster=\"{}\", node=\"{}\", "
                                     "type=\"eventing_stat\"}} {} {}".format(
                                         metric_type,
                                         clusterName,
@@ -617,7 +617,7 @@ def _get_eventing_metrics(user, passwrd, node_list, clusterName = ""):
                                         e_json['op']['samples']['timestamp'][idx]))
                         else:
                             eventing_metrics['metrics'].append(
-                                "{} {{cluster=\"{}\", node = \"{}\", "
+                                "{} {{cluster=\"{}\", node=\"{}\", "
                                 "type=\"eventing_stat\"}} {}".format(
                                     metric_type,
                                     clusterName,
@@ -665,7 +665,7 @@ def _get_fts_metrics(user, passwrd, node_list, bucket_list, clusterName = ""):
                                 for idx, datapoint in enumerate(
                                         f_json['op']['samples'][record]):
                                     fts_metrics['metrics'].append(
-                                        "{} {{cluster=\"{}\", node = \"{}\", "
+                                        "{} {{cluster=\"{}\", node=\"{}\", "
                                         "index=\"{}\", "
                                         "type=\"fts_stat\"}} {} {}".format(
                                             metric_type,
@@ -676,7 +676,7 @@ def _get_fts_metrics(user, passwrd, node_list, bucket_list, clusterName = ""):
                                             f_json['op']['samples']['timestamp'][idx]))
                             else:
                                 fts_metrics['metrics'].append(
-                                    "{} {{cluster=\"{}\", node = \"{}\", "
+                                    "{} {{cluster=\"{}\", node=\"{}\", "
                                     "index=\"{}\", "
                                     "type=\"fts_stat\"}} {}".format(
                                         metric_type,
@@ -689,7 +689,7 @@ def _get_fts_metrics(user, passwrd, node_list, bucket_list, clusterName = ""):
                             if isinstance(f_json['op']['samples'][record], type([])):
                                 for idx, datapoint in enumerate(f_json['op']['samples'][record]):
                                     fts_metrics['metrics'].append(
-                                        "{} {{cluster=\"{}\", node = \"{}\", "
+                                        "{} {{cluster=\"{}\", node=\"{}\", "
                                         "type=\"fts_stat\"}} {} {}".format(
                                             metric_type,
                                             clusterName,
@@ -699,7 +699,7 @@ def _get_fts_metrics(user, passwrd, node_list, bucket_list, clusterName = ""):
 
                             else:
                                 fts_metrics['metrics'].append(
-                                    "{} {{cluster=\"{}\", node = \"{}\", "
+                                    "{} {{cluster=\"{}\", node=\"{}\", "
                                     "type=\"fts_stat\"}} {}".format(
                                         metric_type,
                                         clusterName,
@@ -740,7 +740,7 @@ def _get_cbas_metrics(user, passwrd, node_list, clusterName = ""):
                     for idx, datapoint in enumerate(
                             a_json['op']['samples'][record]):
                         cbas_metrics['metrics'].append(
-                            "{} {{cluster=\"{}\", node = \"{}\", "
+                            "{} {{cluster=\"{}\", node=\"{}\", "
                             "type=\"cbas\"}} {} {}".format(
                                 record,
                                 clusterName,
@@ -991,7 +991,7 @@ def _get_system_metrics(user, passwrd, node_list, clusterName = ""):
                 if record != "timestamp":
                     for idx, datapoint in enumerate(q_json['op']['samples'][record]):
                         system_info['metrics'].append(
-                            "{} {{cluster = \"{}\", node = \"{}\", "
+                            "{} {{cluster = \"{}\", node=\"{}\", "
                             "type=\"system\"}} {} {}".format(
                                 record,
                                 clusterName,
@@ -1002,6 +1002,34 @@ def _get_system_metrics(user, passwrd, node_list, clusterName = ""):
         except Exception as e:
             print("system base: " + str(e))
     return system_info
+
+def _get_index_buckets(url, user, passwrd):
+    '''Gets a unique list of all of the buckets in the cluster that have indexes'''
+    buckets = []
+    try:
+        _url = "http://{}:8091/indexStatus".format(url.split(":")[0])
+        req = urllib2.Request(_url,
+                              headers={
+                                  "Authorization": basic_authorization(user, passwrd),
+                                  "Content-Type": "application/x-www-form-urlencoded",
+
+                                  # Some extra headers for fun
+                                  "Accept": "*/*",  # curl does this
+                                  "User-Agent": "check_version/1",
+                              })
+
+        f = (urllib2.urlopen(req)).read()
+        result = json.loads(f)
+
+        for index in result['indexes']:
+            if index['bucket'] not in buckets:
+                buckets.append(index['bucket'])
+
+        buckets.sort()
+
+    except Exception as e:
+        print("indexStatus: " + str(e))
+    return buckets
 
 def get_system(url="", user="", passwrd="", nodes=[]):
     metrics = []
@@ -1068,36 +1096,27 @@ def get_indexes(url="", user="", passwrd="", index="", buckets=[], nodes=[]):
     metrics = []
     cluster_values = _get_cluster(url, user, passwrd, [])
 
-    if len(nodes) == 0:
+    if len(buckets) == 0:
+        buckets = _get_index_buckets(url, user, passwrd)
 
-        if len(buckets) == 0:
-            if len(cluster_values['serviceNodes']['kv']) > 0:
-                bucket_metrics = _get_bucket_metrics(
-                    user, passwrd, cluster_values['serviceNodes']['kv'], cluster_values['clusterName'])
-        else:
-            bucket_metrics = {"buckets": buckets}
+    if len(nodes) == 0:
 
         if len(cluster_values['serviceNodes']['index']) > 0 and bucket_metrics['buckets']:
             index_metrics = _get_index_metrics(
                 user,
                 passwrd,
                 cluster_values['serviceNodes']['index'],
-                bucket_metrics['buckets'], cluster_values['clusterName'])
+                buckets, cluster_values['clusterName'])
 
             metrics = index_metrics['metrics']
     else:
-        if len(buckets) == 0:
-            bucket_metrics = _get_bucket_metrics(
-                user, passwrd, nodes, cluster_values['clusterName'])
-        else:
-            bucket_metrics = {"buckets": buckets}
 
         if bucket_metrics['buckets']:
             index_metrics = _get_index_metrics(
                 user,
                 passwrd,
                 nodes,
-                bucket_metrics['buckets'], cluster_values['clusterName'])
+                buckets, cluster_values['clusterName'])
 
             metrics = index_metrics['metrics']
     metrics_str = "\n"
@@ -1237,6 +1256,7 @@ def get_metrics(url="10.112.192.101", user="Administrator", passwrd="password"):
     combines them to present'''
     cluster_values = _get_cluster(url, user, passwrd, [])
     metrics = cluster_values['metrics']
+    index_buckets = _get_index_buckets(url, user, passwrd)
 
     system_metrics = _get_system_metrics(
         user, passwrd, cluster_values['nodeList'], cluster_values['clusterName'])
