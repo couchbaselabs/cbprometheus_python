@@ -125,3 +125,4 @@ dmypy.json
 .idea/
 nbproject/
 .DS_Store
+data
