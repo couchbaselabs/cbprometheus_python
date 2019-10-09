@@ -408,7 +408,7 @@ def _get_index_metrics(user, passwrd, nodes, buckets):
                     for idx, datapoint in enumerate(i_json['op']['samples'][record]):
                         index_info['metrics'].append(
                             "{} {{node=\"{}\", "
-                            "type=\"index\"}} {} {}".format(
+                            "type=\"index-service\"}} {} {}".format(
                                 record, _node,
                                 datapoint,
                                 i_json['op']['samples']['timestamp'][idx]))
