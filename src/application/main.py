@@ -152,7 +152,7 @@ def _get_cluster(url, user, passwrd, node_list):
                     record, stats[record]))
     return(result)
 
-def _get_node_metrics(user, passwrd, node_list):
+def _get_node_metrics(user, passwrd, node_list, clusterName):
     '''gets the metrics for each node'''
     result = {}
     result['metrics'] = []
@@ -193,30 +193,30 @@ def _get_node_metrics(user, passwrd, node_list):
                                         if metric == "clusterMembership":
                                             if node[metric] == "active":
                                                 result['metrics'].append(
-                                                    "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
-                                                        metric, convrt_url, 1))
+                                                    "{} {{cluster=\"{}\", node=\"{}\", type=\"nodes\"}} {}".format(
+                                                        metric, clusterName, convrt_url, 1))
                                             else:
                                                 result['metrics'].append(
-                                                    "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
-                                                        metric, convrt_url, 0))
+                                                    "{} {{cluster=\"{}\", node=\"{}\", type=\"nodes\"}} {}".format(
+                                                        metric, clusterName, convrt_url, 0))
                                         if metric == "recoveryType":
                                             if node[metric] == "none":
                                                 result['metrics'].append(
-                                                    "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
-                                                        metric, convrt_url, 0))
+                                                    "{} {{cluster=\"{}\", node=\"{}\", type=\"nodes\"}} {}".format(
+                                                        metric, clusterName, convrt_url, 0))
                                             else:
                                                 result['metrics'].append(
-                                                    "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
-                                                        metric, convrt_url, 1))
+                                                    "{} {{cluster=\"{}\", node=\"{}\", type=\"nodes\"}} {}".format(
+                                                        metric, clusterName, convrt_url, 1))
                                         if metric == "status":
                                             if node[metric] == "healthy":
                                                 result['metrics'].append(
-                                                    "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
-                                                        metric, convrt_url, 1))
+                                                    "{} {{cluster=\"{}\", node=\"{}\", type=\"nodes\"}} {}".format(
+                                                        metric, clusterName, convrt_url, 1))
                                             else:
                                                 result['metrics'].append(
-                                                    "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
-                                                        metric, convrt_url, 0))
+                                                    "{} {{cluster=\"{}\", node=\"{}\", type=\"nodes\"}} {}".format(
+                                                        metric, clusterName, convrt_url, 0))
                                     elif metric in ["ports",
                                                     "services",
                                                     "couchApiBase",
@@ -229,21 +229,19 @@ def _get_node_metrics(user, passwrd, node_list):
                                     elif metric == "interestingStats":
                                         for _metric in node[metric]:
                                             result['metrics'].append(
-                                                "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
-                                                    _metric, convrt_url, node[metric][_metric]))
+                                                "{} {{cluster=\"{}\", node=\"{}\", type=\"nodes\"}} {}".format(
+                                                    _metric, clusterName, convrt_url, node[metric][_metric]))
                                     elif metric == "systemStats":
                                         for _metric in node[metric]:
                                             result['metrics'].append(
-                                                "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
-                                                    _metric, convrt_url, node[metric][_metric]))
+                                                "{} {{cluster=\"{}\", node=\"{}\", type=\"nodes\"}} {}".format(
+                                                    _metric, clusterName, convrt_url, node[metric][_metric]))
                                     else:
                                         result['metrics'].append(
-                                            "{} {{node=\"{}\", type=\"nodes\"}} {}".format(
-                                                metric, convrt_url, node[metric]))
+                                            "{} {{cluster=\"{}\", node=\"{}\", type=\"nodes\"}} {}".format(
+                                                metric, clusterName, convrt_url, node[metric]))
                     except Exception as e:
                         print("buckets: " + str(e))
-
-        # else:
 
     return(result)
 
@@ -1257,6 +1255,10 @@ def get_metrics(url="10.112.192.101", user="Administrator", passwrd="password"):
     cluster_values = _get_cluster(url, user, passwrd, [])
     metrics = cluster_values['metrics']
     index_buckets = _get_index_buckets(url, user, passwrd)
+
+    node_metrics = _get_node_metrics(
+        user, passwrd, cluster_values['nodeList'], cluster_values['clusterName'])
+    metrics = metrics + node_metrics['metrics']
 
     system_metrics = _get_system_metrics(
         user, passwrd, cluster_values['nodeList'], cluster_values['clusterName'])
