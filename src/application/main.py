@@ -1099,7 +1099,7 @@ def get_indexes(url="", user="", passwrd="", index="", buckets=[], nodes=[]):
 
     if len(nodes) == 0:
 
-        if len(cluster_values['serviceNodes']['index']) > 0 and bucket_metrics['buckets']:
+        if len(cluster_values['serviceNodes']['index']) > 0 and len(buckets) > 0:
             index_metrics = _get_index_metrics(
                 user,
                 passwrd,
@@ -1109,7 +1109,7 @@ def get_indexes(url="", user="", passwrd="", index="", buckets=[], nodes=[]):
             metrics = index_metrics['metrics']
     else:
 
-        if bucket_metrics['buckets']:
+        if len(buckets) > 0:
             index_metrics = _get_index_metrics(
                 user,
                 passwrd,
@@ -1196,7 +1196,7 @@ def get_cbas(url="", user="", passwrd="", nodes=[]):
                 passwrd,
                 cluster_values['serviceNodes']['cbas'])
 
-        metrics = cbas_metrics['metrics']
+            metrics = cbas_metrics['metrics']
     else:
         cbas_metrics = _get_cbas_metrics(
             user,
