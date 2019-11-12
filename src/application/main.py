@@ -67,12 +67,14 @@ def get_query(url="", user="", passwrd="", nodes=[]):
 
     if len(nodes) == 0:
         if len(cluster_values['serviceNodes']['n1ql']) > 0:
+            # get the metrics from the query service for each of the n1ql nodes
             query_metrics = cb_query._get_query_metrics(
                 user,
                 passwrd,
                 cluster_values['serviceNodes']['n1ql'], cluster_values['clusterName'])
             metrics = query_metrics['metrics']
     else:
+        # get the metrics from the query service for each of the n1ql nodes
         query_metrics = cb_query._get_query_metrics(
             user,
             passwrd,
