@@ -60,7 +60,7 @@ def get_buckets(url="", user="", passwrd="", buckets=[], nodes=[]):
         metrics = bucket_metrics['metrics']
     return metrics
 
-def get_query(url="", user="", passwrd="", nodes=[]):
+def get_query(url="", user="", passwrd="", nodes=[], slow_queries=True):
     '''Entry point for getting the metrics for the query nodes'''
     metrics = []
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
@@ -71,14 +71,16 @@ def get_query(url="", user="", passwrd="", nodes=[]):
             query_metrics = cb_query._get_query_metrics(
                 user,
                 passwrd,
-                cluster_values['serviceNodes']['n1ql'], cluster_values['clusterName'])
+                cluster_values['serviceNodes']['n1ql'], cluster_values['clusterName'],
+                slow_queries)
             metrics = query_metrics['metrics']
     else:
         # get the metrics from the query service for each of the n1ql nodes
         query_metrics = cb_query._get_query_metrics(
             user,
             passwrd,
-            nodes, cluster_values['clusterName'])
+            nodes, cluster_values['clusterName'],
+            slow_queries)
         metrics = query_metrics['metrics']
     return metrics
 

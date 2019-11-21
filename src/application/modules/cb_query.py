@@ -3,12 +3,15 @@ import urllib
 import re
 import hashlib
 
-def _get_query_metrics(user, passwrd, node_list, cluster_name=""):
+def _get_query_metrics(user, passwrd, node_list, cluster_name="", slow_queries=True):
     '''Gets the metrics for the query nodes'''
     # first get the system:completed_request entries for the past minute
-    query_info = _get_completed_query_metrics(user, passwrd, node_list, cluster_name)
+    query_info = {}
+    query_info['metrics'] = []
 
     auth = basic_authorization(user, passwrd)
+    if slow_queries:
+        query_info['metrics'] = _get_completed_query_metrics(auth, node_list, cluster_name)
 
     for node in node_list:
         try:
@@ -32,12 +35,9 @@ def _get_query_metrics(user, passwrd, node_list, cluster_name=""):
             print("query base: " + str(e))
     return query_info
 
-def _get_completed_query_metrics(user, passwrd, node_list, cluster_name=""):
+def _get_completed_query_metrics(auth, node_list, cluster_name=""):
     '''Queries system:completed_requests on the specific query node'''
-    query_info = {}
-    query_info['metrics'] = []
-
-    auth = basic_authorization(user, passwrd)
+    metrics = []
 
     # n1ql statement to find all of the the completed requests from the past 60 seconds (if any)
     n1ql_stmt = """SELECT IFMISSING(preparedText, statement) as statement, requestId AS request_id,
@@ -65,6 +65,7 @@ def _get_completed_query_metrics(user, passwrd, node_list, cluster_name=""):
         AND UPPER(IFMISSING(preparedText, statement)) NOT LIKE '% INDEX%'
         AND UPPER(IFMISSING(preparedText, statement)) NOT LIKE '% SYSTEM:%'
         AND request_time_ms >= ROUND(NOW_MILLIS(), 0) - 60000"""
+
     # strip new lines and convert two or more spaces to a single space
     # and then url encode the statement
     n1ql_stmt = urllib.urlencode({ "statement": re.sub(" +", " ", n1ql_stmt.strip("\r\n")) })
@@ -78,7 +79,7 @@ def _get_completed_query_metrics(user, passwrd, node_list, cluster_name=""):
             q_json = rest_request(auth, _query_url)
             _node = value_to_string(node)
             for record in q_json['results']:
-                query_info['metrics'].append(
+                metrics.append(
                     "{} {{cluster=\"{}\", node=\"{}\", "
                     "queue_time_ms=\"{}\", "
                     "elapsed_time_ms=\"{}\", "
@@ -105,11 +106,11 @@ def _get_completed_query_metrics(user, passwrd, node_list, cluster_name=""):
                         # generate a hash of the statement so that if the user wants the statement
                         # can be disregarded and the hash can still be used to group repeat statements
                         hashlib.sha1(record['statement']).hexdigest(),
-                        record['statement'].replace('"','\\"'),
+                        record['statement'].replace('"','\\"').replace('\n', ' '),
                         record['service_time_ms'],
                         record['request_time_ms']
                     )
                 )
         except Exception as e:
             print("completed query: " + str(e))
-    return query_info
+    return metrics

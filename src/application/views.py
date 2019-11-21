@@ -1,6 +1,7 @@
 from flask import Response, make_response, Request, request, session, stream_with_context
 from application import application
 import main
+from modules.cb_utilities import *
 
 @application.route('/metrics', methods=['GET'])
 @application.route('/', methods=['GET', 'POST'])
@@ -80,6 +81,11 @@ def buckets():
 @application.route('/metrics/query', methods=['GET'])
 @application.route('/query', methods=['GET'])
 def query():
+
+    slow_queries = True
+    if request.args.get("slow_queries"):
+        slow_queries = str2bool(request.args.get("slow_queries"))
+
     node_list = []
     if request.args.get("nodes"):
         node_str = request.args.get("nodes")
@@ -90,7 +96,8 @@ def query():
         application.config['CB_DATABASE'],
         application.config['CB_USERNAME'],
         application.config['CB_PASSWORD'],
-        node_list)
+        node_list,
+        slow_queries)
     if application.config['CB_STREAMING']:
         def generate():
             for row in _value:
