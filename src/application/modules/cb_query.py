@@ -64,7 +64,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
         AND UPPER(IFMISSING(preparedText, statement)) NOT LIKE 'ADVISE %'
         AND UPPER(IFMISSING(preparedText, statement)) NOT LIKE '% INDEX%'
         AND UPPER(IFMISSING(preparedText, statement)) NOT LIKE '% SYSTEM:%'
-        AND request_time_ms >= ROUND(NOW_MILLIS(), 0) - 60000"""
+        AND request_time_ms >= ROUND(NOW_MILLIS(), 0) - 600000"""
 
     # strip new lines and convert two or more spaces to a single space
     # and then url encode the statement
@@ -79,35 +79,126 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
             q_json = rest_request(auth, _query_url)
             _node = value_to_string(node)
             for record in q_json['results']:
+                statement = record['statement'].replace('"','\\"').replace('\n', ' ')
+                # generate a hash of the statement so that if the user wants the statement
+                # can be disregarded and the hash can still be used to group repeat statements
+                statement_signature = hashlib.sha1(statement).hexdigest()
+                # stat: queue_time_ms
                 metrics.append(
                     "{} {{cluster=\"{}\", node=\"{}\", "
-                    "queue_time_ms=\"{}\", "
-                    "elapsed_time_ms=\"{}\", "
-                    "result_count=\"{}\", "
-                    "result_size=\"{}\", "
-                    "query_selectivity_percent=\"{}\", "
-                    "scan_results=\"{}\", "
-                    "fetches=\"{}\", "
                     "request_id=\"{}\", "
                     "signature=\"{}\", "
                     "statement=\"{}\", "
-                    "type=\"completed-query\"}} {} {}".format(
-                        "completed_query",
+                    "type=\"completed-request\"}} {} {}".format(
+                        "completed_request_queue_time_ms",
                         cluster_name,
                         _node,
-                        record['queue_time_ms'],
-                        record['elapsed_time_ms'],
-                        record['result_count'],
-                        record['result_size'],
-                        record['query_selectivity_percent'],
-                        record['scan_results'],
-                        record['fetches'],
                         record['request_id'],
-                        # generate a hash of the statement so that if the user wants the statement
-                        # can be disregarded and the hash can still be used to group repeat statements
-                        hashlib.sha1(record['statement']).hexdigest(),
-                        record['statement'].replace('"','\\"').replace('\n', ' '),
-                        record['service_time_ms'],
+                        statement_signature,
+                        statement,
+                        record['queue_time_ms'],
+                        record['request_time_ms']
+                    )
+                )
+                # stat: elapsed_time_ms
+                metrics.append(
+                    "{} {{cluster=\"{}\", node=\"{}\", "
+                    "request_id=\"{}\", "
+                    "signature=\"{}\", "
+                    "statement=\"{}\", "
+                    "type=\"completed-request\"}} {} {}".format(
+                        "completed_request_elapsed_time_ms",
+                        cluster_name,
+                        _node,
+                        record['request_id'],
+                        statement_signature,
+                        statement,
+                        record['elapsed_time_ms'],
+                        record['request_time_ms']
+                    )
+                )
+                # stat: result_count
+                metrics.append(
+                    "{} {{cluster=\"{}\", node=\"{}\", "
+                    "request_id=\"{}\", "
+                    "signature=\"{}\", "
+                    "statement=\"{}\", "
+                    "type=\"completed-request\"}} {} {}".format(
+                        "completed_request_result_count",
+                        cluster_name,
+                        _node,
+                        record['request_id'],
+                        statement_signature,
+                        statement,
+                        record['result_count'],
+                        record['request_time_ms']
+                    )
+                )
+                # stat: result_size_bytes
+                metrics.append(
+                    "{} {{cluster=\"{}\", node=\"{}\", "
+                    "request_id=\"{}\", "
+                    "signature=\"{}\", "
+                    "statement=\"{}\", "
+                    "type=\"completed-request\"}} {} {}".format(
+                        "completed_request_result_size_bytes",
+                        cluster_name,
+                        _node,
+                        record['request_id'],
+                        statement_signature,
+                        statement,
+                        record['result_size'],
+                        record['request_time_ms']
+                    )
+                )
+                # stat: query_selectivity_percent
+                metrics.append(
+                    "{} {{cluster=\"{}\", node=\"{}\", "
+                    "request_id=\"{}\", "
+                    "signature=\"{}\", "
+                    "statement=\"{}\", "
+                    "type=\"completed-request\"}} {} {}".format(
+                        "completed_request_query_selectivity_percent",
+                        cluster_name,
+                        _node,
+                        record['request_id'],
+                        statement_signature,
+                        statement,
+                        record['query_selectivity_percent'],
+                        record['request_time_ms']
+                    )
+                )
+                # stat: scan_results
+                metrics.append(
+                    "{} {{cluster=\"{}\", node=\"{}\", "
+                    "request_id=\"{}\", "
+                    "signature=\"{}\", "
+                    "statement=\"{}\", "
+                    "type=\"completed-request\"}} {} {}".format(
+                        "completed_request_scan_results",
+                        cluster_name,
+                        _node,
+                        record['request_id'],
+                        statement_signature,
+                        statement,
+                        record['scan_results'],
+                        record['request_time_ms']
+                    )
+                )
+                # stat: fetches
+                metrics.append(
+                    "{} {{cluster=\"{}\", node=\"{}\", "
+                    "request_id=\"{}\", "
+                    "signature=\"{}\", "
+                    "statement=\"{}\", "
+                    "type=\"completed-request\"}} {} {}".format(
+                        "completed_request_fetches",
+                        cluster_name,
+                        _node,
+                        record['request_id'],
+                        statement_signature,
+                        statement,
+                        record['fetches'],
                         record['request_time_ms']
                     )
                 )
