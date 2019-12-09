@@ -64,7 +64,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
         AND UPPER(IFMISSING(preparedText, statement)) NOT LIKE 'ADVISE %'
         AND UPPER(IFMISSING(preparedText, statement)) NOT LIKE '% INDEX%'
         AND UPPER(IFMISSING(preparedText, statement)) NOT LIKE '% SYSTEM:%'
-        AND request_time_ms >= ROUND(NOW_MILLIS(), 0) - 600000"""
+        AND request_time_ms >= ROUND(NOW_MILLIS(), 0) - 60000"""
 
     # strip new lines and convert two or more spaces to a single space
     # and then url encode the statement
