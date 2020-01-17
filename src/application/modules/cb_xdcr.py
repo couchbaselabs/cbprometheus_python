@@ -30,11 +30,9 @@ def _get_xdcr_metrics(user, passwrd, nodes, buckets, cluster_name=""):
             _x_json = rest_request(auth, _xdcr_url)
             # use a dictionary to dynamically rename the tasks variables to snake case
             metric_renamer = {}
-            metric_renamer['status'] = "status"
             metric_renamer['docsChecked'] = "docs_checked"
             metric_renamer['pauseRequested'] = "pause_requested"
             metric_renamer['docsWritten'] = "docs_written"
-            metric_renamer['errors'] = "errors"
             metric_renamer['recommendedRefreshPeriod'] = "recommended_refresh_period"
             metric_renamer['changesLeft'] = "changes_left"
             # get generic stats for each replication
@@ -145,7 +143,7 @@ def _get_xdcr_metrics(user, passwrd, nodes, buckets, cluster_name=""):
                                 "dest_cluster_address=\"{}\", "
                                 "dest_bucket=\"{}\", "
                                 "type=\"xdcr\"}} {}".format(
-                                    metric_renamer[metric],
+                                    metric_renamer.get(metric, metric),
                                     cluster_name,
                                     remote_cluster_id,
                                     replication_id,
