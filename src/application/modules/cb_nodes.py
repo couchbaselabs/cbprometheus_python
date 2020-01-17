@@ -18,7 +18,19 @@ def _get_node_metrics(user, passwrd, node_list, cluster_name):
         convrt_url = value_to_string(url)
         for _record in stats:
             record = value_to_string(_record)
-            if record == "nodes":
+
+            if record == "balanced":
+                if stats[record]:
+                    result['metrics'].append(
+                        "{} {{cluster=\"{}\", node=\"{}\", "
+                        "type=\"node\"}} {}".format(
+                            "balanced", cluster_name, convrt_url, 1))
+                else:
+                    result['metrics'].append(
+                        "{} {{cluster=\"{}\", node=\"{}\", "
+                        "type=\"node\"}} {}".format(
+                            "balanced", cluster_name, convrt_url, 0))
+            elif record == "nodes":
                 for node in stats[record]:
                     try:
                         if 'thisNode' in node.keys():
