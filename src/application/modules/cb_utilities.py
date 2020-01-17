@@ -1,6 +1,13 @@
 import urllib2
 import json
 
+import re
+
+def snake_caseify(input_str):
+    '''converts to snake case'''
+    converted_str = '_'.join(filter(None, re.split("([A-Z][^A-Z]*)", input_str))).lower()
+    return converted_str
+
 def basic_authorization(user, password):
     '''Doc String'''
     s = user + ":" + password

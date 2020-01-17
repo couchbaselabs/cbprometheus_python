@@ -15,14 +15,6 @@ def _get_node_metrics(user, passwrd, node_list, cluster_name):
             print(e)
             return(result)
 
-        metric_renamer = {}
-        metric_renamer['clusterMembership'] = "cluster_membership"
-        metric_renamer['mcdMemoryReserved'] = "mcd_memory_reserved"
-        metric_renamer['cpuCount'] = "cpu_count"
-        metric_renamer['clusterCompatibility'] = "cluster_compatibility"
-        metric_renamer['mcdMemoryAllocated'] = "mcd_memory_allocated"
-        metric_renamer['recoveryType'] = "recovery_type"
-        metric_renamer['mcdMemoryReserved'] = "mcd_memory_reserved"
         convrt_url = value_to_string(url)
         for _record in stats:
             record = value_to_string(_record)
@@ -42,34 +34,34 @@ def _get_node_metrics(user, passwrd, node_list, cluster_name):
                                                 result['metrics'].append(
                                                     "{} {{cluster=\"{}\", node=\"{}\", "
                                                     "type=\"node\"}} {}".format(
-                                                        metric_renamer.get(metric, metric), cluster_name, convrt_url, 1))
+                                                        snake_caseify(metric), cluster_name, convrt_url, 1))
                                             else:
                                                 result['metrics'].append(
                                                     "{} {{cluster=\"{}\", node=\"{}\", "
                                                     "type=\"node\"}} {}".format(
-                                                        metric_renamer.get(metric, metric), cluster_name, convrt_url, 0))
+                                                        snake_caseify(metric), cluster_name, convrt_url, 0))
                                         if metric == "recoveryType":
                                             if node[metric] == "none":
                                                 result['metrics'].append(
                                                     "{} {{cluster=\"{}\", node=\"{}\", "
                                                     "type=\"node\"}} {}".format(
-                                                        metric_renamer.get(metric, metric), cluster_name, convrt_url, 0))
+                                                        snake_caseify(metric), cluster_name, convrt_url, 0))
                                             else:
                                                 result['metrics'].append(
                                                     "{} {{cluster=\"{}\", node=\"{}\", "
                                                     "type=\"node\"}} {}".format(
-                                                        metric_renamer.get(metric, metric), cluster_name, convrt_url, 1))
+                                                        snake_caseify(metric), cluster_name, convrt_url, 1))
                                         if metric == "status":
                                             if node[metric] == "healthy":
                                                 result['metrics'].append(
                                                     "{} {{cluster=\"{}\", node=\"{}\", "
                                                     "type=\"node\"}} {}".format(
-                                                        metric_renamer.get(metric, metric), cluster_name, convrt_url, 1))
+                                                        snake_caseify(metric), cluster_name, convrt_url, 1))
                                             else:
                                                 result['metrics'].append(
                                                     "{} {{cluster=\"{}\", node=\"{}\", "
                                                     "type=\"node\"}} {}".format(
-                                                        metric_renamer.get(metric, metric), cluster_name, convrt_url, 0))
+                                                        snake_caseify(metric), cluster_name, convrt_url, 0))
                                     elif metric in ["ports",
                                                     "services",
                                                     "couchApiBase",
@@ -104,7 +96,7 @@ def _get_node_metrics(user, passwrd, node_list, cluster_name):
                                         result['metrics'].append(
                                             "{} {{cluster=\"{}\", node=\"{}\", "
                                             "type=\"node\"}} {}".format(
-                                                metric_renamer.get(metric, metric),
+                                                snake_caseify(metric),
                                                 cluster_name,
                                                 convrt_url,
                                                 node[metric]))

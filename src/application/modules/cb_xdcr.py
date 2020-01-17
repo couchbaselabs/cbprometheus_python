@@ -28,13 +28,6 @@ def _get_xdcr_metrics(user, passwrd, nodes, buckets, cluster_name=""):
         try:
             _xdcr_url = "http://{}:8091/pools/default/tasks".format(uri.split(":")[0])
             _x_json = rest_request(auth, _xdcr_url)
-            # use a dictionary to dynamically rename the tasks variables to snake case
-            metric_renamer = {}
-            metric_renamer['docsChecked'] = "docs_checked"
-            metric_renamer['pauseRequested'] = "pause_requested"
-            metric_renamer['docsWritten'] = "docs_written"
-            metric_renamer['recommendedRefreshPeriod'] = "recommended_refresh_period"
-            metric_renamer['changesLeft'] = "changes_left"
             # get generic stats for each replication
             for record in _x_json:
                 if record['type'] == "xdcr":
@@ -143,7 +136,7 @@ def _get_xdcr_metrics(user, passwrd, nodes, buckets, cluster_name=""):
                                 "dest_cluster_address=\"{}\", "
                                 "dest_bucket=\"{}\", "
                                 "type=\"xdcr\"}} {}".format(
-                                    metric_renamer.get(metric, metric),
+                                    snake_caseify(metric),
                                     cluster_name,
                                     remote_cluster_id,
                                     replication_id,
