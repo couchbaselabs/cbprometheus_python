@@ -83,6 +83,23 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                 # generate a hash of the statement so that if the user wants the statement
                 # can be disregarded and the hash can still be used to group repeat statements
                 statement_signature = hashlib.sha1(statement).hexdigest()
+                # stat: service_time_ms
+                metrics.append(
+                    "{} {{cluster=\"{}\", node=\"{}\", "
+                    "request_id=\"{}\", "
+                    "signature=\"{}\", "
+                    "statement=\"{}\", "
+                    "type=\"completed-request\"}} {} {}".format(
+                        "completed_request_service_time_ms",
+                        cluster_name,
+                        _node,
+                        record['request_id'],
+                        statement_signature,
+                        statement,
+                        record['service_time_ms'],
+                        record['request_time_ms']
+                    )
+                )
                 # stat: queue_time_ms
                 metrics.append(
                     "{} {{cluster=\"{}\", node=\"{}\", "
