@@ -83,6 +83,54 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                 # generate a hash of the statement so that if the user wants the statement
                 # can be disregarded and the hash can still be used to group repeat statements
                 statement_signature = hashlib.sha1(statement).hexdigest()
+                # stat: consolidated by service_time_ms
+                metrics.append(
+                    "{} {{cluster=\"{}\", node=\"{}\", "
+                    "queue_time_ms=\"{}\", "
+                    "elapsed_time_ms=\"{}\", "
+                    "result_count=\"{}\", "
+                    "result_size=\"{}\", "
+                    "query_selectivity_percent=\"{}\", "
+                    "scan_results=\"{}\", "
+                    "fetches=\"{}\", "
+                    "request_id=\"{}\", "
+                    "signature=\"{}\", "
+                    "statement=\"{}\", "
+                    "type=\"completed-query\"}} {} {}".format(
+                        "completed_request",
+                        cluster_name,
+                        _node,
+                        record['queue_time_ms'],
+                        record['elapsed_time_ms'],
+                        record['result_count'],
+                        record['result_size'],
+                        record['query_selectivity_percent'],
+                        record['scan_results'],
+                        record['fetches'],
+                        record['request_id'],
+                        statement_signature,
+                        statement,
+                        record['service_time_ms'],
+                        record['request_time_ms']
+                    )
+                )
+                # stat: service_time_ms
+                metrics.append(
+                    "{} {{cluster=\"{}\", node=\"{}\", "
+                    "request_id=\"{}\", "
+                    "signature=\"{}\", "
+                    "statement=\"{}\", "
+                    "type=\"completed-request\"}} {} {}".format(
+                        "completed_request_service_time_ms",
+                        cluster_name,
+                        _node,
+                        record['request_id'],
+                        statement_signature,
+                        statement,
+                        record['service_time_ms'],
+                        record['request_time_ms']
+                    )
+                )
                 # stat: queue_time_ms
                 metrics.append(
                     "{} {{cluster=\"{}\", node=\"{}\", "

@@ -28,12 +28,26 @@ def get_system(url="", user="", passwrd="", nodes=[]):
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
     if len(nodes) == 0:
         if len(cluster_values['nodeList']) > 0:
+            # get node metrics
+            node_metrics = cb_nodes._get_node_metrics(
+                user,
+                passwrd,
+                cluster_values['nodeList'], cluster_values['clusterName'])
+            metrics = metrics + node_metrics['metrics']
+            # get system metrics
             cluster_metrics = cb_system._get_system_metrics(
                 user,
                 passwrd,
                 cluster_values['nodeList'], cluster_values['clusterName'])
-            metrics = cluster_metrics['metrics']
+            metrics = metrics + cluster_metrics['metrics']
     else:
+        # get node metrics
+        node_metrics = cb_nodes._get_node_metrics(
+            user,
+            passwrd,
+            nodes, cluster_values['clusterName'])
+        metrics = metrics + node_metrics['metrics']
+        # get system metrics
         cluster_metrics = cb_system._get_system_metrics(
             user,
             passwrd,
@@ -242,7 +256,7 @@ def get_fts(url="", user="", passwrd="", nodes=[], buckets=[]):
 
     return(metrics)
 
-def get_metrics(url="10.112.192.101", user="Administrator", passwrd="password"):
+def get_metrics(url="", user="", passwrd=""):
     '''This is the entry point for this script. Gets each type of metric and
     combines them to present'''
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])

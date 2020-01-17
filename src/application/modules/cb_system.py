@@ -17,7 +17,7 @@ def _get_system_metrics(user, passwrd, node_list, cluster_name=""):
                 if record != "timestamp":
                     for idx, datapoint in enumerate(q_json['op']['samples'][record]):
                         system_info['metrics'].append(
-                            "{} {{cluster = \"{}\", node=\"{}\", "
+                            "{} {{cluster=\"{}\", node=\"{}\", "
                             "type=\"system\"}} {} {}".format(
                                 record,
                                 cluster_name,
