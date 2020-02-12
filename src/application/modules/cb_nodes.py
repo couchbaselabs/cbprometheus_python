@@ -28,9 +28,20 @@ def _get_node_metrics(user, passwrd, node_list, cluster_name):
                                     pass
                                 else:
                                     if metric in [
-                                        "clusterMembership", "recoveryType", "status"]:
+                                        "nodeEncryption", "clusterMembership", "recoveryType", "status"]:
                                         if metric == "clusterMembership":
                                             if node[metric] == "active":
+                                                result['metrics'].append(
+                                                    "{} {{cluster=\"{}\", node=\"{}\", "
+                                                    "type=\"node\"}} {}".format(
+                                                        snake_caseify(metric), cluster_name, convrt_url, 1))
+                                            else:
+                                                result['metrics'].append(
+                                                    "{} {{cluster=\"{}\", node=\"{}\", "
+                                                    "type=\"node\"}} {}".format(
+                                                        snake_caseify(metric), cluster_name, convrt_url, 0))
+                                        if metric == "nodeEncryption":
+                                            if node[metric] == "True":
                                                 result['metrics'].append(
                                                     "{} {{cluster=\"{}\", node=\"{}\", "
                                                     "type=\"node\"}} {}".format(
@@ -71,7 +82,11 @@ def _get_node_metrics(user, passwrd, node_list, cluster_name):
                                                     "hostname",
                                                     "otpNode",
                                                     "memoryFree", # this is a duplicate from systemStats.mem_free
-                                                    "memoryTotal"  # this is a duplicate from systemStats.mem_total
+                                                    "memoryTotal",  # this is a duplicate from systemStats.mem_total
+                                                    "configuredHostname",
+                                                    "externalListeners",
+                                                    "addressFamily",
+                                                    "nodeUUID"
                                                     ]:
                                         pass
                                     elif metric == "interestingStats":
@@ -79,7 +94,7 @@ def _get_node_metrics(user, passwrd, node_list, cluster_name):
                                             result['metrics'].append(
                                                 "{} {{cluster=\"{}\", node=\"{}\", "
                                                 "type=\"node\"}} {}".format(
-                                                    _metric,
+                                                    snake_caseify(_metric),
                                                     cluster_name,
                                                     convrt_url,
                                                     node[metric][_metric]))
@@ -88,7 +103,7 @@ def _get_node_metrics(user, passwrd, node_list, cluster_name):
                                             result['metrics'].append(
                                                 "{} {{cluster=\"{}\", node=\"{}\", "
                                                 "type=\"node\"}} {}".format(
-                                                    _metric,
+                                                    snake_caseify(_metric),
                                                     cluster_name,
                                                     convrt_url,
                                                     node[metric][_metric]))
