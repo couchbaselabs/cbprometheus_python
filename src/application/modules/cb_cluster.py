@@ -61,20 +61,20 @@ def _get_cluster(url, user, passwrd, node_list):
                 if stats['rebalanceStatus'] == "none":
                     result['metrics'].append(
                         "{} {{type=\"cluster\"}} {}".format(
-                            record, 0))
+                            snake_caseify(record), 0))
                 else:
                     result['metrics'].append(
                         "{} {{type=\"cluster\"}} {}".format(
-                            record, 1))
+                            snake_caseify(record), 1))
             elif record == "balanced":
                 if stats[record]:
                     result['metrics'].append(
                         "{} {{type=\"cluster\"}} {}".format(
-                            record, 0))
+                           snake_caseify(record), 0))
                 else:
                     result['metrics'].append(
                         "{} {{type=\"cluster\"}} {}".format(
-                            record, 1))
+                            snake_caseify(record), 1))
 
         elif record in ["autoCompactionSettings"]:
             for compaction_type in stats[record]:
@@ -85,7 +85,7 @@ def _get_cluster(url, user, passwrd, node_list):
                             int(stats[record][compaction_type][_metric])
                             result['metrics'].append(
                                 "{} {{type=\"cluster\"}} {}".format(
-                                    _metric, stats[record][compaction_type][_metric]))
+                                    snake_caseify(_metric), stats[record][compaction_type][_metric]))
                         except Exception as e:
                             pass
         elif record in ["counters"]:
@@ -98,7 +98,7 @@ def _get_cluster(url, user, passwrd, node_list):
             for storage_type in stats[record]:
                 for _metric in stats[record][storage_type]:
                     result['metrics'].append("{}{} {{type=\"cluster\"}} {}".format(
-                        storage_type, _metric, stats[record][storage_type][_metric]))
+                        storage_type, snake_caseify(_metric), stats[record][storage_type][_metric]))
 
         elif record in ["clusterName"]:
             result['clusterName'] = stats[record]
@@ -120,6 +120,6 @@ def _get_cluster(url, user, passwrd, node_list):
         else:
             result['metrics'].append(
                 "{} {{type=\"cluster\"}} {}".format(
-                    record, stats[record]))
+                    snake_caseify(record), stats[record]))
 
     return(result)
