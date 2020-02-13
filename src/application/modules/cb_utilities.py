@@ -2,6 +2,15 @@ import urllib2
 import json
 
 import re
+from random import shuffle
+
+class Error(Exception):
+   """Base class for other exceptions"""
+   pass
+
+class SeedNodeDown(Error):
+   """Raised when all the seed nodes are down"""
+   pass
 
 def snake_caseify(input_str):
     '''converts to snake case'''
@@ -34,10 +43,25 @@ def rest_request(auth, url):
                               "User-Agent": "check_version/1",
                           })
 
-    f = (urllib2.urlopen(req)).read()
+    f = (urllib2.urlopen(req, timeout=1)).read()
     result = json.loads(f)
     return result
 
-# def rest_request(user, passwd, url):
-#     r = requests.get(url, auth=(user, passwd))
-#     return(r.json())
+def check_cluster(url, username, pw):
+    urls = url.split(",")
+    shuffle(urls)
+    print(urls)
+    active = False
+    auth = basic_authorization(username, pw)
+    for _url in urls:
+        try:
+            rest_request(auth, "http://{}:8091/pools/default".format(_url))
+            url = _url
+            active = True
+            break
+        except:
+            pass
+    if active == False:
+        raise SeedNodeDown
+    else:
+        return url

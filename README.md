@@ -11,14 +11,28 @@ Install requirements<br />
 set environment variables:<br/>
 
 ```
-export CB_DATABASE='<>' 
+export CB_DATABASE='<>,<>'
 export CB_USERNAME='<>'
 export CB_PASSWORD='<>'
 ```
 
+Please list more than one node in the list of nodes. It does not matter the order or the service running on the node. The nodes must be separated by commas.
+
 if you are working with very large clusters or clusters with many indexes it may be more performant to stream your results to prometheus instead of trying to load the full dataset at one time. To do that export the following variable</br>
 ```
 export CB_STREAMING=true
+```
+
+If you are not using docker to run this it may be beneficial to create and add these variables to the /etc/profile.d/exporter.sh
+```
+sudo su
+{
+    echo 'export CB_DATABASE="<>,<>"'
+    echo 'export CB_USERNAME="<>"'
+    echo 'export CB_PASSWORD="<>"'
+} > /etc/profile.d/exporter.sh
+sudo chmod +x /etc/profile.d/exporter.sh
+source /etc/profile.d/exporter.sh
 ```
 
 run with uwsgi<br/>
@@ -63,4 +77,4 @@ With the exporter running an easy way to test if you have connectivity is to use
 
 To test that the metrics are being returned in the way Prometheus expects to read them you can use the promtool. The following command must be run from the Prometheus installation directory.<br />
 
-```curl -s http://<ipaddress>:5000/metrics/system | ./promtool check metrics``` 
+```curl -s http://<ipaddress>:5000/metrics/system | ./promtool check metrics```
