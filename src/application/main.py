@@ -5,25 +5,11 @@ RestAPI metrics to Prometheus format.'''
 # pylint: disable=C0303, C0325, C1801
 
 from modules import cb_analytics, cb_bucket, cb_cluster, cb_eventing, cb_fts, cb_index, cb_nodes, \
-    cb_query, cb_system, cb_xdcr
-
-
-def str2bool(v):
-    '''Converts string values to boolean'''
-    return v.lower() in ("yes", "true", "t", "1")
-
-def value_to_string(ip_address):
-    '''converts IP addresses and other values to strings without special characters'''
-    ip_address = ip_address.split(":")[0].replace(".", "_").replace("+", "_")
-    return ip_address
-
-def basic_authorization(user, password):
-    '''Doc String'''
-    s = user + ":" + password
-    return "Basic " + s.encode("base64").rstrip()
-
+    cb_query, cb_system, cb_xdcr, cb_utilities
+    
 def get_system(url="", user="", passwrd="", nodes=[]):
     '''Entry point for getting the metrics for the system from the nodes'''
+    url = cb_utilities.check_cluster(url, user, passwrd)
     metrics = []
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
     if len(nodes) == 0:
@@ -57,6 +43,7 @@ def get_system(url="", user="", passwrd="", nodes=[]):
 
 def get_buckets(url="", user="", passwrd="", buckets=[], nodes=[]):
     '''Entry point for getting the metrics for the kv nodes and buckets'''
+    url = cb_utilities.check_cluster(url, user, passwrd)
     metrics = []
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
     if len(nodes) == 0:
@@ -76,6 +63,7 @@ def get_buckets(url="", user="", passwrd="", buckets=[], nodes=[]):
 
 def get_query(url="", user="", passwrd="", nodes=[], slow_queries=True):
     '''Entry point for getting the metrics for the query nodes'''
+    url = cb_utilities.check_cluster(url, user, passwrd)
     metrics = []
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
 
@@ -100,6 +88,7 @@ def get_query(url="", user="", passwrd="", nodes=[], slow_queries=True):
 
 def get_indexes(url="", user="", passwrd="", index=[], buckets=[], nodes=[]):
     '''Entry point for getting the metrics for the index nodes'''
+    url = cb_utilities.check_cluster(url, user, passwrd)
     metrics = []
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
     if len(buckets) == 0:
@@ -130,6 +119,7 @@ def get_indexes(url="", user="", passwrd="", index=[], buckets=[], nodes=[]):
 
 def get_eventing(url="", user="", passwrd="", nodes=[]):
     '''Entry point for getting the metrics for the eventing nodes'''
+    url = cb_utilities.check_cluster(url, user, passwrd)
     metrics = []
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
 
@@ -153,6 +143,7 @@ def get_eventing(url="", user="", passwrd="", nodes=[]):
 
 def get_xdcr(url="", user="", passwrd="", nodes=[], buckets=[]):
     '''Entry point for getting the metrics for xdcr'''
+    url = cb_utilities.check_cluster(url, user, passwrd)
     metrics = []
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
 
@@ -194,6 +185,7 @@ def get_xdcr(url="", user="", passwrd="", nodes=[], buckets=[]):
 
 def get_cbas(url="", user="", passwrd="", nodes=[]):
     '''Entry point for getting the metrics for the analytics nodes'''
+    url = cb_utilities.check_cluster(url, user, passwrd)
     metrics = []
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
 
@@ -217,6 +209,7 @@ def get_cbas(url="", user="", passwrd="", nodes=[]):
 
 def get_fts(url="", user="", passwrd="", nodes=[], buckets=[]):
     '''Entry point for getting the metrics for the fts nodes'''
+    url = cb_utilities.check_cluster(url, user, passwrd)
     metrics = []
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
 
@@ -259,6 +252,8 @@ def get_fts(url="", user="", passwrd="", nodes=[], buckets=[]):
 def get_metrics(url="", user="", passwrd=""):
     '''This is the entry point for this script. Gets each type of metric and
     combines them to present'''
+    url = cb_utilities.check_cluster(url, user, passwrd)
+
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
     metrics = cluster_values['metrics']
     index_buckets = cb_bucket._get_index_buckets(url, user, passwrd)
