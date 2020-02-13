@@ -36,7 +36,7 @@ def _get_xdcr_metrics(user, passwrd, nodes, buckets, cluster_name=""):
                     remote_cluster_id = record['id'].split("/")[0]
                     replication_id = record['id']
                     hostname = value_to_string(cluster_definition[remote_cluster_id]['hostname'])
-                    remote_cluster_name = value_to_string(cluster_definition[remote_cluster_id]['name'])
+                    remote_cluster_name = snake_caseify(value_to_string(cluster_definition[remote_cluster_id]['name']))
                     for metric in record:
                         if metric in ["source",
                                       "target",
@@ -125,6 +125,31 @@ def _get_xdcr_metrics(user, passwrd, nodes, buckets, cluster_name=""):
                                         hostname,
                                         dest_bucket,
                                         len(record[metric])))
+                        elif metric in ['filterBypassExpiry', 'filterDeletion', 'filterExpiration']:
+                            if record[metric] == True:
+                                metric_value = 1
+                            else:
+                                metric_value = 0
+                            xdcr_metrics['metrics'].append(
+                                "{} {{cluster=\"{}\", remote_cluster_id=\"{}\", "
+                                "replication_id=\"{}\", "
+                                "replication=\"{}\", "
+                                "level=\"cluster\", "
+                                "source_bucket=\"{}\", "
+                                "dest_cluster_name=\"{}\", "
+                                "dest_cluster_address=\"{}\", "
+                                "dest_bucket=\"{}\", "
+                                "type=\"xdcr\"}} {}".format(
+                                    snake_caseify(metric),
+                                    cluster_name,
+                                    remote_cluster_id,
+                                    replication_id,
+                                    "{} -> {} ({})".format(source, remote_cluster_name, dest_bucket),
+                                    source,
+                                    remote_cluster_name,
+                                    hostname,
+                                    dest_bucket,
+                                    metric_value))
                         else:
                             xdcr_metrics['metrics'].append(
                                 "{} {{cluster=\"{}\", remote_cluster_id=\"{}\", "
@@ -177,7 +202,7 @@ def _get_xdcr_metrics(user, passwrd, nodes, buckets, cluster_name=""):
                                             "dest_bucket=\"{}\", "
                                             "type=\"xdcr\", "
                                             "node=\"{}\"}} {} {}".format(
-                                                key_split[4],
+                                                snake_caseify(key_split[4]),
                                                 cluster_name,
                                                 key_split[1],
                                                 key_split[1] + "/" + key_split[2] + "/" + key_split[3],
