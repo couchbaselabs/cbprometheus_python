@@ -105,7 +105,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "status {cluster=~\"$cluster\", node=~\"$node\", type=\"nodes\"}",
+          "expr": "system_status {cluster=~\"$cluster\", node=~\"$node\", type=\"nodes\"}",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -202,7 +202,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(curr_connections{bucket=~\"$bucket\", node=~\"$node\"})",
+          "expr": "sum(bucket_curr_connections{bucket=~\"$bucket\", node=~\"$node\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{",
@@ -294,7 +294,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(cmd_set{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
+          "expr": "sum(bucket_cmd_set{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{node}}",
@@ -385,7 +385,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(cmd_get{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
+          "expr": "sum(bucket_cmd_get{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{node}}",
@@ -475,7 +475,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(ep_cache_miss_rate{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
+          "expr": "sum(bucket_ep_cache_miss_rate{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{node}}",
@@ -566,7 +566,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(mem_used{bucket=~\"$bucket\", node=~\"$node\"}/1024/1024/1024) by (node)",
+          "expr": "sum(bucket_mem_used{bucket=~\"$bucket\", node=~\"$node\"}/1024/1024/1024) by (node)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{node}}",
@@ -656,7 +656,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(curr_items{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
+          "expr": "sum(bucket_curr_items{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{node}}",
@@ -747,7 +747,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(cas_hits{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
+          "expr": "sum(bucket_cas_hits{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{node}}",
@@ -837,7 +837,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(cpu_utilization_rate{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
+          "expr": "sum(bucket_cpu_utilization_rate{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{node}}",
@@ -927,7 +927,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(disk_write_queue{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
+          "expr": "sum(bucket_disk_write_queue{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
@@ -1017,7 +1017,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(ep_data_write_failed{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
+          "expr": "sum(bucket_ep_data_write_failed{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{node}}",
@@ -1108,7 +1108,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(cmd_set{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
+          "expr": "sum(bucket_cmd_set{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{node}}",
@@ -1199,7 +1199,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(ep_ops_create{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
+          "expr": "sum(bucket_ep_ops_create{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{node}}",
@@ -1290,7 +1290,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(ep_data_read_failed{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
+          "expr": "sum(bucket_ep_data_read_failed{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{node}}",
@@ -1381,7 +1381,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(ep_tmp_oom_errors{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
+          "expr": "sum(bucket_ep_tmp_oom_errors{bucket=~\"$bucket\", node=~\"$node\"}) by (node)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{node}}",
@@ -1472,7 +1472,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(query_requests{node=~\"$node\"}) by (node)",
+          "expr": "sum(query_query_requests{node=~\"$node\"}) by (node)",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
@@ -1576,7 +1576,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "num_docs_pending_queued{index=~\"[[index]]\", node=~\"[[node_index]]\"}",
+          "expr": "index_num_docs_pending_queued{index=~\"[[index]]\", node=~\"[[node_index]]\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{index}}",
@@ -1667,7 +1667,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "num_docs_indexed{index=~\"[[index]]\", node=~\"[[node_index]]\"}",
+          "expr": "index_num_docs_indexed{index=~\"[[index]]\", node=~\"[[node_index]]\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{index}}",
@@ -1758,7 +1758,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "items_count{index=~\"[[index]]\", node=~\"[[node_index]]\"}",
+          "expr": "index_items_count{index=~\"[[index]]\", node=~\"[[node_index]]\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{index}}",
@@ -1849,7 +1849,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "cache_miss_ratio{index=~\"[[index]]\", node=~\"[[node_index]]\"}",
+          "expr": "bucket_cache_miss_ratio{index=~\"[[index]]\", node=~\"[[node_index]]\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{index}}",
@@ -2031,7 +2031,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "memory_used{index=~\"[[index]]\", node=~\"[[node_index]]\"}",
+          "expr": "index_memory_used{index=~\"[[index]]\", node=~\"[[node_index]]\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{index}}",
@@ -2122,7 +2122,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "num_rows_returned{index=~\"[[index]]\", node=~\"[[node_index]]\"}",
+          "expr": "index_num_rows_returned{index=~\"[[index]]\", node=~\"[[node_index]]\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{index}}",
@@ -2213,7 +2213,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg_scan_latency{index=~\"[[index]]\", node=~\"[[node_index]]\"}",
+          "expr": "index_avg_scan_latency{index=~\"[[index]]\", node=~\"[[node_index]]\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{index}}",
@@ -2304,7 +2304,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "index_frag_percent{index=~\"[[index]]\", node=~\"[[node_index]]\"}",
+          "expr": "index_index_frag_percent{index=~\"[[index]]\", node=~\"[[node_index]]\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{index}}",

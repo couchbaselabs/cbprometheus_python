@@ -60,7 +60,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "max without(request_id)(completed_request_queue_time_ms{cluster=~\"$cluster\", node=~\"$node\", type=\"completed-request\", statement=~\"$statement\", job!=\"Cluster1\"})",
+          "expr": "max without(query_request_id)(query_completed_request_queue_time_ms{cluster=~\"$cluster\", node=~\"$node\", type=\"completed-request\", statement=~\"$statement\", job!=\"Cluster1\"})",
           "legendFormat": "{{cluster}} - {{node}} - {{statement}}",
           "refId": "A"
         }
@@ -147,7 +147,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "max without(request_id)(completed_request_elapsed_time_ms{cluster=~\"$cluster\", node=~\"$node\", type=\"completed-request\", statement=~\"$statement\", job!=\"Cluster1\"})",
+          "expr": "max without(query_request_id)(query_completed_request_elapsed_time_ms{cluster=~\"$cluster\", node=~\"$node\", type=\"completed-request\", statement=~\"$statement\", job!=\"Cluster1\"})",
           "legendFormat": "{{cluster}} - {{node}} - {{statement}}",
           "refId": "A"
         }
@@ -234,7 +234,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "max without(request_id)(completed_request_result_count{cluster=~\"$cluster\", node=~\"$node\", type=\"completed-request\", statement=~\"$statement\", job!=\"Cluster1\"})",
+          "expr": "max without(query_request_id)(query_completed_request_result_count{cluster=~\"$cluster\", node=~\"$node\", type=\"completed-request\", statement=~\"$statement\", job!=\"Cluster1\"})",
           "legendFormat": "{{cluster}} - {{node}} - {{statement}}",
           "refId": "A"
         }
@@ -321,7 +321,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "max without(request_id)(completed_request_result_size_bytes{cluster=~\"$cluster\", node=~\"$node\", type=\"completed-request\", statement=~\"$statement\", job!=\"Cluster1\"})",
+          "expr": "max without(query_request_id)(query_completed_request_result_size_bytes{cluster=~\"$cluster\", node=~\"$node\", type=\"completed-request\", statement=~\"$statement\", job!=\"Cluster1\"})",
           "legendFormat": "{{cluster}} - {{node}} - {{statement}}",
           "refId": "A"
         }
@@ -408,7 +408,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "max without(request_id)(completed_request_query_selectivity_percent{cluster=~\"$cluster\", node=~\"$node\", type=\"completed-request\", statement=~\"$statement\", job!=\"Cluster1\"})",
+          "expr": "max without(query_request_id)(query_completed_request_query_selectivity_percent{cluster=~\"$cluster\", node=~\"$node\", type=\"completed-request\", statement=~\"$statement\", job!=\"Cluster1\"})",
           "legendFormat": "{{cluster}} - {{node}} - {{statement}}",
           "refId": "A"
         }
@@ -495,7 +495,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "max without(request_id)(completed_request_scan_results{cluster=~\"$cluster\", node=~\"$node\", type=\"completed-request\", statement=~\"$statement\", job!=\"Cluster1\"})",
+          "expr": "max without(query_request_id)(query_completed_request_scan_results{cluster=~\"$cluster\", node=~\"$node\", type=\"completed-request\", statement=~\"$statement\", job!=\"Cluster1\"})",
           "legendFormat": "{{cluster}} - {{node}} - {{statement}}",
           "refId": "A"
         }
@@ -582,7 +582,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "max without(request_id)(completed_request_fetches{cluster=~\"$cluster\", node=~\"$node\", type=\"completed-request\", statement=~\"$statement\", job!=\"$cluster\"})",
+          "expr": "max without(query_request_id)(query_completed_request_fetches{cluster=~\"$cluster\", node=~\"$node\", type=\"completed-request\", statement=~\"$statement\", job!=\"$cluster\"})",
           "legendFormat": "{{cluster}} - {{node}} - {{statement}}",
           "refId": "A"
         }
@@ -653,11 +653,6 @@
             "selected": true,
             "text": "All",
             "value": "$__all"
-          },
-          {
-            "selected": false,
-            "text": "Cluster1",
-            "value": "Cluster1"
           }
         ],
         "query": "{type=\"completed-request\"}",
@@ -689,16 +684,6 @@
             "selected": false,
             "text": "All",
             "value": "$__all"
-          },
-          {
-            "selected": true,
-            "text": "172_31_11_95",
-            "value": "172_31_11_95"
-          },
-          {
-            "selected": false,
-            "text": "172_31_15_179",
-            "value": "172_31_15_179"
           }
         ],
         "query": "{cluster=~\"$cluster\", type=\"completed-request\"}",
@@ -731,71 +716,6 @@
             "selected": true,
             "text": "All",
             "value": "$__all"
-          },
-          {
-            "selected": false,
-            "text": "select airports.tz, routes.distance from `travel-sample` as routes inner join `travel-sample` as airports  on routes.sourceairport = airports.faa where airports.type='airport' and routes.type='route' limit 1000;",
-            "value": "select airports.tz, routes.distance from `travel-sample` as routes inner join `travel-sample` as airports  on routes.sourceairport = airports.faa where airports.type='airport' and routes.type='route' limit 1000;"
-          },
-          {
-            "selected": false,
-            "text": "select sourceairport from `travel-sample`;",
-            "value": "select sourceairport from `travel-sample`;"
-          },
-          {
-            "selected": false,
-            "text": "Select distinct(activity) from `travel-sample` where type='landmark';",
-            "value": "Select distinct(activity) from `travel-sample` where type='landmark';"
-          },
-          {
-            "selected": false,
-            "text": "Select sourceairport from `travel-sample` where type='route' and destinationairport = 'SAT' limit 5;",
-            "value": "Select sourceairport from `travel-sample` where type='route' and destinationairport = 'SAT' limit 5;"
-          },
-          {
-            "selected": false,
-            "text": "Select name, city, url from `travel-sample` where type='landmark'  and activity in ['see', 'buy'];",
-            "value": "Select name, city, url from `travel-sample` where type='landmark'  and activity in ['see', 'buy'];"
-          },
-          {
-            "selected": false,
-            "text": "Select destinationairport, stops from `travel-sample` where type=",
-            "value": "Select destinationairport, stops from `travel-sample` where type="
-          },
-          {
-            "selected": false,
-            "text": "select airports.tz, routes.distance  from `travel-sample` as routes inner join `travel-sample` as airports  on routes.sourceairport = airports.faa where airports.type=",
-            "value": "select airports.tz, routes.distance  from `travel-sample` as routes inner join `travel-sample` as airports  on routes.sourceairport = airports.faa where airports.type="
-          },
-          {
-            "selected": false,
-            "text": "select *  from `travel-sample` as routes inner join `travel-sample` as airports  on keys routes.sourceairport where airports.type=",
-            "value": "select *  from `travel-sample` as routes inner join `travel-sample` as airports  on keys routes.sourceairport where airports.type="
-          },
-          {
-            "selected": false,
-            "text": "select *  from `travel-sample` as routes inner join `travel-sample` as airports  on routes.sourceairport = airports.faa where airports.type=",
-            "value": "select *  from `travel-sample` as routes inner join `travel-sample` as airports  on routes.sourceairport = airports.faa where airports.type="
-          },
-          {
-            "selected": false,
-            "text": "Select destinationairport from `travel-sample` where type=",
-            "value": "Select destinationairport from `travel-sample` where type="
-          },
-          {
-            "selected": false,
-            "text": "Select destinationairport, stops from `travel-sample`;",
-            "value": "Select destinationairport, stops from `travel-sample`;"
-          },
-          {
-            "selected": false,
-            "text": "Select sourceairport from `travel-sample` where stops > 1;",
-            "value": "Select sourceairport from `travel-sample` where stops > 1;"
-          },
-          {
-            "selected": false,
-            "text": "Select sourceairport, stops from `travel-sample`;",
-            "value": "Select sourceairport, stops from `travel-sample`;"
           }
         ],
         "query": "{cluster=~\"$cluster\", type=\"completed-request\"}",

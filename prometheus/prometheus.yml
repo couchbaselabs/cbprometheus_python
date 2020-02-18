@@ -10,10 +10,12 @@ alerting:
     - targets:
       # - alertmanager:9093
 
-# Load rules once and periodically evaluate them according to the global evaluation_interval.
+# Load rules once and periodically evaluate them according to the global
+# evaluation_interval.
 rule_files:
 
-# A scrape configuration
+# This endpoint if for monitoring Prometheus itself and not a part of monitoring
+# Couchbase and assumes you have multiple prometheus clusters.
 scrape_configs:
   - job_name: prometheus
     honor_labels: true
@@ -38,6 +40,12 @@ scrape_configs:
     - targets: ['cluster2-node1:9200']
     - targets: ['cluster2-node2:9200']
     - targets: ['cluster2-node3:9200']
+# This config is used to scrap the metrics/buckets endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with data_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
   - job_name: couchbase-buckets
     honor_labels: true
     honor_timestamps: true
@@ -59,6 +67,12 @@ scrape_configs:
         regex: '(.*)'
         replacement: 'data_$1'
         target_label: __name__
+# This config is used to scrap the metrics/indexes endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with index_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
   - job_name: couchbase-indexes
     honor_labels: true
     honor_timestamps: true
@@ -80,6 +94,12 @@ scrape_configs:
         regex: '(.*)'
         replacement: 'index_$1'
         target_label: __name__
+# This config is used to scrap the metrics/query endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with query_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
   - job_name: couchbase-queries
     honor_labels: true
     honor_timestamps: true
@@ -101,6 +121,12 @@ scrape_configs:
         regex: '(.*)'
         replacement: 'query_$1'
         target_label: __name__
+# This config is used to scrap the metrics/xdcr endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with xdcr_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
   - job_name: couchbase-xdcr
     honor_labels: true
     honor_timestamps: true
@@ -122,6 +148,12 @@ scrape_configs:
         regex: '(.*)'
         replacement: 'xdcr_$1'
         target_label: __name__
+# This config is used to scrap the metrics/system endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with system_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
   - job_name: couchbase-system
     honor_labels: true
     honor_timestamps: true
@@ -143,6 +175,12 @@ scrape_configs:
         regex: '(.*)'
         replacement: 'system_$1'
         target_label: __name__
+# This config is used to scrap the metrics/eventing endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with eventing_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
   - job_name: couchbase-eventing
     honor_labels: true
     honor_timestamps: true
@@ -164,6 +202,12 @@ scrape_configs:
         regex: '(.*)'
         replacement: 'eventing_$1'
         target_label: __name__
+# This config is used to scrap the metrics/analytics endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with analytics_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
   - job_name: couchbase-analytics
     honor_labels: true
     honor_timestamps: true
@@ -185,6 +229,12 @@ scrape_configs:
         regex: '(.*)'
         replacement: 'analytics_$1'
         target_label: __name__
+# This config is used to scrap the metrics/fts endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with fts_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
   - job_name: couchbase-fts
     honor_labels: true
     honor_timestamps: true
