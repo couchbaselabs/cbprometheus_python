@@ -1,8 +1,7 @@
-# my global config
 global:
-  scrape_interval:     60s
-  evaluation_interval: 30s 
-  scrape_timeout:      30s 
+  scrape_interval: 60s # How frequently to scrape targets by default.
+  scrape_timeout: 10s # How long until a scrape request times out.
+  evaluation_interval: 60s # How frequently to evaluate rules.
 
 # Alertmanager configuration
 alerting:
@@ -11,98 +10,249 @@ alerting:
     - targets:
       # - alertmanager:9093
 
-# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+# Load rules once and periodically evaluate them according to the global
+# evaluation_interval.
 rule_files:
-  # - "first_rules.yml"
-  # - "second_rules.yml"
 
+# This endpoint if for monitoring Prometheus itself and not a part of monitoring
+# Couchbase and assumes you have multiple prometheus clusters.
 scrape_configs:
-  - job_name: 'Cluster1'
-
-    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
-    scrape_timeout:      15s
-    
-    metrics_path: '/metrics'
-
+  - job_name: prometheus
+    honor_labels: true
+    honor_timestamps: true
+    scheme: http
+    scrape_interval: 60s
+    scrape_timeout: 55s
+    metrics_path: /metrics
+    static_configs:
+    - targets: ['localhost:9090']
+  - job_name: node_exporter
+    honor_labels: true
+    honor_timestamps: true
+    scheme: http
+    scrape_interval: 10s
+    scrape_timeout: 9s
+    metrics_path: /metrics
+    static_configs:
+    - targets: ['cluster1-node1:9200']
+    - targets: ['cluster1-node2:9200']
+    - targets: ['cluster1-node3:9200']
+    - targets: ['cluster2-node1:9200']
+    - targets: ['cluster2-node2:9200']
+    - targets: ['cluster2-node3:9200']
+# This config is used to scrap the metrics/buckets endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with data_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
+  - job_name: couchbase-buckets
+    honor_labels: true
+    honor_timestamps: true
+    scheme: http
+    scrape_interval: 60s
+    scrape_timeout: 55s
+    metrics_path: /metrics/buckets
     static_configs:
     - targets: ['localhost:5000']
-
-  - job_name: 'Cluster1_buckets'
-
-    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
-    scrape_timeout:      15s
-    
-    metrics_path: '/metrics/buckets'
-
+    - targets: ['localhost:5001']
+    metric_relabel_configs:
+      # if the stat name starts with data_* strip off index_
+      - source_labels: [__name__]
+        regex: 'data_(.*)'
+        replacement: '$1'
+        target_label: __name__
+      # add data_ to the start of every stat
+      - source_labels: [__name__]
+        regex: '(.*)'
+        replacement: 'data_$1'
+        target_label: __name__
+# This config is used to scrap the metrics/indexes endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with index_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
+  - job_name: couchbase-indexes
+    honor_labels: true
+    honor_timestamps: true
+    scheme: http
+    scrape_interval: 60s
+    scrape_timeout: 55s
+    metrics_path: /metrics/indexes
     static_configs:
     - targets: ['localhost:5000']
-
-  - job_name: 'Cluster1_query'
-
-    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
-    scrape_timeout:      15s
-    
-    metrics_path: '/metrics/query'
-
+    - targets: ['localhost:5001']
+    metric_relabel_configs:
+      # if the stat name starts with index_* strip off index_
+      - source_labels: [__name__]
+        regex: 'index_(.*)'
+        replacement: '$1'
+        target_label: __name__
+      # add index_ to the start of every stat
+      - source_labels: [__name__]
+        regex: '(.*)'
+        replacement: 'index_$1'
+        target_label: __name__
+# This config is used to scrap the metrics/query endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with query_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
+  - job_name: couchbase-queries
+    honor_labels: true
+    honor_timestamps: true
+    scheme: http
+    scrape_interval: 60s
+    scrape_timeout: 55s
+    metrics_path: /metrics/query
     static_configs:
     - targets: ['localhost:5000']
-
-  - job_name: 'Cluster1_indexes'
-
-    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
-    scrape_timeout:      15s
-    
-    metrics_path: '/metrics/indexes'
-
+    - targets: ['localhost:5001']
+    metric_relabel_configs:
+      # if the stat name starts with query_* strip off index_
+      - source_labels: [__name__]
+        regex: 'query_(.*)'
+        replacement: '$1'
+        target_label: __name__
+      # add query_ to the start of every stat
+      - source_labels: [__name__]
+        regex: '(.*)'
+        replacement: 'query_$1'
+        target_label: __name__
+# This config is used to scrap the metrics/xdcr endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with xdcr_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
+  - job_name: couchbase-xdcr
+    honor_labels: true
+    honor_timestamps: true
+    scheme: http
+    scrape_interval: 60s
+    scrape_timeout: 55s
+    metrics_path: /metrics/xdcr
     static_configs:
     - targets: ['localhost:5000']
-
-  - job_name: 'Cluster1_eventing'
-
-    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
-    scrape_timeout:      15s
-    
-    metrics_path: '/metrics/eventing'
-
+    - targets: ['localhost:5001']
+    metric_relabel_configs:
+      # if the stat name starts with xdcr_* strip off index_
+      - source_labels: [__name__]
+        regex: 'xdcr_(.*)'
+        replacement: '$1'
+        target_label: __name__
+      # add xdcr_ to the start of every stat
+      - source_labels: [__name__]
+        regex: '(.*)'
+        replacement: 'xdcr_$1'
+        target_label: __name__
+# This config is used to scrap the metrics/system endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with system_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
+  - job_name: couchbase-system
+    honor_labels: true
+    honor_timestamps: true
+    scheme: http
+    scrape_interval: 60s
+    scrape_timeout: 55s
+    metrics_path: /metrics/system
     static_configs:
     - targets: ['localhost:5000']
-
-  - job_name: 'Cluster1_xdcr'
-
-    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
-    scrape_timeout:      15s
-    
-    metrics_path: '/metrics/xdcr'
-
+    - targets: ['localhost:5001']
+    metric_relabel_configs:
+      # if the stat name starts with system_* strip off index_
+      - source_labels: [__name__]
+        regex: 'system_(.*)'
+        replacement: '$1'
+        target_label: __name__
+      # add system_ to the start of every stat
+      - source_labels: [__name__]
+        regex: '(.*)'
+        replacement: 'system_$1'
+        target_label: __name__
+# This config is used to scrap the metrics/eventing endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with eventing_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
+  - job_name: couchbase-eventing
+    honor_labels: true
+    honor_timestamps: true
+    scheme: http
+    scrape_interval: 60s
+    scrape_timeout: 55s
+    metrics_path: /metrics/eventing
     static_configs:
     - targets: ['localhost:5000']
-
-  - job_name: 'Cluster1_analytics'
-
-    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
-    scrape_timeout:      15s
-    
-    metrics_path: '/metrics/analytics'
-
+    - targets: ['localhost:5001']
+    metric_relabel_configs:
+      # if the stat name starts with eventing_* strip off index_
+      - source_labels: [__name__]
+        regex: 'eventing_(.*)'
+        replacement: '$1'
+        target_label: __name__
+      # add eventing_ to the start of every stat
+      - source_labels: [__name__]
+        regex: '(.*)'
+        replacement: 'eventing_$1'
+        target_label: __name__
+# This config is used to scrap the metrics/analytics endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with analytics_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
+  - job_name: couchbase-analytics
+    honor_labels: true
+    honor_timestamps: true
+    scheme: http
+    scrape_interval: 60s
+    scrape_timeout: 55s
+    metrics_path: /metrics/analytics
     static_configs:
     - targets: ['localhost:5000']
-
-  - job_name: 'Cluster1_fts'
-
-    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
-    scrape_timeout:      15s
-    
-    metrics_path: '/metrics/fts'
-
+    - targets: ['localhost:5001']
+    metric_relabel_configs:
+      # if the stat name starts with analytics_* strip off index_
+      - source_labels: [__name__]
+        regex: 'analytics_(.*)'
+        replacement: '$1'
+        target_label: __name__
+      # add analytics_ to the start of every stat
+      - source_labels: [__name__]
+        regex: '(.*)'
+        replacement: 'analytics_$1'
+        target_label: __name__
+# This config is used to scrap the metrics/fts endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with fts_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
+  - job_name: couchbase-fts
+    honor_labels: true
+    honor_timestamps: true
+    scheme: http
+    scrape_interval: 60s
+    scrape_timeout: 55s
+    metrics_path: /metrics/fts
     static_configs:
     - targets: ['localhost:5000']
-
-  - job_name: 'Cluster1_system'
-
-    scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
-    scrape_timeout:      15s
-    
-    metrics_path: '/metrics/system'
-
-    static_configs:
-    - targets: ['localhost:5000']
+    - targets: ['localhost:5001']
+    metric_relabel_configs:
+      # if the stat name starts with fts_* strip off index_
+      - source_labels: [__name__]
+        regex: 'fts_(.*)'
+        replacement: '$1'
+        target_label: __name__
+      # add fts_ to the start of every stat
+      - source_labels: [__name__]
+        regex: '(.*)'
+        replacement: 'fts_$1'
+        target_label: __name__
