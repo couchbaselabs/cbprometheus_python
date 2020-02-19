@@ -14,8 +14,11 @@ alerting:
 # evaluation_interval.
 rule_files:
 
-# This endpoint if for monitoring Prometheus itself and not a part of monitoring
-# Couchbase and assumes you have multiple prometheus clusters.
+# This endpoint if for monitoring node_metrics from the Prometheus project's
+# node exporter available at: https://github.com/prometheus/node_exporter
+# This exporter runs as an agent on the Couchbase node itself and provides 
+# metrics associated with the underlying node. This is not required but will
+# be helpful in correlating Couchbase behavior with hardware metrics.
 scrape_configs:
   - job_name: prometheus
     honor_labels: true
@@ -255,4 +258,31 @@ scrape_configs:
       - source_labels: [__name__]
         regex: '(.*)'
         replacement: 'fts_$1'
+        target_label: __name__
+# This config is used to scrap the metrics/system endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with system_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
+  - job_name: couchbase-fts
+    honor_labels: true
+    honor_timestamps: true
+    scheme: http
+    scrape_interval: 60s
+    scrape_timeout: 55s
+    metrics_path: /metrics/system
+    static_configs:
+    - targets: ['localhost:5000']
+    - targets: ['localhost:5001']
+    metric_relabel_configs:
+      # if the stat name starts with fts_* strip off index_
+      - source_labels: [__name__]
+        regex: 'system_(.*)'
+        replacement: '$1'
+        target_label: __name__
+      # add fts_ to the start of every stat
+      - source_labels: [__name__]
+        regex: '(.*)'
+        replacement: 'system_$1'
         target_label: __name__
