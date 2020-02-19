@@ -265,7 +265,7 @@ scrape_configs:
 # also assume multiple exporters running on the same host with different ports.
 # To use docker or seperate hosts, replace the taget with the IP address and the
 # configured port for the exporter.
-  - job_name: couchbase-fts
+  - job_name: couchbase-system
     honor_labels: true
     honor_timestamps: true
     scheme: http
