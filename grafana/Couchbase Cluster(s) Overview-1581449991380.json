@@ -1178,7 +1178,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(n1ql_query_requests{type=\"query\", cluster=~\"$cluster\"}) by (cluster)",
+          "expr": "sum(query_requests{type=\"query\", cluster=~\"$cluster\"}) by (cluster)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{cluster}}",
@@ -1269,7 +1269,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(n1ql_query_errors{type=\"query\", cluster=~\"$cluster\"}) by (cluster)",
+          "expr": "sum(query_errors{type=\"query\", cluster=~\"$cluster\"}) by (cluster)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{cluster}}",
@@ -1360,7 +1360,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(n1ql_query_queued_requests{type=\"query\", cluster=~\"$cluster\"}) by (cluster)",
+          "expr": "sum(query_queued_requests{type=\"query\", cluster=~\"$cluster\"}) by (cluster)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{cluster}}",
@@ -1451,7 +1451,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(n1ql_query_avg_req_time{type=\"query\", cluster=~\"$cluster\"}) by (cluster)",
+          "expr": "avg(query_avg_req_time{type=\"query\", cluster=~\"$cluster\"}) by (cluster)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{cluster}}",
@@ -1542,7 +1542,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(n1ql_query_avg_svc_time{type=\"query\", cluster=~\"$cluster\"}) by (cluster)",
+          "expr": "avg(query_avg_svc_time{type=\"query\", cluster=~\"$cluster\"}) by (cluster)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{cluster}}",
@@ -1633,7 +1633,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(n1ql_query_avg_response_size{type=\"query\", cluster=~\"$cluster\"}/1024) by (cluster)",
+          "expr": "avg(query_avg_response_size{type=\"query\", cluster=~\"$cluster\"}/1024) by (cluster)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{cluster}}",
@@ -1724,7 +1724,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(n1ql_query_requests_500ms{type=\"query\", cluster=~\"$cluster\"}) by (cluster)",
+          "expr": "sum(query_requests_500ms{type=\"query\", cluster=~\"$cluster\"}) by (cluster)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{cluster}}",
@@ -1815,7 +1815,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(n1ql_query_requests_1000ms{type=\"query\", cluster=~\"$cluster\"}) by (cluster)",
+          "expr": "sum(query_requests_1000ms{type=\"query\", cluster=~\"$cluster\"}) by (cluster)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{cluster}}",
@@ -1906,7 +1906,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(n1ql_query_requests_5000ms{type=\"query\", cluster=~\"$cluster\"}) by (cluster)",
+          "expr": "sum(query_requests_5000ms{type=\"query\", cluster=~\"$cluster\"}) by (cluster)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{cluster}}",
