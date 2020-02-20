@@ -16,7 +16,7 @@ rule_files:
 
 # This endpoint if for monitoring node_metrics from the Prometheus project's
 # node exporter available at: https://github.com/prometheus/node_exporter
-# This exporter runs as an agent on the Couchbase node itself and provides 
+# This exporter runs as an agent on the Couchbase node itself and provides
 # metrics associated with the underlying node. This is not required but will
 # be helpful in correlating Couchbase behavior with hardware metrics.
 scrape_configs:
@@ -276,7 +276,7 @@ scrape_configs:
     - targets: ['localhost:5000']
     - targets: ['localhost:5001']
     metric_relabel_configs:
-      # if the stat name starts with fts_* strip off index_
+      # if the stat name starts with system_* strip off index_
       - source_labels: [__name__]
         regex: 'system_(.*)'
         replacement: '$1'
