@@ -58,7 +58,7 @@
       "pluginVersion": "6.4.4",
       "targets": [
         {
-          "expr": "sum(n1ql_query_requests{type=\"query\", cluster=~\"$cluster\"})",
+          "expr": "sum(query_requests{type=\"query\", cluster=~\"$cluster\"})",
           "legendFormat": "{{cluster}}",
           "refId": "A"
         }
@@ -111,22 +111,22 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(n1ql_query_requests_250ms{type=\"query\", cluster=~\"$cluster\"})",
+          "expr": "sum(query_requests_250ms{type=\"query\", cluster=~\"$cluster\"})",
           "legendFormat": ">250ms",
           "refId": "A"
         },
         {
-          "expr": "sum(n1ql_query_requests_500ms{type=\"query\", cluster=~\"$cluster\"})",
+          "expr": "sum(query_requests_500ms{type=\"query\", cluster=~\"$cluster\"})",
           "legendFormat": ">500ms",
           "refId": "B"
         },
         {
-          "expr": "sum(n1ql_query_requests_1000ms{type=\"query\", cluster=~\"$cluster\"})",
+          "expr": "sum(query_requests_1000ms{type=\"query\", cluster=~\"$cluster\"})",
           "legendFormat": ">1000ms",
           "refId": "C"
         },
         {
-          "expr": "sum(n1ql_query_requests_5000ms{type=\"query\", cluster=~\"$cluster\"})",
+          "expr": "sum(query_requests_5000ms{type=\"query\", cluster=~\"$cluster\"})",
           "legendFormat": ">5000ms",
           "refId": "D"
         }
@@ -215,22 +215,22 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(n1ql_query_errors{type=\"query\", cluster=~\"$cluster\"})",
+          "expr": "sum(query_errors{type=\"query\", cluster=~\"$cluster\"})",
           "legendFormat": "errors",
           "refId": "A"
         },
         {
-          "expr": "sum(n1ql_query_warnings{type=\"query\", cluster=~\"$cluster\"})",
+          "expr": "sum(query_warnings{type=\"query\", cluster=~\"$cluster\"})",
           "legendFormat": "warnings",
           "refId": "D"
         },
         {
-          "expr": "sum(n1ql_query_invalid_requests{type=\"query\", cluster=~\"$cluster\"})",
+          "expr": "sum(query_invalid_requests{type=\"query\", cluster=~\"$cluster\"})",
           "legendFormat": "invalid",
           "refId": "B"
         },
         {
-          "expr": "sum(n1ql_query_queued_requests{type=\"query\", cluster=~\"$cluster\"})",
+          "expr": "sum(query_queued_requests{type=\"query\", cluster=~\"$cluster\"})",
           "legendFormat": "queued",
           "refId": "C"
         }
@@ -340,7 +340,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(n1ql_query_result_count{type=\"query\", cluster=~\"$cluster\"})",
+          "expr": "sum(query_result_count{type=\"query\", cluster=~\"$cluster\"})",
           "refId": "A"
         }
       ],
@@ -423,7 +423,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(n1ql_query_result_size{type=\"query\", cluster=~\"$cluster\"}/1024/1024)",
+          "expr": "sum(query_result_size{type=\"query\", cluster=~\"$cluster\"}/1024/1024)",
           "legendFormat": "",
           "refId": "A"
         }
@@ -507,7 +507,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "avg(n1ql_query_avg_req_time{type=\"query\", cluster=~\"$cluster\"})",
+          "expr": "avg(query_avg_req_time{type=\"query\", cluster=~\"$cluster\"})",
           "legendFormat": "",
           "refId": "A"
         }
@@ -591,7 +591,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "avg(n1ql_query_avg_svc_time{type=\"query\", cluster=~\"$cluster\"})",
+          "expr": "avg(query_avg_svc_time{type=\"query\", cluster=~\"$cluster\"})",
           "legendFormat": "",
           "refId": "A"
         }
@@ -689,7 +689,7 @@
       ],
       "targets": [
         {
-          "expr": "avg(n1ql_completed_request{type=\"completed-query\", cluster=~\"$cluster\"}) by (cluster,statement,fetches,query_selectivity_percent,result_size,result_count,scan_results)",
+          "expr": "avg(query_completed_request{type=\"completed-query\", cluster=~\"$cluster\"}) by (cluster,statement,fetches,query_selectivity_percent,result_size,result_count,scan_results)",
           "format": "table",
           "refId": "A"
         }
@@ -778,7 +778,7 @@
       ],
       "targets": [
         {
-          "expr": "avg(n1ql_completed_request_fetches{type=\"completed-request\", cluster=~\"$cluster\"}) by (cluster,statement)",
+          "expr": "avg(query_completed_request_fetches{type=\"completed-request\", cluster=~\"$cluster\"}) by (cluster,statement)",
           "format": "table",
           "refId": "A"
         }
