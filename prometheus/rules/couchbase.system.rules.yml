@@ -1,0 +1,30 @@
+groups:
+- name: couchbase
+  rules:
+  # pre-compute rule to hold the number of nodes in the cluster
+  - record: couchbase_node_count
+    expr: count(system_status) by (cluster)
+  # alert if the couchbase exporter is not up for the couchbase-system job
+  - alert: CouchbaseSystemExporterDown
+    expr: up{job="couchbase-system"} == 0
+    for: 1m
+    labels:
+      severity: warning
+      page: 'true'
+    annotations:
+      summary: 'Couchbase Exporter (System) is down'
+  - alert: CouchbaseNodeNotHealthy
+    expr: system_status == 0
+    for: 1m
+    labels:
+      severity: critical
+      page: 'true'
+    annotations:
+      summary: "Node {{ $labels.node }} is not healthy, you may want to fail it over"
+  - alert: CouchbaseNodesDying
+    expr: couchbase_node_count offset 10m > ccouchbase_node_count + 1
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: 'Couchbase nodes are dying, only {{ $value }} nodes running'

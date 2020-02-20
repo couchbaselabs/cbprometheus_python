@@ -1,0 +1,33 @@
+groups:
+- name: couchbase
+  rules:
+  # pre-compute rule to hold the number of nodes in the cluster
+  - record: couchbase_node_count
+    expr: count(system_status) by (cluster)
+  # alert if the couchbase exporter is not up for the couchbase-buckets job
+  - alert: CouchbaseQueriesExporterDown
+    expr: up{job="couchbase-queries"} == 0
+    for: 1m
+    labels:
+      severity: warning
+      page: 'true'
+    annotations:
+      summary: 'Couchbase Exporter (Queries) is down'
+  # if there are any query errors
+  - alert: CouchbaseQueryErroring
+    expr: sum by (cluster) (query_errors) > 0
+    for: 1m
+    labels:
+      severity: warning
+      cluster: '{{ $labels.cluster }}'
+    annotations:
+      summary: 'Couchbase Queries are erroring'
+  # if there are any query errors
+  - alert: CouchbaseSlowQuery
+    expr: query_completed_request
+    labels:
+      severity: warning
+      cluster: '{{ $labels.cluster }}'
+    annotations:
+      summary: 'Couchbase Queries are running slow'
+      description: 'The following statement took {{ value }}ms execute: {{ $labels.statement }}'

@@ -1,0 +1,15 @@
+groups:
+- name: couchbase
+  rules:
+  # pre-compute rule to hold the number of nodes in the cluster
+  - record: couchbase_node_count
+    expr: count(system_status) by (cluster)
+  # alert if the couchbase exporter is not up for the couchbase-analytics job
+  - alert: CouchbaseAnalyticsExporterDown
+    expr: up{job="couchbase-analytics"} == 0
+    for: 1m
+    labels:
+      severity: warning
+      page: 'true'
+    annotations:
+      summary: 'Couchbase Exporter (Analytics) is down'
