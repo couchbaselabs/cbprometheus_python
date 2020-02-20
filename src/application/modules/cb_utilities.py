@@ -1,8 +1,8 @@
 import urllib2
 import json
-
 import re
 from random import shuffle
+from datetime import datetime
 
 class Error(Exception):
    """Base class for other exceptions"""
@@ -11,6 +11,10 @@ class Error(Exception):
 class SeedNodeDown(Error):
    """Raised when all the seed nodes are down"""
    pass
+
+def get_dt():
+    epoch = datetime.utcfromtimestamp(0)
+    return '%.0f' % ((datetime.now() - epoch).total_seconds() * 1000)
 
 def snake_caseify(input_str):
     '''converts to snake case'''

@@ -5,8 +5,8 @@ RestAPI metrics to Prometheus format.'''
 # pylint: disable=C0303, C0325, C1801
 
 from modules import cb_analytics, cb_bucket, cb_cluster, cb_eventing, cb_fts, cb_index, cb_nodes, \
-    cb_query, cb_system, cb_xdcr, cb_utilities
-    
+    cb_query, cb_system, cb_xdcr, cb_utilities, cb_exporter
+
 def get_system(url="", user="", passwrd="", nodes=[]):
     '''Entry point for getting the metrics for the system from the nodes'''
     url = cb_utilities.check_cluster(url, user, passwrd)
@@ -39,6 +39,11 @@ def get_system(url="", user="", passwrd="", nodes=[]):
             passwrd,
             nodes, cluster_values['clusterName'])
         metrics = cluster_metrics['metrics']
+    return metrics
+
+def get_exporter():
+    exporter_metrics = cb_exporter._get_exporter_metrics()
+    metrics = exporter_metrics['metrics']
     return metrics
 
 def get_buckets(url="", user="", passwrd="", buckets=[], nodes=[]):
@@ -322,5 +327,5 @@ if __name__ == "__main__":
     USER = "Administrator"
     PASSWD = "password"
 
-    get_metrics(URL, USER, PASSWD)
+    print(get_exporter())
     # print(cb_cluster._get_cluster(URL, USER, PASSWD, []))

@@ -261,5 +261,16 @@ def fts():
         metrics_str = metrics_str.join(_value)
         return Response(metrics_str, mimetype='text/plain')
 
-
-
+@application.route('/metrics/exporter', methods=['GET'])
+@application.route('/exporter', methods=['GET'])
+def exporter():
+    _value = main.get_exporter()
+    if application.config['CB_STREAMING']:
+        def generate():
+            for row in _value:
+                yield(row + "\n")
+        return Response(stream_with_context(generate()), mimetype='text/plain')
+    else:
+        metrics_str = "\n"
+        metrics_str = metrics_str.join(_value)
+        return Response(metrics_str, mimetype='text/plain')
