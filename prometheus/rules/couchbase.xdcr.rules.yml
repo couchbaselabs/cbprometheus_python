@@ -1,0 +1,33 @@
+groups:
+- name: couchbase
+  rules:
+  # pre-compute rule to hold the number of nodes in the cluster
+  - record: couchbase_node_count
+    expr: count(system_status) by (cluster)
+  # alert if the couchbase exporter is not up for the couchbase-xdcr job
+  - alert: CouchbaseIndexesExporterDown
+    expr: up{job="couchbase-xdcr"} == 0
+    for: 1m
+    labels:
+      severity: warning
+      page: 'true'
+    annotations:
+      summary: 'Couchbase Exporter (XDCR) is down'
+  # if there are any xdcr errors
+  - alert: CouchbaseXDCRErroring
+    expr: sum by (cluster, replication) (xdcr_errors) > 0
+    for: 1m
+    labels:
+      severity: warning
+      cluster: '{{ $labels.cluster }}'
+    annotations:
+      summary: 'Couchbase XDCR Replication {{ $labels.replication }} is erroring'
+  # if there are any paused xdcr replications
+  - alert: CouchbaseXDCRPaused
+    expr: sum by (cluster, replication) (xdcr_status) == 1
+    for: 1m
+    labels:
+      severity: warning
+      cluster: '{{ $labels.cluster }}'
+    annotations:
+      summary: 'Couchbase XDCR Replication {{ $labels.replication }} is paused'
