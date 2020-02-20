@@ -1,0 +1,85 @@
+groups:
+- name: couchbase
+  rules:
+  # pre-compute rule to hold the number of nodes in the cluster
+  - record: couchbase_node_count
+    expr: count(system_status) by (cluster)
+  # alert if the couchbase exporter is not up for the couchbase-buckets job
+  - alert: CouchbaseBucketsExporterDown
+    expr: up{job="couchbase-buckets"} == 0
+    for: 1m
+    labels:
+      severity: warning
+      page: 'true'
+    annotations:
+      summary: 'Couchbase Exporter (Buckets) is down'
+  # alert if the high-water mark is exceeded
+  - alert: CouchbaseQuotaUsageHigh
+    expr: (sum(data_ep_kv_size) by (cluster, bucket) + sum(data_mem_used) by (cluster, bucket)) > sum(data_ep_mem_high_wat) by (cluster, bucket)
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: 'Couchbase quota usage for {{ $labels.bucket }} on {{ $labels.cluster }} is {{ $value | printf "%.2f" }}%'
+  # alert if the # of oom errors increases over a 5minperiod for more than 1min
+  - alert: CouchbaseHardOutOfMemoryErrors
+    expr: increase(data_ep_oom_errors[5m]) > 0
+    for: 1m
+    labels:
+      severity: critical
+      cluster: '{{ $labels.cluster }}'
+    annotations:
+      summary: '{{ $labels.bucket }}: Hard out of memory error'
+  # alert if the amount of disk usage has increased by more than 1tb in a 24hr period
+  - alert: CouchbaseDiskUsageIncreasing
+    expr: sum by (cluster) (data_couch_docs_actual_disk_size) - sum by (cluster) (data_couch_docs_actual_disk_size offset 1d) > 1E+12
+    for: 1s
+    labels:
+      severity: warning
+      cluster: '{{ $labels.clsuter }}'
+    annotations:
+      summary: 'Disk usage increased more than 1tb in the last 24h'
+  # alert if the disk usage has descreased by more than 1tb in the past day
+  - alert: CouchbaseDiskUsageDecreasing
+    expr: sum by (cluster) (data_couch_docs_actual_disk_size offset 1d) - sum by (cluster) (data_couch_docs_actual_disk_size) > 1E+12
+    for: 1s
+    labels:
+      severity: info
+    annotations:
+      summary: 'Disk usage decreased more than 1tb in the last 24h'
+  # alert if any bucket has a active vbucket resident ratio below 20 percent
+  - alert: CouchbaseLowActiveResidentRatio
+    expr: avg by (cluster, bucket) (data_vb_active_resident_items_ratio) <= 20
+    for: 1m
+    labels:
+      severity: warning
+      cluster: '{{ $labels.cluster }}'
+    annotations:
+      summary: '{{ $labels.bucket }}: active resident ratio is {{ $value | printf "%.2f" }}%'
+  # alert if any bucket has a replica vbucket resident ratio below 10 percent
+  - alert: CouchbaseLowReplicaResidentRatio
+    expr: avg by (cluster, bucket) (data_vb_replica_resident_items_ratio) <= 10
+    for: 1m
+    labels:
+      severity: warning
+      cluster: '{{ $labels.cluster }}'
+    annotations:
+      summary: '{{ $labels.bucket }}: replica resident ratio is {{ $value | printf "%.2f" }}%'
+  # alert if the cache miss rate exceeds 20 for a bucket
+  - alert: CouchbaseHighCacheMissRate
+    expr: sum by (cluster, bucket) (data_ep_cache_miss_rate) > 20
+    for: 1m
+    labels:
+      severity: warning
+      cluster: '{{ $labels.cluster }}'
+    annotations:
+      summary: '{{ $labels.bucket }}: cache miss rate is {{ $value | printf "%.2f" }}%'
+  # alert if the disk write queue exceeds 1mil items
+  - alert: CouchbaseHighDiskWriteQueue
+    expr: sum by (cluster, bucket) (data_disk_write_queue) > 1000000
+    for: 1s
+    labels:
+      severity: critical
+      cluster: '{{ $labels.cluster }}'
+    annotations:
+      summary: '{{ $labels.bucket }}: disk write queue is big (millions of items)'
