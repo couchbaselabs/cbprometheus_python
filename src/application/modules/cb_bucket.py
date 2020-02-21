@@ -1,4 +1,34 @@
 from cb_utilities import *
+import cb_cluster
+
+class view():
+    def __init__(self):
+        self.methods = ["GET"]
+        self.name = "bucket"
+        self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]},
+                        {"variable":"buckets","type":"default","name":"bucket_list","value":[]}]
+        self.comment = '''This is the method used to access bucket metrics'''
+        self.service_identifier = "kv"
+
+def run(url="", user="", passwrd="", buckets=[], nodes=[]):
+    '''Entry point for getting the metrics for the kv nodes and buckets'''
+    url = check_cluster(url, user, passwrd)
+    metrics = []
+    cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
+    if len(nodes) == 0:
+        if len(cluster_values['serviceNodes']['kv']) > 0:
+            bucket_metrics = _get_metrics(
+                user,
+                passwrd,
+                cluster_values['serviceNodes']['kv'],
+                cluster_values['clusterName'],
+                buckets)
+            metrics = bucket_metrics['metrics']
+    else:
+        bucket_metrics = _get_metrics(
+            user, passwrd, nodes, cluster_values['clusterName'], buckets)
+        metrics = bucket_metrics['metrics']
+    return metrics
 
 def _get_index_buckets(url, user, passwrd):
     '''Gets a unique list of all of the buckets in the cluster that have indexes'''
@@ -21,7 +51,7 @@ def _get_index_buckets(url, user, passwrd):
         print("indexStatus: " + str(e))
     return buckets
 
-def _get_bucket_metrics(user, passwrd, node_list, cluster_name="", bucket_names=[]):
+def _get_metrics(user, passwrd, node_list, cluster_name="", bucket_names=[]):
     '''Gets the metrics for each bucket'''
     bucket_info = {}
     bucket_info['buckets'] = []

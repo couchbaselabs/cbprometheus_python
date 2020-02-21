@@ -1,6 +1,58 @@
 from cb_utilities import *
+import cb_cluster, cb_bucket
 
-def _get_xdcr_metrics(user, passwrd, nodes, buckets, cluster_name=""):
+class view():
+    def __init__(self):
+        self.methods = ["GET"]
+        self.name = "xdcr"
+        self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]},
+                        {"variable":"buckets","type":"default","name":"bucket_list","value":[]}]
+        self.comment = '''This is the method used to access xdcr metrics'''
+        self.service_identifier = "kv"
+        
+def run(url="", user="", passwrd="", nodes=[], buckets=[]):
+    '''Entry point for getting the metrics for xdcr'''
+    url = check_cluster(url, user, passwrd)
+    metrics = []
+    cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
+
+    if len(nodes) == 0:
+        if len(buckets) == 0:
+            if len(cluster_values['serviceNodes']['kv']) > 0:
+                bucket_metrics = cb_bucket._get_metrics(
+                    user,
+                    passwrd,
+                    cluster_values['serviceNodes']['kv'],
+                    cluster_values['clusterName'])
+        else:
+            bucket_metrics = {"buckets": buckets}
+
+        xdcr_metrics = _get_metrics(
+            user,
+            passwrd,
+            cluster_values['serviceNodes']['kv'],
+            bucket_metrics['buckets'], cluster_values['clusterName'])
+
+        metrics = xdcr_metrics['metrics']
+
+    else:
+        if len(buckets) == 0:
+            bucket_metrics = cb_bucket._get_metrics(
+                user, passwrd, nodes, cluster_values['clusterName'])
+        else:
+            bucket_metrics = {"buckets": buckets}
+
+        xdcr_metrics = _get_metrics(
+            user,
+            passwrd,
+            nodes,
+            bucket_metrics['buckets'], cluster_values['clusterName'])
+
+        metrics = xdcr_metrics['metrics']
+
+    return metrics
+
+def _get_metrics(user, passwrd, nodes, buckets, cluster_name=""):
     '''XDCR metrics are gatherd here. First the links are queried, then it gathers
     the metrics for each link'''
     xdcr_metrics = {}

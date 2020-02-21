@@ -1,6 +1,39 @@
 from cb_utilities import *
+import cb_cluster
 
-def _get_cbas_metrics(user, passwrd, node_list, cluster_name=""):
+class view():
+    def __init__(self):
+        self.methods = ["GET"]
+        self.name = "analytics"
+        self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]}]
+        self.comment = '''This is the method used to access FTS metrics'''
+        self.service_identifier = "cbas"
+
+def run(url="", user="", passwrd="", nodes=[]):
+    '''Entry point for getting the metrics for the analytics nodes'''
+    url = check_cluster(url, user, passwrd)
+    metrics = []
+    cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
+
+    if len(nodes) == 0:
+
+        if len(cluster_values['serviceNodes']['cbas']) > 0:
+            cbas_metrics = _get_metrics(
+                user,
+                passwrd,
+                cluster_values['serviceNodes']['cbas'], cluster_values['clusterName'])
+
+            metrics = cbas_metrics['metrics']
+    else:
+        cbas_metrics = _get_metrics(
+            user,
+            passwrd,
+            nodes, cluster_values['clusterName'])
+        metrics = cbas_metrics['metrics']
+
+    return metrics
+
+def _get_metrics(user, passwrd, node_list, cluster_name=""):
     '''Analytics metrics'''
     cbas_metrics = {}
     cbas_metrics['metrics'] = []

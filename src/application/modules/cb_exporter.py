@@ -1,7 +1,20 @@
 from cb_utilities import *
 from datetime import datetime
 
-def _get_exporter_metrics():
+class view():
+    def __init__(self):
+        self.methods = ["GET"]
+        self.name = "exporter"
+        self.filters = []
+        self.comment = '''This is the method used to access the exporter metrics'''
+        self.service_identifier = None
+
+def run(url="", user="", passwrd=""):
+    exporter_metrics = get_metrics()
+    metrics = exporter_metrics['metrics']
+    return metrics
+
+def get_metrics():
     '''Exporter metrics'''
     exporter_metrics = {}
     exporter_metrics['metrics'] = []
