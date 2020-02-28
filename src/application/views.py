@@ -47,9 +47,9 @@ def analytics():
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
 
-@application.route('/metrics/bucket', methods=['GET'])
-@application.route('/bucket', methods=['GET'])
-def bucket():
+@application.route('/metrics/buckets', methods=['GET'])
+@application.route('/buckets', methods=['GET'])
+def buckets():
 	'''This is the method used to access bucket metrics'''
 	nodes_list = []
 	if request.args.get('nodes'):

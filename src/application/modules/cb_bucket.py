@@ -4,7 +4,7 @@ import cb_cluster
 class view():
     def __init__(self):
         self.methods = ["GET"]
-        self.name = "bucket"
+        self.name = "buckets"
         self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]},
                         {"variable":"buckets","type":"default","name":"bucket_list","value":[]}]
         self.comment = '''This is the method used to access bucket metrics'''
