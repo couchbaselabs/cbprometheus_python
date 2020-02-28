@@ -54,7 +54,7 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name=""):
             node.split(":")[0], node.split(":")[0])
         try:
             i_json = rest_request(auth, _index_url)
-            _node = value_to_string(node)
+            _node = node
             for record in i_json['op']['samples']:
                 if record != "timestamp":
                     for idx, datapoint in enumerate(i_json['op']['samples'][record]):
@@ -81,7 +81,7 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name=""):
                 for record in ii_json['op']['samples']:
                     name = ""
                     index_type = ""
-                    _node = value_to_string(node)
+                    _node = node
                     try:
                         split_record = record.split("/")
                         if len(split_record) == 3:

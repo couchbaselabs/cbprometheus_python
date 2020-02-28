@@ -12,7 +12,7 @@ class view():
                         {"variable":"slow_queries","type":"default","name":"slow_queries","value": True}]
         self.comment = '''This is the method used to access FTS metrics'''
         self.service_identifier = "n1ql"
-        
+
 def run(url="", user="", passwrd="", nodes=[], slow_queries=True):
     '''Entry point for getting the metrics for the query nodes'''
     url = check_cluster(url, user, passwrd)
@@ -53,7 +53,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", slow_queries=True):
             _query_url = "http://{}:8091/pools/default/buckets/@query/nodes/{}:8091/stats".format(
                 node.split(":")[0], node.split(":")[0])
             q_json = rest_request(auth, _query_url)
-            _node = value_to_string(node)
+            _node = node
             for record in q_json['op']['samples']:
                 if record != "timestamp":
                     for idx, datapoint in enumerate(q_json['op']['samples'][record]):
@@ -112,7 +112,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                 n1ql_stmt
             )
             q_json = rest_request(auth, _query_url)
-            _node = value_to_string(node)
+            _node = node
             for record in q_json['results']:
                 statement = record['statement'].replace('"','\\"').replace('\n', ' ')
                 # generate a hash of the statement so that if the user wants the statement

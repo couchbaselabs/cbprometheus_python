@@ -9,7 +9,7 @@ class view():
                         {"variable":"buckets","type":"default","name":"bucket_list","value":[]}]
         self.comment = '''This is the method used to access xdcr metrics'''
         self.service_identifier = "kv"
-        
+
 def run(url="", user="", passwrd="", nodes=[], buckets=[]):
     '''Entry point for getting the metrics for xdcr'''
     url = check_cluster(url, user, passwrd)
@@ -263,7 +263,7 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name=""):
                                                 value_to_string(cluster_definition[key_split[1]]['name']),
                                                 value_to_string(cluster_definition[key_split[1]]['hostname']),
                                                 key_split[3],
-                                                value_to_string(node),
+                                                node,
                                                 datapoint,
                                                 n_json['op']['samples']['timestamp'][idx]))
                         elif len(key_split) == 1:
@@ -277,7 +277,7 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name=""):
                                         entry,
                                         cluster_name,
                                         bucket,
-                                        value_to_string(node),
+                                        node,
                                         datapoint,
                                         n_json['op']['samples']['timestamp'][idx]))
             except Exception as e:

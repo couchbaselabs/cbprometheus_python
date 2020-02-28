@@ -69,7 +69,7 @@ def _get_metrics(user, passwrd, node_list, bucket_list, cluster_name=""):
                 for record in f_json['op']['samples']:
                     name = ""
                     metric_type = ""
-                    _node = value_to_string(node)
+                    _node = node
                     try:
                         split_record = record.split("/")
                         if len(split_record) == 3:

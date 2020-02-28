@@ -76,7 +76,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", bucket_names=[]):
                                      "{}/nodes/{}:8091/stats".format(
                             node.split(":")[0], bucket['name'], node.split(":")[0])
                         b_json = rest_request(auth, bucket_url)
-                        _node = value_to_string(node)
+                        _node = node
                         for _record in b_json['op']['samples']:
                             record = value_to_string(_record)
                             if record != "timestamp":
@@ -120,7 +120,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", bucket_names=[]):
                                                                      bucket,
                                                                      node.split(":")[0])
                         b_json = rest_request(auth, bucket_url)
-                        _node = value_to_string(node)
+                        _node = node
                         for _record in b_json['op']['samples']:
                             record = value_to_string(_record)
                             if record != "timestamp":

@@ -45,7 +45,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name=""):
             _cbas_url = "http://{}:8091/pools/default/buckets/@cbas/nodes/{}:8091/stats".format(
                 node.split(":")[0], node.split(":")[0])
             a_json = rest_request(auth, _cbas_url)
-            _node = value_to_string(node)
+            _node = node
             for record in a_json['op']['samples']:
                 if record != "timestamp":
                     for idx, datapoint in enumerate(

@@ -54,7 +54,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name=""):
             _ne_url = "http://{}:9200/metrics".format(
                 node.split(":")[0])
             a_json = text_request(_ne_url)
-            _node = value_to_string(node)
+            _node = node
             for record in a_json:
                 tag = ""
                 label = ['\"cluster\":\"{}\"'.format(cluster_name),
