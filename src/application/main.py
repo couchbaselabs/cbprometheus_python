@@ -41,6 +41,10 @@ def get_metrics(url='', user='', passwrd=''):
 			user, passwrd, cluster_values['serviceNodes']['index'], cluster_values['clusterName'])
 		metrics = metrics + indexes_metrics['metrics']
 
+	node_exporter_metrics = cb_node_exporter._get_metrics(
+		user, passwrd, cluster_values['nodeList'], cluster_values['clusterName'])
+	metrics = metrics + node_exporter_metrics['metrics']
+
 	if len(cluster_values['serviceNodes']['n1ql']) > 0:
 		query_metrics = cb_query._get_metrics(
 			user, passwrd, cluster_values['serviceNodes']['n1ql'], cluster_values['clusterName'])

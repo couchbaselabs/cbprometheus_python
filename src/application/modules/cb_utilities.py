@@ -3,6 +3,7 @@ import json
 import re
 from random import shuffle
 from datetime import datetime
+import socket
 
 class Error(Exception):
    """Base class for other exceptions"""
@@ -11,6 +12,18 @@ class Error(Exception):
 class SeedNodeDown(Error):
    """Raised when all the seed nodes are down"""
    pass
+
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('8.8.8.8', 1))
+        IP = s.getsockname()[0]
+    except:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
 
 def get_dt():
     epoch = datetime.utcfromtimestamp(0)
@@ -50,6 +63,19 @@ def rest_request(auth, url):
     f = (urllib2.urlopen(req, timeout=1)).read()
     result = json.loads(f)
     return result
+
+def text_request(url):
+    _url = url
+    req = urllib2.Request(_url,
+                          headers={
+                              "Content-Type": "application/x-www-form-urlencoded",
+
+                              # Some extra headers for fun
+                              "Accept": "*/*",  # curl does this
+                              "User-Agent": "check_version/1",
+                          })
+    f = (urllib2.urlopen(req, timeout=1)).readlines()
+    return(f)
 
 def check_cluster(url, username, pw):
     urls = url.split(",")
