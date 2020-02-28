@@ -9,6 +9,11 @@ class view():
                         {"variable":"buckets","type":"default","name":"bucket_list","value":[]}]
         self.comment = '''This is the method used to access bucket metrics'''
         self.service_identifier = "kv"
+        self.inputs = [{"value":"user"},
+                        {"value":"passwrd"},
+                        {"value":"cluster_values['serviceNodes']['{}']".format(self.service_identifier)},
+                        {"value":"cluster_values['clusterName']"}]
+
 
 def run(url="", user="", passwrd="", buckets=[], nodes=[]):
     '''Entry point for getting the metrics for the kv nodes and buckets'''
@@ -49,6 +54,22 @@ def _get_index_buckets(url, user, passwrd):
 
     except Exception as e:
         print("indexStatus: " + str(e))
+    return buckets
+
+def _get_buckets(url, user, passwrd):
+    '''Gets a unique list of all of the buckets in the cluster'''
+    buckets = []
+
+    auth = basic_authorization(user, passwrd)
+
+    try:
+        url = "http://{}:8091/pools/default/buckets".format(url.split(":")[0])
+        f_json = rest_request(auth, url)
+        for bucket in f_json:
+            buckets.append(bucket['name'])
+        buckets.sort()
+    except Exception as e:
+        print("bucketStatus: " + str(e))
     return buckets
 
 def _get_metrics(user, passwrd, node_list, cluster_name="", bucket_names=[]):

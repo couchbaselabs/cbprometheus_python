@@ -8,6 +8,11 @@ class view():
         self.filters = []
         self.comment = '''This is the method used to access the exporter metrics'''
         self.service_identifier = None
+        self.inputs = [{"value":"user"},
+                        {"value":"passwrd"},
+                        {"value":"cluster_values['nodeList']"},
+                        {"value":"cluster_values['clusterName']"}]
+
 
 def run(url="", user="", passwrd=""):
     exporter_metrics = get_metrics()

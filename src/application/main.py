@@ -16,6 +16,8 @@ def get_metrics(url='', user='', passwrd=''):
 	cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
 	metrics = cluster_values['metrics']
 	index_buckets = cb_bucket._get_index_buckets(url, user, passwrd)
+	buckets = cb_bucket._get_buckets(url, user, passwrd)
+
 	if len(cluster_values['serviceNodes']['cbas']) > 0:
 		analytics_metrics = cb_analytics._get_metrics(
 			user, passwrd, cluster_values['serviceNodes']['cbas'], cluster_values['clusterName'])
@@ -33,12 +35,12 @@ def get_metrics(url='', user='', passwrd=''):
 
 	if len(cluster_values['serviceNodes']['fts']) > 0:
 		fts_metrics = cb_fts._get_metrics(
-			user, passwrd, cluster_values['serviceNodes']['fts'], cluster_values['clusterName'])
+			user, passwrd, cluster_values['serviceNodes']['fts'], buckets, cluster_values['clusterName'])
 		metrics = metrics + fts_metrics['metrics']
 
 	if len(cluster_values['serviceNodes']['index']) > 0:
 		indexes_metrics = cb_index._get_metrics(
-			user, passwrd, cluster_values['serviceNodes']['index'], cluster_values['clusterName'])
+			user, passwrd, cluster_values['serviceNodes']['index'], index_buckets, cluster_values['clusterName'])
 		metrics = metrics + indexes_metrics['metrics']
 
 	node_exporter_metrics = cb_node_exporter._get_metrics(
@@ -56,7 +58,7 @@ def get_metrics(url='', user='', passwrd=''):
 
 	if len(cluster_values['serviceNodes']['kv']) > 0:
 		xdcr_metrics = cb_xdcr._get_metrics(
-			user, passwrd, cluster_values['serviceNodes']['kv'], cluster_values['clusterName'])
+			user, passwrd, cluster_values['serviceNodes']['kv'], buckets, cluster_values['clusterName'])
 		metrics = metrics + xdcr_metrics['metrics']
 
 	return(metrics)

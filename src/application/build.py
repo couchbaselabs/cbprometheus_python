@@ -90,23 +90,33 @@ def make_main():
     main_str += "\tcluster_values = cb_cluster._get_cluster(url, user, passwrd, [])\n"
     main_str += "\tmetrics = cluster_values['metrics']\n"
     main_str += "\tindex_buckets = cb_bucket._get_index_buckets(url, user, passwrd)\n"
+    main_str += "\tbuckets = cb_bucket._get_buckets(url, user, passwrd)\n\n"
 
     #These are the auto generated metrics based on the view classes in modules
     imports = [name for _, name, _ in pkgutil.iter_modules(['modules'])]
     for module in imports:
         try:
-            my_view = eval(module).view()
-            if my_view.service_identifier == None:
-                pass
-            elif my_view.service_identifier == False:
-                main_str += "\t{}_metrics = {}._get_metrics(\n".format(my_view.name, module)
-                main_str += "\t\tuser, passwrd, cluster_values['nodeList'], cluster_values['clusterName'])\n"
-                main_str += "\tmetrics = metrics + {}_metrics['metrics']\n\n".format(my_view.name)
-            else:
-                main_str += "\tif len(cluster_values['serviceNodes']['{}']) > 0:\n".format(my_view.service_identifier)
-                main_str += "\t\t{}_metrics = {}._get_metrics(\n".format(my_view.name, module)
-                main_str += "\t\t\tuser, passwrd, cluster_values['serviceNodes']['{}'], cluster_values['clusterName'])\n".format(my_view.service_identifier)
-                main_str += "\t\tmetrics = metrics + {}_metrics['metrics']\n\n".format(my_view.name)
+            # if module == "cb_node_exporter":
+                my_view = eval(module).view()
+                if my_view.service_identifier == None:
+                    pass
+                elif my_view.service_identifier == False:
+                    main_str += "\t{}_metrics = {}._get_metrics(\n".format(my_view.name, module)
+                    a_str = []
+                    for entry in my_view.inputs:
+                        a_str.append(entry['value'])
+                    c_str = "{})".format(", ".join(a_str))
+                    main_str += "\t\t{}\n".format(c_str)
+                    main_str += "\tmetrics = metrics + {}_metrics['metrics']\n\n".format(my_view.name)
+                else:
+                    main_str += "\tif len(cluster_values['serviceNodes']['{}']) > 0:\n".format(my_view.service_identifier)
+                    main_str += "\t\t{}_metrics = {}._get_metrics(\n".format(my_view.name, module)
+                    a_str = []
+                    for entry in my_view.inputs:
+                        a_str.append(entry['value'])
+                    c_str = "{})".format(", ".join(a_str))
+                    main_str += "\t\t\t{}\n".format(c_str)
+                    main_str += "\t\tmetrics = metrics + {}_metrics['metrics']\n\n".format(my_view.name)
         except Exception as e:
             print(e)
     main_str += "\treturn(metrics)\n\n"

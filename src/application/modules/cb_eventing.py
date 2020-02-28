@@ -8,6 +8,11 @@ class view():
         self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]}]
         self.comment = '''This is the method used to access Eventing metrics'''
         self.service_identifier = "eventing"
+        self.inputs = [{"value":"user"},
+                        {"value":"passwrd"},
+                        {"value":"cluster_values['serviceNodes']['{}']".format(self.service_identifier)},
+                        {"value":"cluster_values['clusterName']"}]
+
 
 def run(url="", user="", passwrd="", nodes=[]):
     '''Entry point for getting the metrics for the eventing nodes'''

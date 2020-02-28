@@ -10,6 +10,12 @@ class view():
                         {"variable":"indexes","type":"default","name":"indexes_list","value":[]}]
         self.comment = '''This is the method used to access FTS metrics'''
         self.service_identifier = "index"
+        self.inputs = [{"value":"user"},
+                        {"value":"passwrd"},
+                        {"value":"cluster_values['serviceNodes']['{}']".format(self.service_identifier)},
+                        {"value": "index_buckets"},
+                        {"value":"cluster_values['clusterName']"}]
+
 
 def run(url="", user="", passwrd="", index=[], buckets=[], nodes=[]):
     '''Entry point for getting the metrics for the index nodes'''
@@ -26,7 +32,8 @@ def run(url="", user="", passwrd="", index=[], buckets=[], nodes=[]):
                 user,
                 passwrd,
                 cluster_values['serviceNodes']['index'],
-                buckets, cluster_values['clusterName'])
+                buckets,
+                cluster_values['clusterName'])
 
             metrics = index_metrics['metrics']
     else:
@@ -36,7 +43,8 @@ def run(url="", user="", passwrd="", index=[], buckets=[], nodes=[]):
                 user,
                 passwrd,
                 nodes,
-                buckets, cluster_values['clusterName'])
+                buckets,
+                cluster_values['clusterName'])
 
             metrics = index_metrics['metrics']
 

@@ -23,7 +23,7 @@ def get_local_ip():
         IP = '127.0.0.1'
     finally:
         s.close()
-    return IP
+    return [IP]
 
 def get_dt():
     epoch = datetime.utcfromtimestamp(0)
@@ -74,7 +74,7 @@ def text_request(url):
                               "Accept": "*/*",  # curl does this
                               "User-Agent": "check_version/1",
                           })
-    f = (urllib2.urlopen(req, timeout=1)).readlines()
+    f = (urllib2.urlopen(req, timeout=0.1)).readlines()
     return(f)
 
 def check_cluster(url, username, pw):

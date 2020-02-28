@@ -9,6 +9,12 @@ class view():
                         {"variable":"buckets","type":"default","name":"bucket_list","value":[]}]
         self.comment = '''This is the method used to access xdcr metrics'''
         self.service_identifier = "kv"
+        self.inputs = [{"value":"user"},
+                        {"value":"passwrd"},
+                        {"value":"cluster_values['serviceNodes']['{}']".format(self.service_identifier)},
+                        {"value":"buckets"},
+                        {"value":"cluster_values['clusterName']"}]
+
 
 def run(url="", user="", passwrd="", nodes=[], buckets=[]):
     '''Entry point for getting the metrics for xdcr'''
@@ -281,5 +287,5 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name=""):
                                         datapoint,
                                         n_json['op']['samples']['timestamp'][idx]))
             except Exception as e:
-                print("xdcr: " + str(e))
+                print("xdcr: " + str(e) + node + bucket)
     return xdcr_metrics

@@ -12,6 +12,11 @@ class view():
                         {"variable":"slow_queries","type":"default","name":"slow_queries","value": True}]
         self.comment = '''This is the method used to access FTS metrics'''
         self.service_identifier = "n1ql"
+        self.inputs = [{"value":"user"},
+                        {"value":"passwrd"},
+                        {"value":"cluster_values['serviceNodes']['{}']".format(self.service_identifier)},
+                        {"value":"cluster_values['clusterName']"}]
+
 
 def run(url="", user="", passwrd="", nodes=[], slow_queries=True):
     '''Entry point for getting the metrics for the query nodes'''

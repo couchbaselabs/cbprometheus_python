@@ -8,6 +8,11 @@ class view():
         self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]},]
         self.comment = '''This is the method used to access system metrics'''
         self.service_identifier = False
+        self.inputs = [{"value":"user"},
+                        {"value":"passwrd"},
+                        {"value":"cluster_values['nodeList']"},
+                        {"value":"cluster_values['clusterName']"}]
+
 
 def run(url="", user="", passwrd="", nodes=[]):
     '''Entry point for getting the metrics for the system from the nodes'''
