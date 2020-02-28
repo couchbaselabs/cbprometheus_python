@@ -80,7 +80,6 @@ def text_request(url):
 def check_cluster(url, username, pw):
     urls = url.split(",")
     shuffle(urls)
-    print(urls)
     active = False
     auth = basic_authorization(username, pw)
     for _url in urls:

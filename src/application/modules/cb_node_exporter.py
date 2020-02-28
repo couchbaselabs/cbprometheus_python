@@ -31,9 +31,6 @@ def run(url="", user="", passwrd="", nodes=[]):
             nodes,
             cluster_values['clusterName'])
         metrics = __metrics['metrics']
-
-    for metric in metrics:
-        print(metric)
     return metrics
 
 def _create_metric(tag, label="", value=""):
@@ -75,5 +72,5 @@ def _get_metrics(user, passwrd, node_list, cluster_name=""):
                     tag, _value = record.strip().split(" ")
                     node_metrics['metrics'].append(_create_metric(tag, label, _value))
         except Exception as e:
-            print("analytics base: " + str(e))
+            print("node_exporter base: " + str(e))
     return node_metrics

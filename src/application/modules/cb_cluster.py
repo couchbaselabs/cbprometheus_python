@@ -23,7 +23,6 @@ def _get_cluster(url, user, passwrd, node_list):
         node_list.append(url)
 
     for uri in node_list:
-        print(uri)
         try:
             _url = "http://{}:8091/pools/default".format(uri.split(":")[0])
             stats = rest_request(auth, _url)
