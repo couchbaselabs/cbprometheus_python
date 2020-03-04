@@ -1,0 +1,25 @@
+#!/bin/sh
+
+D0=$(cd "$(dirname "$0")" && pwd)
+codedir=$(cd "$D0/../lib/python" && pwd)
+libdir=$(cd "$D0/../lib" && pwd)
+
+# Mostly for MacOS - if cbpy isn't installed in expected location,
+# check in user-specific location, and install it fresh if necessary.
+pydir="$D0/../lib/python/runtime"
+if [ ! -x "$pydir"/bin/python3 ]; then
+  cbpyinstaller=$(dirname "$pydir")/cbpy-installer.sh
+  pydir="$HOME/Library/Python/couchbase-py/6.5.0-py1"
+  if [ ! -x "$pydir"/bin/python3 ]; then
+    mkdir -p "$pydir"
+    echo "Installing Python 3 - one moment..." 1>&2
+    sh "$cbpyinstaller" -b -u -p "$pydir" > /dev/null
+  fi
+fi
+
+PYTHONPATH="$codedir:$PYTHONPATH"
+export PYTHONPATH
+LD_LIBRARY_PATH="$libdir:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH
+
+exec "$pydir"/bin/python3 "$codedir"/$(basename "$0") "$@"
