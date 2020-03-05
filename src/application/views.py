@@ -189,22 +189,22 @@ def indexes():
 @application.route('/mctimings', methods=['GET'])
 def mctimings():
 	'''This is the method used to access mctiming'''
-	nodes_list = []
-	if request.args.get('nodes'):
-		nodes_str = request.args.get('nodes')
-		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
-		nodes_list = nodes_str.split(',')
 	bucket_list = []
 	if request.args.get('buckets'):
 		buckets_str = request.args.get('buckets')
 		buckets_str = buckets_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		bucket_list = buckets_str.split(',')
+	nodes_list = []
+	if request.args.get('nodes'):
+		nodes_str = request.args.get('nodes')
+		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
+		nodes_list = nodes_str.split(',')
 	_value = cb_mctimings.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
-		nodes_list,
-		bucket_list)
+		bucket_list,
+		nodes_list)
 	if application.config['CB_STREAMING']:
 		def generate():
 			for row in _value:

@@ -5,13 +5,14 @@ import timing_matrix
 from cb_utilities import *
 from datetime import datetime
 import cb_cluster
+import os
 
 class view():
     def __init__(self):
         self.methods = ["GET"]
         self.name = "mctimings"
-        self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]},
-                        {"variable":"buckets","type":"default","name":"bucket_list","value":[]}]
+        self.filters = [{"variable":"buckets","type":"default","name":"bucket_list","value":[]},
+                        {"variable":"nodes","type":"default","name":"nodes_list","value":[]}]
         self.comment = '''This is the method used to access mctiming'''
         self.service_identifier = "kv"
         self.inputs = [{"value":"user"},
@@ -36,7 +37,6 @@ def run(url="", user="", passwrd="", buckets=[], nodes=[], cluster=""):
     url = check_cluster(url, user, passwrd)
     metrics = []
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
-    print(cluster_values['serviceNodes']['kv'])
     node_list = []
     if len(buckets) == 0:
         buckets = get_buckets(url, user, passwrd)
@@ -59,20 +59,33 @@ def run(url="", user="", passwrd="", buckets=[], nodes=[], cluster=""):
         metrics = filter(None, mctiming_metrics['metrics'])
     return metrics
 
-def process_metric_65(cmd, _range, value, cluster, node, bucket):
+def process_metric_65(cmd, _range, value, cluster, node, bucket, _type="metric"):
     metric = []
-    metric.append(
-        "{} {{cluster=\"{}\", "
-        "node=\"{}\", "
-        "bucket=\"{}\", "
-        "type=\"mctimings\", "
-        "range=\"{}\""
-        "}} {}".format(cmd,
-                        cluster,
-                        node,
-                        bucket,
-                        _range,
-                        value))
+    if _type == "metric":
+        metric.append(
+            "{} {{cluster=\"{}\", "
+            "node=\"{}\", "
+            "bucket=\"{}\", "
+            "type=\"mctimings\", "
+            "le=\"{}\""
+            "}} {}".format(cmd,
+                            cluster,
+                            node,
+                            bucket,
+                            _range,
+                            value))
+    if _type == "count":
+        metric.append(
+            "{} {{cluster=\"{}\", "
+            "node=\"{}\", "
+            "bucket=\"{}\", "
+            "type=\"mctimings\" "
+            "}} {}".format(cmd,
+                            cluster,
+                            node,
+                            bucket,
+                            value))
+
     return(metric[0])
 
 def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket):
@@ -84,7 +97,7 @@ def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket):
             "node=\"{}\", "
             "bucket=\"{}\", "
             "type=\"mctimings\", "
-            "range=\"{}\""
+            "le=\"{}\""
             "}} {}".format(cmd,
                             cluster,
                             node,
@@ -99,7 +112,7 @@ def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket):
             "node=\"{}\", "
             "bucket=\"{}\", "
             "type=\"mctimings\", "
-            "range=\"{}\""
+            "le=\"{}\""
             "}} {}".format(cmd,
                             cluster,
                             node,
@@ -114,7 +127,7 @@ def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket):
             "node=\"{}\", "
             "bucket=\"{}\", "
             "type=\"mctimings\", "
-            "range=\"{}\""
+            "le=\"{}\""
             "}} {}".format(cmd,
                             cluster,
                             node,
@@ -122,21 +135,109 @@ def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket):
                             tm._500ms[str(position)],
                             value))
         return(metric[0])
-    elif _type in ["command", "ns", "wayout"]:
-        pass
-    else:
+    elif _type == "ns":
         metric = []
         metric.append(
             "{} {{cluster=\"{}\", "
             "node=\"{}\", "
             "bucket=\"{}\", "
             "type=\"mctimings\", "
-            "range=\"{}\", "
+            "le=\"{}\""
             "}} {}".format(cmd,
                             cluster,
                             node,
                             bucket,
-                            _type,
+                            tm.ns,
+                            value))
+        return(metric[0])
+    elif _type == "5s-9s":
+        metric = []
+        metric.append(
+            "{} {{cluster=\"{}\", "
+            "node=\"{}\", "
+            "bucket=\"{}\", "
+            "type=\"mctimings\", "
+            "le=\"{}\""
+            "}} {}".format(cmd,
+                            cluster,
+                            node,
+                            bucket,
+                            tm._5s_9s,
+                            value))
+        return(metric[0])
+    elif _type == "10s-19s":
+        metric = []
+        metric.append(
+            "{} {{cluster=\"{}\", "
+            "node=\"{}\", "
+            "bucket=\"{}\", "
+            "type=\"mctimings\", "
+            "le=\"{}\""
+            "}} {}".format(cmd,
+                            cluster,
+                            node,
+                            bucket,
+                            tm._10s_19s,
+                            value))
+        return(metric[0])
+    elif _type == "20s-39s":
+        metric = []
+        metric.append(
+            "{} {{cluster=\"{}\", "
+            "node=\"{}\", "
+            "bucket=\"{}\", "
+            "type=\"mctimings\", "
+            "le=\"{}\""
+            "}} {}".format(cmd,
+                            cluster,
+                            node,
+                            bucket,
+                            tm._20s_39s,
+                            value))
+        return(metric[0])
+    elif _type == "40s-79s":
+        metric = []
+        metric.append(
+            "{} {{cluster=\"{}\", "
+            "node=\"{}\", "
+            "bucket=\"{}\", "
+            "type=\"mctimings\", "
+            "le=\"{}\""
+            "}} {}".format(cmd,
+                            cluster,
+                            node,
+                            bucket,
+                            tm._40s_79s,
+                            value))
+        return(metric[0])
+    elif _type == "80s-inf":
+        metric = []
+        metric.append(
+            "{} {{cluster=\"{}\", "
+            "node=\"{}\", "
+            "bucket=\"{}\", "
+            "type=\"mctimings\", "
+            "le=\"{}\""
+            "}} {}".format(cmd,
+                            cluster,
+                            node,
+                            bucket,
+                            tm._80s_inf,
+                            value))
+        return(metric[0])
+    elif _type in ["command", "wayout"]:
+        pass
+    elif _type == "count":
+        metric = []
+        metric.append(
+            "{} {{cluster=\"{}\", "
+            "node=\"{}\", "
+            "bucket=\"{}\", "
+            "type=\"mctimings\", "
+            "}} {}".format(cmd,
+                            cluster,
+                            node,
+                            bucket,
                             value))
         return(metric[0])
 
@@ -157,8 +258,6 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
 
         if version < 6.5:
             for bucket in buckets:
-                import os
-
                 dirpath = os.getcwd()
                 _path = dirpath.split("/")
                 backup = "../" * (_path[::-1].index("src")+0)
@@ -172,8 +271,8 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
                                                stdin=subprocess.PIPE)
 
                 stdout, stderr = proc.communicate()
-                if stderr != None:
-                    print(stderr)
+                if len(stderr) > 0:
+                    print("Error: {}".format(stderr))
                 new_stdout = re.sub('\s+', " ", stdout)
                 arr_stdout = new_stdout.split("} {")
                 arr_mctimings = []
@@ -185,32 +284,121 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
                         new_str = new_str + "}"
                     arr_mctimings.append(json.loads(new_str))
                 for mctiming in arr_mctimings:
-                    for key in mctiming:
-                        if type(mctiming[key]) == type([]):
-                            for x, timing in enumerate(mctiming[key]):
-                                mctiming_info['metrics'].append(
-                                    process_metric_pre65(
-                                        mctiming['command'],
-                                        key,
-                                        x,
-                                        timing,
-                                        cluster,
-                                        node,
-                                        bucket))
-                        else:
+                    count = 0
+                    if mctiming['ns'] > 0:
+                        mctiming_info['metrics'].append(
+                            process_metric_pre65(
+                                "{}_bucket".format(mctiming['command']),
+                                "ns",
+                                0,
+                                mctiming['ns'],
+                                cluster,
+                                node,
+                                bucket))
+                        count += mctiming['ns']
+                    for x, timing in enumerate(mctiming["us"]):
+                        if timing > 0:
                             mctiming_info['metrics'].append(
                                 process_metric_pre65(
-                                    mctiming['command'],
-                                    key,
-                                    0,
-                                    mctiming[key],
+                                    "{}_bucket".format(mctiming['command']),
+                                    "us",
+                                    x,
+                                    timing + count,
                                     cluster,
                                     node,
                                     bucket))
+                            count += timing
+                    for x, timing in enumerate(mctiming["ms"]):
+                        if timing > 0:
+                            mctiming_info['metrics'].append(
+                                process_metric_pre65(
+                                    "{}_bucket".format(mctiming['command']),
+                                    "ms",
+                                    x,
+                                    timing + count,
+                                    cluster,
+                                    node,
+                                    bucket))
+                            count += timing
+                    for x, timing in enumerate(mctiming["500ms"]):
+                        if timing > 0:
+                            mctiming_info['metrics'].append(
+                                process_metric_pre65(
+                                    "{}_bucket".format(mctiming['command']),
+                                    "500ms",
+                                    x,
+                                    timing + count,
+                                    cluster,
+                                    node,
+                                    bucket))
+                            count += timing
+                    if mctiming['5s-9s'] > 0:
+                        mctiming_info['metrics'].append(
+                            process_metric_pre65(
+                                "{}_bucket".format(mctiming['command']),
+                                "5s-9s",
+                                0,
+                                count + mctiming['5s-9s'],
+                                cluster,
+                                node,
+                                bucket))
+                        count += mctiming['5s-9s']
+                    if mctiming['10s-19s'] > 0:
+                        mctiming_info['metrics'].append(
+                            process_metric_pre65(
+                                "{}_bucket".format(mctiming['command']),
+                                "10s-19s",
+                                0,
+                                count + mctiming['10s-19s'],
+                                cluster,
+                                node,
+                                bucket))
+                        count += mctiming['10s-19s']
+                    if mctiming['20s-39s'] > 0:
+                        mctiming_info['metrics'].append(
+                            process_metric_pre65(
+                                "{}_bucket".format(mctiming['command']),
+                                "20s-39s",
+                                0,
+                                mctiming['20s-39s'],
+                                cluster,
+                                node,
+                                bucket))
+                        count += mctiming['20s-39s']
+                    if mctiming['20s-39s'] > 0:
+                        mctiming_info['metrics'].append(
+                            process_metric_pre65(
+                                "{}_bucket".format(mctiming['command']),
+                                "40s-79s",
+                                0,
+                                count + mctiming['40s-79s'],
+                                cluster,
+                                node,
+                                bucket))
+                        count += mctiming['40s-79s']
+                    if count + mctiming['80s-inf'] > 0:
+                        mctiming_info['metrics'].append(
+                            process_metric_pre65(
+                                "{}_bucket".format(mctiming['command']),
+                                "80s-inf",
+                                0,
+                                count + mctiming['80s-inf'],
+                                cluster,
+                                node,
+                                bucket))
+                        count += mctiming['80s-inf']
+                    if count > 0:
+                        mctiming_info['metrics'].append(
+                            process_metric_pre65(
+                                "{}_count".format(mctiming['command']),
+                                "count",
+                                0,
+                                count,
+                                cluster,
+                                node,
+                                bucket))
         else:
             for bucket in buckets:
-                import os
-
                 dirpath = os.getcwd()
                 _path = dirpath.split("/")
                 backup = "../" * (_path[::-1].index("src")+0)
@@ -224,7 +412,7 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
                                                stdin=subprocess.PIPE)
 
                 stdout, stderr = proc.communicate()
-                if stderr != None:
+                if len(stderr) > 0:
                     print(stderr)
                 new_stdout = re.sub('\s+', " ", stdout)
                 arr_stdout = new_stdout.split("} {")
@@ -237,6 +425,7 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
                         new_str = new_str + "}"
                     arr_mctimings.append(json.loads(new_str))
                 for metric in arr_mctimings:
+                    count = 0
                     lowPos = metric['bucketsLow']
                     inner_metric = []
                     if metric['total'] == 0:
@@ -248,27 +437,38 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
                             else:
                                 mctiming_info['metrics'].append(
                                     inner_metric.append(
-                                        {"{}-{}ms".format(lowPos,
-                                        entry[0]): entry[1]}))
+                                        {"{}".format(count + entry[0]): entry[1]}))
                                 lowPos = entry[0]
-                        inner_metric.append({"{}-inf".format(lowPos): 0})
+                                count += entry[0]
+                        inner_metric.append({"+Inf".format(lowPos): 0})
                     for _metric in inner_metric:
                         for i in _metric:
                             mctiming_info['metrics'].append(
                                 process_metric_65(
-                                    metric['command'],
+                                    "{}_bucket".format(metric['command']),
                                     i,
-                                    _metric[i],
+                                    _metric[i]+ count,
                                     cluster,
                                     node,
                                     bucket))
-            return(mctiming_info)
+                            count += _metric[i]
+                    if count > 0:
+                        mctiming_info['metrics'].append(
+                            process_metric_65(
+                                "{}_count".format(metric['command']),
+                                i,
+                                count,
+                                cluster,
+                                node,
+                                bucket,
+                                "count"))
+    return(mctiming_info)
 
 
 if __name__ == "__main__":
     start_t = datetime.now()
     #print(_get_metrics("Administrator", "password", "TestCluster", ['travel-sample'], ["18.224.34.238"]))
-    for entry in run("18.224.34.238", "Administrator", "password", ["test"], [], ""):
+    for entry in run("18.224.34.238", "Administrator", "password", ["travel-sample"], ["18.224.34.238"], ""):
         print(entry)
     #print(get_version("18.224.34.238", "Administrator", "password"))
     print(datetime.now() - start_t)

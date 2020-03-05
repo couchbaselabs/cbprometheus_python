@@ -18,6 +18,11 @@ def get_metrics(url='', user='', passwrd=''):
 	index_buckets = cb_bucket._get_index_buckets(url, user, passwrd)
 	buckets = cb_bucket._get_buckets(url, user, passwrd)
 
+	if len(cluster_values['serviceNodes']['cbas']) > 0:
+		analytics_metrics = cb_analytics._get_metrics(
+			user, passwrd, cluster_values['serviceNodes']['cbas'], cluster_values['clusterName'])
+		metrics = metrics + analytics_metrics['metrics']
+
 	if len(cluster_values['serviceNodes']['kv']) > 0:
 		buckets_metrics = cb_bucket._get_metrics(
 			user, passwrd, cluster_values['serviceNodes']['kv'], cluster_values['clusterName'])
