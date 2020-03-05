@@ -12,6 +12,7 @@ class view():
                         {"value":"passwrd"},
                         {"value":"cluster_values['nodeList']"},
                         {"value":"cluster_values['clusterName']"}]
+        self.exclude = False
 
 
 def run(url="", user="", passwrd=""):

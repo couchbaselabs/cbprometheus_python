@@ -100,6 +100,8 @@ def make_main():
                 my_view = eval(module).view()
                 if my_view.service_identifier == None:
                     pass
+                elif my_view.exclude == True:
+                    pass
                 elif my_view.service_identifier == False:
                     main_str += "\t{}_metrics = {}._get_metrics(\n".format(my_view.name, module)
                     a_str = []

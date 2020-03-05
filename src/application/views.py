@@ -185,6 +185,36 @@ def indexes():
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
 
+@application.route('/metrics/mctimings', methods=['GET'])
+@application.route('/mctimings', methods=['GET'])
+def mctimings():
+	'''This is the method used to access mctiming'''
+	nodes_list = []
+	if request.args.get('nodes'):
+		nodes_str = request.args.get('nodes')
+		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
+		nodes_list = nodes_str.split(',')
+	bucket_list = []
+	if request.args.get('buckets'):
+		buckets_str = request.args.get('buckets')
+		buckets_str = buckets_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
+		bucket_list = buckets_str.split(',')
+	_value = cb_mctimings.run(
+		application.config['CB_DATABASE'],
+		application.config['CB_USERNAME'],
+		application.config['CB_PASSWORD'],
+		nodes_list,
+		bucket_list)
+	if application.config['CB_STREAMING']:
+		def generate():
+			for row in _value:
+				yield(row + '\n')
+		return Response(stream_with_context(generate()), mimetype='text/plain')
+	else:
+		metrics_str = '\n'
+		metrics_str = metrics_str.join(_value)
+		return Response(metrics_str, mimetype='text/plain')
+
 @application.route('/metrics/node_exporter', methods=['GET'])
 @application.route('/node_exporter', methods=['GET'])
 def node_exporter():

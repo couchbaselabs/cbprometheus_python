@@ -15,6 +15,7 @@ class view():
                         {"value":"cluster_values['serviceNodes']['{}']".format(self.service_identifier)},
                         {"value": "index_buckets"},
                         {"value":"cluster_values['clusterName']"}]
+        self.exclude = False
 
 
 def run(url="", user="", passwrd="", index=[], buckets=[], nodes=[]):
