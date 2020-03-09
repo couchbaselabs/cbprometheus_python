@@ -1,6 +1,6 @@
 from cb_utilities import *
 
-def _get_node_metrics(user, passwrd, node_list, cluster_name):
+def _get_metrics(user, passwrd, node_list, cluster_name):
     '''gets the metrics for each node'''
     result = {}
     result['metrics'] = []

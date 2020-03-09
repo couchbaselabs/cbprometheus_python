@@ -1,5 +1,9 @@
 from cb_utilities import *
 
+# class view():
+#     def __init__(self):
+#         self.service_identifier = None
+
 def _get_cluster(url, user, passwrd, node_list):
     '''Starts by getting the cluster definition, then creates a node list, then gets metrics for
     the cluster from each node'''

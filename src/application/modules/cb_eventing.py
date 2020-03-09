@@ -1,6 +1,44 @@
 from cb_utilities import *
+import cb_cluster
 
-def _get_eventing_metrics(user, passwrd, node_list, cluster_name=""):
+class view():
+    def __init__(self):
+        self.methods = ["GET"]
+        self.name = "eventing"
+        self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]}]
+        self.comment = '''This is the method used to access Eventing metrics'''
+        self.service_identifier = "eventing"
+        self.inputs = [{"value":"user"},
+                        {"value":"passwrd"},
+                        {"value":"cluster_values['serviceNodes']['{}']".format(self.service_identifier)},
+                        {"value":"cluster_values['clusterName']"}]
+
+
+def run(url="", user="", passwrd="", nodes=[]):
+    '''Entry point for getting the metrics for the eventing nodes'''
+    url = check_cluster(url, user, passwrd)
+    metrics = []
+    cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
+
+    if len(nodes) == 0:
+        if len(cluster_values['serviceNodes']['eventing']) > 0:
+            eventing_metrics = _get_metrics(
+                user,
+                passwrd,
+                cluster_values['serviceNodes']['eventing'], cluster_values['clusterName'])
+
+            metrics = eventing_metrics['metrics']
+    else:
+        eventing_metrics = _get_metrics(
+            user,
+            passwrd,
+            nodes, cluster_values['clusterName'])
+
+        metrics = eventing_metrics['metrics']
+
+    return metrics
+
+def _get_metrics(user, passwrd, node_list, cluster_name=""):
     '''Gets the metrics for the eventing nodes'''
     eventing_metrics = {}
     eventing_metrics['metrics'] = []
@@ -15,7 +53,7 @@ def _get_eventing_metrics(user, passwrd, node_list, cluster_name=""):
             for record in e_json['op']['samples']:
                 name = ""
                 metric_type = ""
-                _node = value_to_string(node)
+                _node = node
                 try:
                     split_record = record.split("/")
                     if len(split_record) == 3:

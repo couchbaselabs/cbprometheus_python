@@ -1,6 +1,64 @@
 from cb_utilities import *
+import cb_cluster, cb_bucket
 
-def _get_xdcr_metrics(user, passwrd, nodes, buckets, cluster_name=""):
+class view():
+    def __init__(self):
+        self.methods = ["GET"]
+        self.name = "xdcr"
+        self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]},
+                        {"variable":"buckets","type":"default","name":"bucket_list","value":[]}]
+        self.comment = '''This is the method used to access xdcr metrics'''
+        self.service_identifier = "kv"
+        self.inputs = [{"value":"user"},
+                        {"value":"passwrd"},
+                        {"value":"cluster_values['serviceNodes']['{}']".format(self.service_identifier)},
+                        {"value":"buckets"},
+                        {"value":"cluster_values['clusterName']"}]
+
+
+def run(url="", user="", passwrd="", nodes=[], buckets=[]):
+    '''Entry point for getting the metrics for xdcr'''
+    url = check_cluster(url, user, passwrd)
+    metrics = []
+    cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
+
+    if len(nodes) == 0:
+        if len(buckets) == 0:
+            if len(cluster_values['serviceNodes']['kv']) > 0:
+                bucket_metrics = cb_bucket._get_metrics(
+                    user,
+                    passwrd,
+                    cluster_values['serviceNodes']['kv'],
+                    cluster_values['clusterName'])
+        else:
+            bucket_metrics = {"buckets": buckets}
+
+        xdcr_metrics = _get_metrics(
+            user,
+            passwrd,
+            cluster_values['serviceNodes']['kv'],
+            bucket_metrics['buckets'], cluster_values['clusterName'])
+
+        metrics = xdcr_metrics['metrics']
+
+    else:
+        if len(buckets) == 0:
+            bucket_metrics = cb_bucket._get_metrics(
+                user, passwrd, nodes, cluster_values['clusterName'])
+        else:
+            bucket_metrics = {"buckets": buckets}
+
+        xdcr_metrics = _get_metrics(
+            user,
+            passwrd,
+            nodes,
+            bucket_metrics['buckets'], cluster_values['clusterName'])
+
+        metrics = xdcr_metrics['metrics']
+
+    return metrics
+
+def _get_metrics(user, passwrd, nodes, buckets, cluster_name=""):
     '''XDCR metrics are gatherd here. First the links are queried, then it gathers
     the metrics for each link'''
     xdcr_metrics = {}
@@ -206,12 +264,12 @@ def _get_xdcr_metrics(user, passwrd, nodes, buckets, cluster_name=""):
                                                 cluster_name,
                                                 key_split[1],
                                                 key_split[1] + "/" + key_split[2] + "/" + key_split[3],
-                                                key_split[2] + " -> " + value_to_string(cluster_definition[key_split[1]]['name']) + " (" + key_split[3] + ")",
+                                                key_split[2] + " -> " + cluster_definition[key_split[1]]['name'] + " (" + key_split[3] + ")",
                                                 key_split[2],
-                                                value_to_string(cluster_definition[key_split[1]]['name']),
-                                                value_to_string(cluster_definition[key_split[1]]['hostname']),
+                                                cluster_definition[key_split[1]]['name'],
+                                                cluster_definition[key_split[1]]['hostname'],
                                                 key_split[3],
-                                                value_to_string(node),
+                                                node,
                                                 datapoint,
                                                 n_json['op']['samples']['timestamp'][idx]))
                         elif len(key_split) == 1:
@@ -225,9 +283,9 @@ def _get_xdcr_metrics(user, passwrd, nodes, buckets, cluster_name=""):
                                         entry,
                                         cluster_name,
                                         bucket,
-                                        value_to_string(node),
+                                        node,
                                         datapoint,
                                         n_json['op']['samples']['timestamp'][idx]))
             except Exception as e:
-                print("xdcr: " + str(e))
+                print("xdcr: " + str(e) + node + bucket)
     return xdcr_metrics

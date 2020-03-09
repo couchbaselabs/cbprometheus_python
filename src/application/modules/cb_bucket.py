@@ -1,4 +1,39 @@
 from cb_utilities import *
+import cb_cluster
+
+class view():
+    def __init__(self):
+        self.methods = ["GET"]
+        self.name = "buckets"
+        self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]},
+                        {"variable":"buckets","type":"default","name":"bucket_list","value":[]}]
+        self.comment = '''This is the method used to access bucket metrics'''
+        self.service_identifier = "kv"
+        self.inputs = [{"value":"user"},
+                        {"value":"passwrd"},
+                        {"value":"cluster_values['serviceNodes']['{}']".format(self.service_identifier)},
+                        {"value":"cluster_values['clusterName']"}]
+
+
+def run(url="", user="", passwrd="", buckets=[], nodes=[]):
+    '''Entry point for getting the metrics for the kv nodes and buckets'''
+    url = check_cluster(url, user, passwrd)
+    metrics = []
+    cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
+    if len(nodes) == 0:
+        if len(cluster_values['serviceNodes']['kv']) > 0:
+            bucket_metrics = _get_metrics(
+                user,
+                passwrd,
+                cluster_values['serviceNodes']['kv'],
+                cluster_values['clusterName'],
+                buckets)
+            metrics = bucket_metrics['metrics']
+    else:
+        bucket_metrics = _get_metrics(
+            user, passwrd, nodes, cluster_values['clusterName'], buckets)
+        metrics = bucket_metrics['metrics']
+    return metrics
 
 def _get_index_buckets(url, user, passwrd):
     '''Gets a unique list of all of the buckets in the cluster that have indexes'''
@@ -21,7 +56,23 @@ def _get_index_buckets(url, user, passwrd):
         print("indexStatus: " + str(e))
     return buckets
 
-def _get_bucket_metrics(user, passwrd, node_list, cluster_name="", bucket_names=[]):
+def _get_buckets(url, user, passwrd):
+    '''Gets a unique list of all of the buckets in the cluster'''
+    buckets = []
+
+    auth = basic_authorization(user, passwrd)
+
+    try:
+        url = "http://{}:8091/pools/default/buckets".format(url.split(":")[0])
+        f_json = rest_request(auth, url)
+        for bucket in f_json:
+            buckets.append(bucket['name'])
+        buckets.sort()
+    except Exception as e:
+        print("bucketStatus: " + str(e))
+    return buckets
+
+def _get_metrics(user, passwrd, node_list, cluster_name="", bucket_names=[]):
     '''Gets the metrics for each bucket'''
     bucket_info = {}
     bucket_info['buckets'] = []
@@ -46,7 +97,7 @@ def _get_bucket_metrics(user, passwrd, node_list, cluster_name="", bucket_names=
                                      "{}/nodes/{}:8091/stats".format(
                             node.split(":")[0], bucket['name'], node.split(":")[0])
                         b_json = rest_request(auth, bucket_url)
-                        _node = value_to_string(node)
+                        _node = node
                         for _record in b_json['op']['samples']:
                             record = value_to_string(_record)
                             if record != "timestamp":
@@ -90,7 +141,7 @@ def _get_bucket_metrics(user, passwrd, node_list, cluster_name="", bucket_names=
                                                                      bucket,
                                                                      node.split(":")[0])
                         b_json = rest_request(auth, bucket_url)
-                        _node = value_to_string(node)
+                        _node = node
                         for _record in b_json['op']['samples']:
                             record = value_to_string(_record)
                             if record != "timestamp":

@@ -1,6 +1,64 @@
 from cb_utilities import *
+import cb_cluster, cb_bucket
 
-def _get_fts_metrics(user, passwrd, node_list, bucket_list, cluster_name=""):
+class view():
+    def __init__(self):
+        self.methods = ["GET"]
+        self.name = "fts"
+        self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]},
+                        {"variable":"buckets","type":"default","name":"bucket_list","value":[]}]
+        self.comment = '''This is the method used to access FTS metrics'''
+        self.service_identifier = "fts"
+        self.inputs = [{"value":"user"},
+                        {"value":"passwrd"},
+                        {"value":"cluster_values['serviceNodes']['{}']".format(self.service_identifier)},
+                        {"value":"buckets"},
+                        {"value":"cluster_values['clusterName']"}]
+
+
+def run(url="", user="", passwrd="", nodes=[], buckets=[]):
+    '''Entry point for getting the metrics for the fts nodes'''
+    url = check_cluster(url, user, passwrd)
+    metrics = []
+    cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
+
+    if len(nodes) == 0:
+
+        if len(buckets) == 0:
+            if len(cluster_values['serviceNodes']['kv']) > 0:
+                bucket_metrics = cb_bucket._get_metrics(user,
+                                                     passwrd,
+                                                     cluster_values['serviceNodes']['kv'],
+                                                     cluster_values['clusterName'])
+        else:
+            bucket_metrics = {"buckets": buckets}
+
+        if len(cluster_values['serviceNodes']['fts']) > 0:
+            fts_metrics = _get_metrics(
+                user,
+                passwrd,
+                cluster_values['serviceNodes']['fts'],
+                bucket_metrics['buckets'], cluster_values['clusterName'])
+
+            metrics = fts_metrics['metrics']
+    else:
+        if len(buckets) == 0:
+            bucket_metrics = cb_bucket._get_metrics(
+                user, passwrd, nodes, cluster_values['clusterName'])
+        else:
+            bucket_metrics = {"buckets": buckets}
+
+        fts_metrics = _get_metrics(
+            user,
+            passwrd,
+            nodes,
+            bucket_metrics['buckets'], cluster_values['clusterName'])
+
+        metrics = fts_metrics['metrics']
+
+    return(metrics)
+
+def _get_metrics(user, passwrd, node_list, bucket_list, cluster_name=""):
     '''gets metrics for FTS'''
     fts_metrics = {}
     fts_metrics['metrics'] = []
@@ -17,7 +75,7 @@ def _get_fts_metrics(user, passwrd, node_list, bucket_list, cluster_name=""):
                 for record in f_json['op']['samples']:
                     name = ""
                     metric_type = ""
-                    _node = value_to_string(node)
+                    _node = node
                     try:
                         split_record = record.split("/")
                         if len(split_record) == 3:

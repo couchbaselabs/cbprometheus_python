@@ -1,9 +1,49 @@
 from cb_utilities import *
+import cb_cluster
 import urllib
 import re
 import hashlib
 
-def _get_query_metrics(user, passwrd, node_list, cluster_name="", slow_queries=True):
+class view():
+    def __init__(self):
+        self.methods = ["GET"]
+        self.name = "query"
+        self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]},
+                        {"variable":"slow_queries","type":"default","name":"slow_queries","value": True}]
+        self.comment = '''This is the method used to access FTS metrics'''
+        self.service_identifier = "n1ql"
+        self.inputs = [{"value":"user"},
+                        {"value":"passwrd"},
+                        {"value":"cluster_values['serviceNodes']['{}']".format(self.service_identifier)},
+                        {"value":"cluster_values['clusterName']"}]
+
+
+def run(url="", user="", passwrd="", nodes=[], slow_queries=True):
+    '''Entry point for getting the metrics for the query nodes'''
+    url = check_cluster(url, user, passwrd)
+    metrics = []
+    cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
+
+    if len(nodes) == 0:
+        if len(cluster_values['serviceNodes']['n1ql']) > 0:
+            # get the metrics from the query service for each of the n1ql nodes
+            query_metrics = _get_metrics(
+                user,
+                passwrd,
+                cluster_values['serviceNodes']['n1ql'], cluster_values['clusterName'],
+                slow_queries)
+            metrics = query_metrics['metrics']
+    else:
+        # get the metrics from the query service for each of the n1ql nodes
+        query_metrics = _get_metrics(
+            user,
+            passwrd,
+            nodes, cluster_values['clusterName'],
+            slow_queries)
+        metrics = query_metrics['metrics']
+    return metrics
+
+def _get_metrics(user, passwrd, node_list, cluster_name="", slow_queries=True):
     '''Gets the metrics for the query nodes'''
     # first get the system:completed_request entries for the past minute
     query_info = {}
@@ -18,7 +58,7 @@ def _get_query_metrics(user, passwrd, node_list, cluster_name="", slow_queries=T
             _query_url = "http://{}:8091/pools/default/buckets/@query/nodes/{}:8091/stats".format(
                 node.split(":")[0], node.split(":")[0])
             q_json = rest_request(auth, _query_url)
-            _node = value_to_string(node)
+            _node = node
             for record in q_json['op']['samples']:
                 if record != "timestamp":
                     for idx, datapoint in enumerate(q_json['op']['samples'][record]):
@@ -77,7 +117,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                 n1ql_stmt
             )
             q_json = rest_request(auth, _query_url)
-            _node = value_to_string(node)
+            _node = node
             for record in q_json['results']:
                 statement = record['statement'].replace('"','\\"').replace('\n', ' ')
                 # generate a hash of the statement so that if the user wants the statement

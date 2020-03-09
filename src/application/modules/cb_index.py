@@ -1,6 +1,56 @@
 from cb_utilities import *
+import cb_cluster, cb_bucket
 
-def _get_index_metrics(user, passwrd, nodes, buckets, cluster_name=""):
+class view():
+    def __init__(self):
+        self.methods = ["GET"]
+        self.name = "indexes"
+        self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]},
+                        {"variable":"buckets","type":"default","name":"bucket_list","value":[]},
+                        {"variable":"indexes","type":"default","name":"indexes_list","value":[]}]
+        self.comment = '''This is the method used to access FTS metrics'''
+        self.service_identifier = "index"
+        self.inputs = [{"value":"user"},
+                        {"value":"passwrd"},
+                        {"value":"cluster_values['serviceNodes']['{}']".format(self.service_identifier)},
+                        {"value": "index_buckets"},
+                        {"value":"cluster_values['clusterName']"}]
+
+
+def run(url="", user="", passwrd="", index=[], buckets=[], nodes=[]):
+    '''Entry point for getting the metrics for the index nodes'''
+    url = check_cluster(url, user, passwrd)
+    metrics = []
+    cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
+    if len(buckets) == 0:
+        buckets = cb_bucket._get_index_buckets(url, user, passwrd)
+
+    if len(nodes) == 0:
+
+        if len(cluster_values['serviceNodes']['index']) > 0 and len(buckets) > 0:
+            index_metrics = _get_metrics(
+                user,
+                passwrd,
+                cluster_values['serviceNodes']['index'],
+                buckets,
+                cluster_values['clusterName'])
+
+            metrics = index_metrics['metrics']
+    else:
+
+        if len(buckets) > 0:
+            index_metrics = _get_metrics(
+                user,
+                passwrd,
+                nodes,
+                buckets,
+                cluster_values['clusterName'])
+
+            metrics = index_metrics['metrics']
+
+    return metrics
+
+def _get_metrics(user, passwrd, nodes, buckets, cluster_name=""):
     '''Gets the metrics for the indexes nodes, then gets the metrics for each index'''
     index_info = {}
     index_info['metrics'] = []
@@ -12,7 +62,7 @@ def _get_index_metrics(user, passwrd, nodes, buckets, cluster_name=""):
             node.split(":")[0], node.split(":")[0])
         try:
             i_json = rest_request(auth, _index_url)
-            _node = value_to_string(node)
+            _node = node
             for record in i_json['op']['samples']:
                 if record != "timestamp":
                     for idx, datapoint in enumerate(i_json['op']['samples'][record]):
@@ -39,7 +89,7 @@ def _get_index_metrics(user, passwrd, nodes, buckets, cluster_name=""):
                 for record in ii_json['op']['samples']:
                     name = ""
                     index_type = ""
-                    _node = value_to_string(node)
+                    _node = node
                     try:
                         split_record = record.split("/")
                         if len(split_record) == 3:
