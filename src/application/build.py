@@ -87,6 +87,7 @@ def make_main():
 
     #These are the minimum requirements for the main method to work
     main_str += "def get_metrics(url='', user='', passwrd=''):\n"
+    main_str += "\turl = check_cluster(url, user, passwrd)\n"
     main_str += "\tcluster_values = cb_cluster._get_cluster(url, user, passwrd, [])\n"
     main_str += "\tmetrics = cluster_values['metrics']\n"
     main_str += "\tindex_buckets = cb_bucket._get_index_buckets(url, user, passwrd)\n"
