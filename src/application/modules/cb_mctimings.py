@@ -88,8 +88,8 @@ def process_metric_65(cmd, _range, value, cluster, node, bucket, _type="metric")
 
     return(metric[0])
 
-def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket):
-    tm = timing_matrix.timing_matrix()
+def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket, tm):
+
     if _type == "ms":
         metric = []
         metric.append(
@@ -240,6 +240,19 @@ def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket):
                             bucket,
                             value))
         return(metric[0])
+    elif _type == "sum":
+        metric = []
+        metric.append(
+            "{} {{cluster=\"{}\", "
+            "node=\"{}\", "
+            "bucket=\"{}\", "
+            "type=\"mctimings\", "
+            "}} {}".format(cmd,
+                            cluster,
+                            node,
+                            bucket,
+                            value))
+        return(metric[0])
 
 def get_version(url="", user="", passwrd=""):
     _url = "http://{}:8091/pools".format(url)
@@ -257,6 +270,7 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
         version = get_version(node, user, passwrd)
 
         if version < 6.5:
+            tm = timing_matrix.timing_matrix()
             for bucket in buckets:
                 dirpath = os.getcwd()
                 _path = dirpath.split("/")
@@ -285,6 +299,7 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
                     arr_mctimings.append(json.loads(new_str))
                 for mctiming in arr_mctimings:
                     count = 0
+                    sum = 0
                     if mctiming['ns'] > 0:
                         mctiming_info['metrics'].append(
                             process_metric_pre65(
@@ -294,8 +309,10 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
                                 mctiming['ns'],
                                 cluster,
                                 node,
-                                bucket))
+                                bucket,
+                                tm))
                         count += mctiming['ns']
+                        sum = sum + (mctiming['ns'] * float(tm.ns))
                     for x, timing in enumerate(mctiming["us"]):
                         if timing > 0:
                             mctiming_info['metrics'].append(
@@ -306,8 +323,10 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
                                     timing + count,
                                     cluster,
                                     node,
-                                    bucket))
+                                    bucket,
+                                    tm))
                             count += timing
+                            sum = sum + (timing * float(tm.us[str(x)]))
                     for x, timing in enumerate(mctiming["ms"]):
                         if timing > 0:
                             mctiming_info['metrics'].append(
@@ -318,8 +337,10 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
                                     timing + count,
                                     cluster,
                                     node,
-                                    bucket))
+                                    bucket,
+                                    tm))
                             count += timing
+                            sum = sum + (timing * float(tm.ms[str(x)]))
                     for x, timing in enumerate(mctiming["500ms"]):
                         if timing > 0:
                             mctiming_info['metrics'].append(
@@ -330,8 +351,10 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
                                     timing + count,
                                     cluster,
                                     node,
-                                    bucket))
+                                    bucket,
+                                    tm))
                             count += timing
+                            sum = sum + (timing * float(tm._500ms[str(x)]))
                     if mctiming['5s-9s'] > 0:
                         mctiming_info['metrics'].append(
                             process_metric_pre65(
@@ -341,7 +364,8 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
                                 count + mctiming['5s-9s'],
                                 cluster,
                                 node,
-                                bucket))
+                                bucket,
+                                tm))
                         count += mctiming['5s-9s']
                     if mctiming['10s-19s'] > 0:
                         mctiming_info['metrics'].append(
@@ -352,8 +376,10 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
                                 count + mctiming['10s-19s'],
                                 cluster,
                                 node,
-                                bucket))
+                                bucket,
+                                tm))
                         count += mctiming['10s-19s']
+                        sum = sum + (timing * float(tm['10s-19s']))
                     if mctiming['20s-39s'] > 0:
                         mctiming_info['metrics'].append(
                             process_metric_pre65(
@@ -363,8 +389,10 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
                                 mctiming['20s-39s'],
                                 cluster,
                                 node,
-                                bucket))
+                                bucket,
+                                tm))
                         count += mctiming['20s-39s']
+                        sum = sum + (timing * float(tm['20s-39s']))
                     if mctiming['20s-39s'] > 0:
                         mctiming_info['metrics'].append(
                             process_metric_pre65(
@@ -374,8 +402,10 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
                                 count + mctiming['40s-79s'],
                                 cluster,
                                 node,
-                                bucket))
+                                bucket,
+                                tm))
                         count += mctiming['40s-79s']
+                        sum = sum + (timing * float(tm._40s_79s))
                     if count + mctiming['80s-inf'] > 0:
                         mctiming_info['metrics'].append(
                             process_metric_pre65(
@@ -385,8 +415,10 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
                                 count + mctiming['80s-inf'],
                                 cluster,
                                 node,
-                                bucket))
+                                bucket,
+                                tm))
                         count += mctiming['80s-inf']
+                        sum = sum + (timing * float(tm._40s_79s))
                     if count > 0:
                         mctiming_info['metrics'].append(
                             process_metric_pre65(
@@ -396,7 +428,18 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
                                 count,
                                 cluster,
                                 node,
-                                bucket))
+                                bucket,
+                                tm))
+                        mctiming_info['metrics'].append(
+                            process_metric_pre65(
+                                "{}_sum".format(mctiming['command']),
+                                "sum",
+                                0,
+                                sum,
+                                cluster,
+                                node,
+                                bucket,
+                                tm))
         else:
             for bucket in buckets:
                 dirpath = os.getcwd()
