@@ -1,10 +1,11 @@
 from cb_utilities import *
 
-def _get_metrics(user, passwrd, node_list, cluster_name):
+def _get_metrics(user, passwrd, node_list, cluster_name, result_set=60):
     '''gets the metrics for each node'''
     result = {}
     result['metrics'] = []
     auth = basic_authorization(user, passwrd)
+    sample_list = get_sample_list(result_set)
 
     for url in node_list:
 

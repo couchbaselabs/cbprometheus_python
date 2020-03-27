@@ -13,10 +13,11 @@ class view():
                         {"value":"passwrd"},
                         {"value":"cluster_values['serviceNodes']['{}']".format(self.service_identifier)},
                         {"value":"buckets"},
-                        {"value":"cluster_values['clusterName']"}]
+                        {"value":"cluster_values['clusterName']"},
+                        {"value":"result_set"}]
 
 
-def run(url="", user="", passwrd="", nodes=[], buckets=[]):
+def run(url="", user="", passwrd="", nodes=[], buckets=[], result_set=60):
     '''Entry point for getting the metrics for xdcr'''
     url = check_cluster(url, user, passwrd)
     metrics = []
@@ -29,7 +30,8 @@ def run(url="", user="", passwrd="", nodes=[], buckets=[]):
                     user,
                     passwrd,
                     cluster_values['serviceNodes']['kv'],
-                    cluster_values['clusterName'])
+                    cluster_values['clusterName'],
+                    result_set)
         else:
             bucket_metrics = {"buckets": buckets}
 
@@ -37,7 +39,8 @@ def run(url="", user="", passwrd="", nodes=[], buckets=[]):
             user,
             passwrd,
             cluster_values['serviceNodes']['kv'],
-            bucket_metrics['buckets'], cluster_values['clusterName'])
+            bucket_metrics['buckets'], cluster_values['clusterName'],
+            result_set)
 
         metrics = xdcr_metrics['metrics']
 
@@ -58,14 +61,14 @@ def run(url="", user="", passwrd="", nodes=[], buckets=[]):
 
     return metrics
 
-def _get_metrics(user, passwrd, nodes, buckets, cluster_name=""):
+def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
     '''XDCR metrics are gatherd here. First the links are queried, then it gathers
     the metrics for each link'''
     xdcr_metrics = {}
     xdcr_metrics['metrics'] = []
 
     auth = basic_authorization(user, passwrd)
-
+    sample_list = get_sample_list(result_set)
     uri = ""
     try:
         for _uri in nodes:
@@ -249,29 +252,30 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name=""):
                             if key_split[4] != "":
                                 if isinstance(n_json['op']['samples'][entry], type([])):
                                     for idx, datapoint in enumerate(n_json['op']['samples'][entry]):
-                                        xdcr_metrics['metrics'].append(
-                                            "{} {{cluster=\"{}\", remote_cluster_id=\"{}\", "
-                                            "replication_id=\"{}\", "
-                                            "replication=\"{}\", "
-                                            "level=\"node\", "
-                                            "source_bucket=\"{}\", "
-                                            "dest_cluster_name=\"{}\", "
-                                            "dest_cluster_address=\"{}\", "
-                                            "dest_bucket=\"{}\", "
-                                            "type=\"xdcr\", "
-                                            "node=\"{}\"}} {} {}".format(
-                                                snake_caseify(key_split[4]),
-                                                cluster_name,
-                                                key_split[1],
-                                                key_split[1] + "/" + key_split[2] + "/" + key_split[3],
-                                                key_split[2] + " -> " + cluster_definition[key_split[1]]['name'] + " (" + key_split[3] + ")",
-                                                key_split[2],
-                                                cluster_definition[key_split[1]]['name'],
-                                                cluster_definition[key_split[1]]['hostname'],
-                                                key_split[3],
-                                                node,
-                                                datapoint,
-                                                n_json['op']['samples']['timestamp'][idx]))
+                                        if idx in sample_list:
+                                            xdcr_metrics['metrics'].append(
+                                                "{} {{cluster=\"{}\", remote_cluster_id=\"{}\", "
+                                                "replication_id=\"{}\", "
+                                                "replication=\"{}\", "
+                                                "level=\"node\", "
+                                                "source_bucket=\"{}\", "
+                                                "dest_cluster_name=\"{}\", "
+                                                "dest_cluster_address=\"{}\", "
+                                                "dest_bucket=\"{}\", "
+                                                "type=\"xdcr\", "
+                                                "node=\"{}\"}} {} {}".format(
+                                                    snake_caseify(key_split[4]),
+                                                    cluster_name,
+                                                    key_split[1],
+                                                    key_split[1] + "/" + key_split[2] + "/" + key_split[3],
+                                                    key_split[2] + " -> " + cluster_definition[key_split[1]]['name'] + " (" + key_split[3] + ")",
+                                                    key_split[2],
+                                                    cluster_definition[key_split[1]]['name'],
+                                                    cluster_definition[key_split[1]]['hostname'],
+                                                    key_split[3],
+                                                    node,
+                                                    datapoint,
+                                                    n_json['op']['samples']['timestamp'][idx]))
                         elif len(key_split) == 1:
                             for idx, datapoint in enumerate(
                                     n_json['op']['samples'][entry]):

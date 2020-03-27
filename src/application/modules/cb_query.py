@@ -15,10 +15,11 @@ class view():
         self.inputs = [{"value":"user"},
                         {"value":"passwrd"},
                         {"value":"cluster_values['serviceNodes']['{}']".format(self.service_identifier)},
-                        {"value":"cluster_values['clusterName']"}]
+                        {"value":"cluster_values['clusterName']"},
+                        {"value":"result_set"}]
 
 
-def run(url="", user="", passwrd="", nodes=[], slow_queries=True):
+def run(url="", user="", passwrd="", nodes=[], slow_queries=True, result_set=60):
     '''Entry point for getting the metrics for the query nodes'''
     url = check_cluster(url, user, passwrd)
     metrics = []
@@ -31,7 +32,8 @@ def run(url="", user="", passwrd="", nodes=[], slow_queries=True):
                 user,
                 passwrd,
                 cluster_values['serviceNodes']['n1ql'], cluster_values['clusterName'],
-                slow_queries)
+                slow_queries,
+                result_set)
             metrics = query_metrics['metrics']
     else:
         # get the metrics from the query service for each of the n1ql nodes
@@ -39,17 +41,19 @@ def run(url="", user="", passwrd="", nodes=[], slow_queries=True):
             user,
             passwrd,
             nodes, cluster_values['clusterName'],
-            slow_queries)
+            slow_queries,
+            result_set)
         metrics = query_metrics['metrics']
     return metrics
 
-def _get_metrics(user, passwrd, node_list, cluster_name="", slow_queries=True):
+def _get_metrics(user, passwrd, node_list, cluster_name="", slow_queries=True, result_set=60):
     '''Gets the metrics for the query nodes'''
     # first get the system:completed_request entries for the past minute
     query_info = {}
     query_info['metrics'] = []
 
     auth = basic_authorization(user, passwrd)
+    sample_list = get_sample_list(result_set)
     if slow_queries:
         query_info['metrics'] = _get_completed_query_metrics(auth, node_list, cluster_name)
 
@@ -62,14 +66,15 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", slow_queries=True):
             for record in q_json['op']['samples']:
                 if record != "timestamp":
                     for idx, datapoint in enumerate(q_json['op']['samples'][record]):
-                        query_info['metrics'].append(
-                            "{} {{cluster=\"{}\", node=\"{}\", "
-                            "type=\"query\"}} {} {}".format(
-                                record,
-                                cluster_name,
-                                _node,
-                                datapoint,
-                                q_json['op']['samples']['timestamp'][idx]))
+                        if idx in sample_list:
+                            query_info['metrics'].append(
+                                "{} {{cluster=\"{}\", node=\"{}\", "
+                                "type=\"query\"}} {} {}".format(
+                                    record,
+                                    cluster_name,
+                                    _node,
+                                    datapoint,
+                                    q_json['op']['samples']['timestamp'][idx]))
 
         except Exception as e:
             print("query base: " + str(e))

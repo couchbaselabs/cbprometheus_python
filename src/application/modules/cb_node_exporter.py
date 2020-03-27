@@ -12,10 +12,11 @@ class view():
         self.inputs = [{"value":"user"},
                         {"value":"passwrd"},
                         {"value":"cluster_values['nodeList']"},
-                        {"value":"cluster_values['clusterName']"}]
+                        {"value":"cluster_values['clusterName']"},
+                        {"value":"result_set"}]
 
 
-def run(url="", user="", passwrd="", nodes=[]):
+def run(url="", user="", passwrd="", nodes=[], result_set=60):
     '''Entry point for getting the metrics for the analytics nodes'''
     url = check_cluster(url, user, passwrd)
     metrics = []
@@ -44,7 +45,7 @@ def _create_metric(tag, label="", value=""):
     else:
      return "{} {{{}}} {}".format(tag, ",".join(label), value)
 
-def _get_metrics(user, passwrd, node_list, cluster_name=""):
+def _get_metrics(user, passwrd, node_list, cluster_name="", result_set=60):
     '''Node Exporter Metrics'''
     node_metrics = {}
     node_metrics['metrics'] = []

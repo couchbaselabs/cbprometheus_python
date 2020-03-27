@@ -13,6 +13,15 @@ class SeedNodeDown(Error):
    """Raised when all the seed nodes are down"""
    pass
 
+def get_sample_list(num_results):
+    y = 60/int(num_results)
+    int_arry = []
+    for x in range(0,60):
+        if (x) % y == 0:
+            int_arry.append(59-x)
+    return(int_arry)
+
+
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
