@@ -15,7 +15,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name):
             print(e)
             return(result)
 
-        convrt_url = value_to_string(url)
+        convrt_url = url
         for _record in stats:
             record = value_to_string(_record)
             if record == "nodes":
