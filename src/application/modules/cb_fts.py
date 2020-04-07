@@ -13,10 +13,11 @@ class view():
                         {"value":"passwrd"},
                         {"value":"cluster_values['serviceNodes']['{}']".format(self.service_identifier)},
                         {"value":"buckets"},
-                        {"value":"cluster_values['clusterName']"}]
+                        {"value":"cluster_values['clusterName']"},
+                        {"value":"result_set"}]
 
 
-def run(url="", user="", passwrd="", nodes=[], buckets=[]):
+def run(url="", user="", passwrd="", nodes=[], buckets=[], result_set=60):
     '''Entry point for getting the metrics for the fts nodes'''
     url = check_cluster(url, user, passwrd)
     metrics = []
@@ -38,7 +39,8 @@ def run(url="", user="", passwrd="", nodes=[], buckets=[]):
                 user,
                 passwrd,
                 cluster_values['serviceNodes']['fts'],
-                bucket_metrics['buckets'], cluster_values['clusterName'])
+                bucket_metrics['buckets'], cluster_values['clusterName'],
+                result_set)
 
             metrics = fts_metrics['metrics']
     else:
@@ -52,18 +54,19 @@ def run(url="", user="", passwrd="", nodes=[], buckets=[]):
             user,
             passwrd,
             nodes,
-            bucket_metrics['buckets'], cluster_values['clusterName'])
+            bucket_metrics['buckets'], cluster_values['clusterName'],
+            result_set)
 
         metrics = fts_metrics['metrics']
 
     return(metrics)
 
-def _get_metrics(user, passwrd, node_list, bucket_list, cluster_name=""):
+def _get_metrics(user, passwrd, node_list, bucket_list, cluster_name="", result_set=60):
     '''gets metrics for FTS'''
     fts_metrics = {}
     fts_metrics['metrics'] = []
     auth = basic_authorization(user, passwrd)
-
+    sample_list = get_sample_list(result_set)
     for node in node_list:
         for bucket in bucket_list:
             try:
@@ -84,16 +87,17 @@ def _get_metrics(user, passwrd, node_list, bucket_list, cluster_name=""):
                             if isinstance(f_json['op']['samples'][record], type([])):
                                 for idx, datapoint in enumerate(
                                         f_json['op']['samples'][record]):
-                                    fts_metrics['metrics'].append(
-                                        "{} {{cluster=\"{}\", node=\"{}\", "
-                                        "index=\"{}\", "
-                                        "type=\"fts_stat\"}} {} {}".format(
-                                            metric_type,
-                                            cluster_name,
-                                            _node,
-                                            name,
-                                            datapoint,
-                                            f_json['op']['samples']['timestamp'][idx]))
+                                    if idx in sample_list:
+                                        fts_metrics['metrics'].append(
+                                            "{} {{cluster=\"{}\", node=\"{}\", "
+                                            "index=\"{}\", "
+                                            "type=\"fts_stat\"}} {} {}".format(
+                                                metric_type,
+                                                cluster_name,
+                                                _node,
+                                                name,
+                                                datapoint,
+                                                f_json['op']['samples']['timestamp'][idx]))
                             else:
                                 fts_metrics['metrics'].append(
                                     "{} {{cluster=\"{}\", node=\"{}\", "
@@ -108,14 +112,15 @@ def _get_metrics(user, passwrd, node_list, bucket_list, cluster_name=""):
                             metric_type = (split_record[1]).replace("+", "_")
                             if isinstance(f_json['op']['samples'][record], type([])):
                                 for idx, datapoint in enumerate(f_json['op']['samples'][record]):
-                                    fts_metrics['metrics'].append(
-                                        "{} {{cluster=\"{}\", node=\"{}\", "
-                                        "type=\"fts_stat\"}} {} {}".format(
-                                            metric_type,
-                                            cluster_name,
-                                            _node,
-                                            datapoint,
-                                            f_json['op']['samples']['timestamp'][idx]))
+                                    if idx in sample_list:
+                                        fts_metrics['metrics'].append(
+                                            "{} {{cluster=\"{}\", node=\"{}\", "
+                                            "type=\"fts_stat\"}} {} {}".format(
+                                                metric_type,
+                                                cluster_name,
+                                                _node,
+                                                datapoint,
+                                                f_json['op']['samples']['timestamp'][idx]))
 
                             else:
                                 fts_metrics['metrics'].append(

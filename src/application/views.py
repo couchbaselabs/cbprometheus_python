@@ -9,10 +9,14 @@ from modules import *
 @application.route('/metrics', methods=['GET'])
 @application.route('/', methods=['GET', 'POST'])
 def metrics():
+	result_set = 60
+	if application.config['CB_RESULTSET']:
+		result_set = application.config['CB_RESULTSET']
 	_value = main.get_metrics(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'])
+		application.config['CB_PASSWORD'],
+		result_set)
 
 	if application.config['CB_STREAMING']:
 		def generate():
@@ -23,6 +27,7 @@ def metrics():
 		metrics_str = '\n'
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
+
 @application.route('/metrics/analytics', methods=['GET'])
 @application.route('/analytics', methods=['GET'])
 def analytics():
@@ -32,11 +37,15 @@ def analytics():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	result_set = 60
+	if application.config['CB_RESULTSET']:
+		result_set = application.config['CB_RESULTSET']
 	_value = cb_analytics.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
-		nodes_list)
+		nodes_list,
+		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
 			for row in _value:
@@ -46,6 +55,7 @@ def analytics():
 		metrics_str = '\n'
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
+
 
 @application.route('/metrics/buckets', methods=['GET'])
 @application.route('/buckets', methods=['GET'])
@@ -61,12 +71,16 @@ def buckets():
 		buckets_str = request.args.get('buckets')
 		buckets_str = buckets_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		bucket_list = buckets_str.split(',')
+	result_set = 60
+	if application.config['CB_RESULTSET']:
+		result_set = application.config['CB_RESULTSET']
 	_value = cb_bucket.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
 		nodes_list,
-		bucket_list)
+		bucket_list,
+		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
 			for row in _value:
@@ -76,6 +90,7 @@ def buckets():
 		metrics_str = '\n'
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
+
 
 @application.route('/metrics/eventing', methods=['GET'])
 @application.route('/eventing', methods=['GET'])
@@ -86,11 +101,15 @@ def eventing():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	result_set = 60
+	if application.config['CB_RESULTSET']:
+		result_set = application.config['CB_RESULTSET']
 	_value = cb_eventing.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
-		nodes_list)
+		nodes_list,
+		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
 			for row in _value:
@@ -100,15 +119,20 @@ def eventing():
 		metrics_str = '\n'
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
+
 
 @application.route('/metrics/exporter', methods=['GET'])
 @application.route('/exporter', methods=['GET'])
 def exporter():
 	'''This is the method used to access the exporter metrics'''
+	result_set = 60
+	if application.config['CB_RESULTSET']:
+		result_set = application.config['CB_RESULTSET']
 	_value = cb_exporter.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'])
+		application.config['CB_PASSWORD'],
+		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
 			for row in _value:
@@ -119,10 +143,12 @@ def exporter():
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
 
+
 @application.route('/metrics/fts', methods=['GET'])
 @application.route('/fts', methods=['GET'])
 def fts():
 	'''This is the method used to access FTS metrics'''
+
 	nodes_list = []
 	if request.args.get('nodes'):
 		nodes_str = request.args.get('nodes')
@@ -133,12 +159,17 @@ def fts():
 		buckets_str = request.args.get('buckets')
 		buckets_str = buckets_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		bucket_list = buckets_str.split(',')
+	result_set = 60
+	if application.config['CB_RESULTSET']:
+		result_set = application.config['CB_RESULTSET']
+	print("{}, {}".format(application.config['CB_RESULTSET'], result_set))
 	_value = cb_fts.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
 		nodes_list,
-		bucket_list)
+		bucket_list,
+		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
 			for row in _value:
@@ -148,6 +179,7 @@ def fts():
 		metrics_str = '\n'
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
+
 
 @application.route('/metrics/indexes', methods=['GET'])
 @application.route('/indexes', methods=['GET'])
@@ -168,13 +200,17 @@ def indexes():
 		indexes_str = request.args.get('indexes')
 		indexes_str = indexes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		indexes_list = indexes_str.split(',')
+	result_set = 60
+	if application.config['CB_RESULTSET']:
+		result_set = application.config['CB_RESULTSET']
 	_value = cb_index.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
 		nodes_list,
 		bucket_list,
-		indexes_list)
+		indexes_list,
+		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
 			for row in _value:
@@ -185,6 +221,7 @@ def indexes():
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
 
+
 @application.route('/metrics/node_exporter', methods=['GET'])
 @application.route('/node_exporter', methods=['GET'])
 def node_exporter():
@@ -194,11 +231,15 @@ def node_exporter():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	result_set = 60
+	if application.config['CB_RESULTSET']:
+		result_set = application.config['CB_RESULTSET']
 	_value = cb_node_exporter.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
-		nodes_list)
+		nodes_list,
+		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
 			for row in _value:
@@ -208,6 +249,7 @@ def node_exporter():
 		metrics_str = '\n'
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
+
 
 @application.route('/metrics/query', methods=['GET'])
 @application.route('/query', methods=['GET'])
@@ -223,12 +265,16 @@ def query():
 		slow_queries_str = request.args.get('slow_queries')
 		slow_queries_str = slow_queries_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		slow_queries = slow_queries_str.split(',')
+	result_set = 60
+	if application.config['CB_RESULTSET']:
+		result_set = application.config['CB_RESULTSET']
 	_value = cb_query.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
 		nodes_list,
-		slow_queries)
+		slow_queries,
+		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
 			for row in _value:
@@ -239,6 +285,7 @@ def query():
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
 
+
 @application.route('/metrics/system', methods=['GET'])
 @application.route('/system', methods=['GET'])
 def system():
@@ -248,11 +295,15 @@ def system():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	result_set = 60
+	if application.config['CB_RESULTSET']:
+		result_set = application.config['CB_RESULTSET']
 	_value = cb_system.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
-		nodes_list)
+		nodes_list,
+		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
 			for row in _value:
@@ -262,6 +313,7 @@ def system():
 		metrics_str = '\n'
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
+
 
 @application.route('/metrics/xdcr', methods=['GET'])
 @application.route('/xdcr', methods=['GET'])
@@ -277,12 +329,16 @@ def xdcr():
 		buckets_str = request.args.get('buckets')
 		buckets_str = buckets_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		bucket_list = buckets_str.split(',')
+	result_set = 60
+	if application.config['CB_RESULTSET']:
+		result_set = application.config['CB_RESULTSET']
 	_value = cb_xdcr.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
 		nodes_list,
-		bucket_list)
+		bucket_list,
+		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
 			for row in _value:
@@ -292,4 +348,3 @@ def xdcr():
 		metrics_str = '\n'
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
-
