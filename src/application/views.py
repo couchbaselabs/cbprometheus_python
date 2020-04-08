@@ -9,6 +9,9 @@ from modules import *
 @application.route('/metrics', methods=['GET'])
 @application.route('/', methods=['GET', 'POST'])
 def metrics():
+	get_result_set = 60
+	if request.args.get('get_result_set'):
+		get_result_set = int(request.args.get('get_result_set'))
 	result_set = 60
 	if application.config['CB_RESULTSET']:
 		result_set = application.config['CB_RESULTSET']
@@ -16,6 +19,7 @@ def metrics():
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
+		get_result_set,
 		result_set)
 
 	if application.config['CB_STREAMING']:
@@ -46,7 +50,7 @@ def analytics():
 	_value = cb_analytics.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'],
+		application.config['CB_PASSWORD'], 
 		nodes_list,
 		get_result_set,
 		result_set)
@@ -84,7 +88,7 @@ def buckets():
 	_value = cb_bucket.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'],
+		application.config['CB_PASSWORD'], 
 		nodes_list,
 		bucket_list,
 		get_result_set,
@@ -118,7 +122,7 @@ def eventing():
 	_value = cb_eventing.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'],
+		application.config['CB_PASSWORD'], 
 		nodes_list,
 		get_result_set,
 		result_set)
@@ -143,7 +147,7 @@ def exporter():
 	_value = cb_exporter.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'],
+		application.config['CB_PASSWORD'], 
 		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
@@ -179,7 +183,7 @@ def fts():
 	_value = cb_fts.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'],
+		application.config['CB_PASSWORD'], 
 		nodes_list,
 		bucket_list,
 		get_result_set,
@@ -223,7 +227,7 @@ def indexes():
 	_value = cb_index.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'],
+		application.config['CB_PASSWORD'], 
 		nodes_list,
 		bucket_list,
 		indexes_list,
@@ -258,7 +262,7 @@ def node_exporter():
 	_value = cb_node_exporter.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'],
+		application.config['CB_PASSWORD'], 
 		nodes_list,
 		get_result_set,
 		result_set)
@@ -296,7 +300,7 @@ def query():
 	_value = cb_query.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'],
+		application.config['CB_PASSWORD'], 
 		nodes_list,
 		slow_queries,
 		get_result_set,
@@ -330,7 +334,7 @@ def system():
 	_value = cb_system.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'],
+		application.config['CB_PASSWORD'], 
 		nodes_list,
 		get_result_set,
 		result_set)
@@ -368,7 +372,7 @@ def xdcr():
 	_value = cb_xdcr.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'],
+		application.config['CB_PASSWORD'], 
 		nodes_list,
 		bucket_list,
 		get_result_set,
@@ -382,3 +386,5 @@ def xdcr():
 		metrics_str = '\n'
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
+
+
