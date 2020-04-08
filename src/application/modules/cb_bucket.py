@@ -7,7 +7,7 @@ class view():
         self.name = "buckets"
         self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]},
                         {"variable":"buckets","type":"default","name":"bucket_list","value":[]},
-                        {"variable":"result_set","type":"int","name":"get_result_set","value":60}]
+                        {"variable":"result_set","type":"int","name":"num_samples","value":60}]
         self.comment = '''This is the method used to access bucket metrics'''
         self.service_identifier = "kv"
         self.inputs = [{"value":"user"},
@@ -17,13 +17,13 @@ class view():
                         {"value":"result_set"}]
 
 
-def run(url="", user="", passwrd="", buckets=[], nodes=[], get_result_set = 60, result_set=60):
+def run(url="", user="", passwrd="", buckets=[], nodes=[], num_samples = 60, result_set=60):
     '''Entry point for getting the metrics for the kv nodes and buckets'''
     url = check_cluster(url, user, passwrd)
     metrics = []
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
-    if get_result_set != 60:
-        result_set = get_result_set
+    if num_samples != 60:
+        result_set = num_samples
     if len(nodes) == 0:
         if len(cluster_values['serviceNodes']['kv']) > 0:
             bucket_metrics = _get_metrics(

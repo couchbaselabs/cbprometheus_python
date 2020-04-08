@@ -12,11 +12,11 @@ PASSWD = ''
 
 from modules import *
 
-def get_metrics(url='', user='', passwrd='', get_result_set=60, result_set=60):
+def get_metrics(url='', user='', passwrd='', num_samples=60, result_set=60):
 	url = cb_cluster.check_cluster(url, user, passwrd)
 	cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
-	if get_result_set != 60:
-		result_set = get_result_set
+	if num_samples != 60:
+		result_set = num_samples
 	metrics = cluster_values['metrics']
 	index_buckets = cb_bucket._get_index_buckets(url, user, passwrd)
 	buckets = cb_bucket._get_buckets(url, user, passwrd)

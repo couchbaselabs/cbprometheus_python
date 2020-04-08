@@ -6,7 +6,7 @@ class view():
         self.methods = ["GET"]
         self.name = "analytics"
         self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]},
-                        {"variable":"result_set","type":"int","name":"get_result_set","value":60}]
+                        {"variable":"num_samples","type":"int","name":"num_samples","value":60}]
         self.comment = '''This is the method used to access FTS metrics'''
         self.service_identifier = "cbas"
         self.inputs = [{"value":"user"},
@@ -16,13 +16,13 @@ class view():
                         {"value":"result_set"}]
 
 
-def run(url="", user="", passwrd="", nodes=[], get_result_set = 60, result_set=60):
+def run(url="", user="", passwrd="", nodes=[], num_samples = 60, result_set=60):
     '''Entry point for getting the metrics for the analytics nodes'''
     url = check_cluster(url, user, passwrd)
     metrics = []
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
-    if get_result_set != 60:
-        result_set = get_result_set
+    if num_samples != 60:
+        result_set = num_samples
     if len(nodes) == 0:
 
         if len(cluster_values['serviceNodes']['cbas']) > 0:
