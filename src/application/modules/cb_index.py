@@ -7,7 +7,8 @@ class view():
         self.name = "indexes"
         self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]},
                         {"variable":"buckets","type":"default","name":"bucket_list","value":[]},
-                        {"variable":"indexes","type":"default","name":"indexes_list","value":[]}]
+                        {"variable":"indexes","type":"default","name":"indexes_list","value":[]},
+                        {"variable":"result_set","type":"int","name":"num_samples","value":60}]
         self.comment = '''This is the method used to access FTS metrics'''
         self.service_identifier = "index"
         self.inputs = [{"value":"user"},
@@ -18,11 +19,13 @@ class view():
                         {"value":"result_set"}]
 
 
-def run(url="", user="", passwrd="", index=[], buckets=[], nodes=[], result_set=60):
+def run(url="", user="", passwrd="", index=[], buckets=[], nodes=[], num_samples = 60, result_set=60):
     '''Entry point for getting the metrics for the index nodes'''
     url = check_cluster(url, user, passwrd)
     metrics = []
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
+    if num_samples != 60:
+        result_set = num_samples
     if len(buckets) == 0:
         buckets = cb_bucket._get_index_buckets(url, user, passwrd)
 

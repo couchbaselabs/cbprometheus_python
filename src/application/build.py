@@ -12,13 +12,17 @@ def make_views():
     view_str += "@application.route('/metrics', methods=['GET'])\n"
     view_str += "@application.route('/', methods=['GET', 'POST'])\n"
     view_str += "def metrics():\n"
+    view_str += "\tnum_samples = 60\n"
+    view_str += "\tif request.args.get('num_samples'):\n"
+    view_str += "\t\tnum_samples = int(request.args.get('num_samples'))\n"
     view_str += "\tresult_set = 60\n"
     view_str += "\tif application.config['CB_RESULTSET']:\n"
     view_str += "\t\tresult_set = application.config['CB_RESULTSET']\n"
     view_str += "\t_value = main.get_metrics(\n"
     view_str += "\t\tapplication.config['CB_DATABASE'],\n"
     view_str += "\t\tapplication.config['CB_USERNAME'],\n"
-    view_str += "\t\tapplication.config['CB_PASSWORD'], \n"
+    view_str += "\t\tapplication.config['CB_PASSWORD'],\n"
+    view_str += "\t\tnum_samples,\n"
     view_str += "\t\tresult_set)\n\n"
     view_str += "\tif application.config['CB_STREAMING']:\n"
     view_str += "\t\tdef generate():\n"
@@ -51,6 +55,11 @@ def make_views():
                     view_str += "\t{} = {}\n".format(filter['name'], filter['value'])
                     filter_str = "\tif request.args.get('{}'):\n".format(filter['name'])
                     filter_str += "\t\t{} = str2bool(request.args.get('{}'))\n".format(filter['name'], filter['name'])
+                    view_str += filter_str
+                elif filter['type'] == "int":
+                    view_str += "\t{} = {}\n".format(filter['name'], filter['value'])
+                    filter_str = "\tif request.args.get('{}'):\n".format(filter['name'])
+                    filter_str += "\t\t{} = int(request.args.get('{}'))\n".format(filter['name'], filter['name'])
                     view_str += filter_str
             view_str += "\tresult_set = 60\n"
             view_str += "\tif application.config['CB_RESULTSET']:\n"
@@ -94,9 +103,11 @@ def make_main():
     main_str += "from modules import *\n\n"
 
     #These are the minimum requirements for the main method to work
-    main_str += "def get_metrics(url='', user='', passwrd='', result_set=60):\n"
+    main_str += "def get_metrics(url='', user='', passwrd='', num_samples=60, result_set=60):\n"
     main_str += "\turl = cb_cluster.check_cluster(url, user, passwrd)\n"
     main_str += "\tcluster_values = cb_cluster._get_cluster(url, user, passwrd, [])\n"
+    main_str += "\tif num_samples != 60:\n"
+    main_str += "\t\tresult_set = num_samples\n"
     main_str += "\tmetrics = cluster_values['metrics']\n"
     main_str += "\tindex_buckets = cb_bucket._get_index_buckets(url, user, passwrd)\n"
     main_str += "\tbuckets = cb_bucket._get_buckets(url, user, passwrd)\n\n"
