@@ -6,7 +6,8 @@ class view():
     def __init__(self):
         self.methods = ["GET"]
         self.name = "node_exporter"
-        self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]}]
+        self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]},
+                        {"variable":"result_set","type":"int","name":"get_result_set","value":60}]
         self.comment = '''This is the method used to access prometheus provided Node Exporter Metrics'''
         self.service_identifier = False
         self.inputs = [{"value":"user"},
@@ -16,12 +17,13 @@ class view():
                         {"value":"result_set"}]
 
 
-def run(url="", user="", passwrd="", nodes=[], result_set=60):
+def run(url="", user="", passwrd="", nodes=[], get_result_set = 60, result_set=60):
     '''Entry point for getting the metrics for the analytics nodes'''
     url = check_cluster(url, user, passwrd)
     metrics = []
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
-
+    if get_result_set != 60:
+        result_set = get_result_set
     if len(nodes) == 0:
         if len(cluster_values['nodeList']) > 0:
             __metrics = _get_metrics(

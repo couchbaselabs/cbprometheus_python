@@ -37,6 +37,9 @@ def analytics():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	get_result_set = 60
+	if request.args.get('get_result_set'):
+		get_result_set = int(request.args.get('get_result_set'))
 	result_set = 60
 	if application.config['CB_RESULTSET']:
 		result_set = application.config['CB_RESULTSET']
@@ -45,6 +48,7 @@ def analytics():
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
 		nodes_list,
+		get_result_set,
 		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
@@ -71,6 +75,9 @@ def buckets():
 		buckets_str = request.args.get('buckets')
 		buckets_str = buckets_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		bucket_list = buckets_str.split(',')
+	get_result_set = 60
+	if request.args.get('get_result_set'):
+		get_result_set = int(request.args.get('get_result_set'))
 	result_set = 60
 	if application.config['CB_RESULTSET']:
 		result_set = application.config['CB_RESULTSET']
@@ -80,6 +87,7 @@ def buckets():
 		application.config['CB_PASSWORD'],
 		nodes_list,
 		bucket_list,
+		get_result_set,
 		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
@@ -101,6 +109,9 @@ def eventing():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	get_result_set = 60
+	if request.args.get('get_result_set'):
+		get_result_set = int(request.args.get('get_result_set'))
 	result_set = 60
 	if application.config['CB_RESULTSET']:
 		result_set = application.config['CB_RESULTSET']
@@ -109,6 +120,7 @@ def eventing():
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
 		nodes_list,
+		get_result_set,
 		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
@@ -148,7 +160,6 @@ def exporter():
 @application.route('/fts', methods=['GET'])
 def fts():
 	'''This is the method used to access FTS metrics'''
-
 	nodes_list = []
 	if request.args.get('nodes'):
 		nodes_str = request.args.get('nodes')
@@ -159,16 +170,19 @@ def fts():
 		buckets_str = request.args.get('buckets')
 		buckets_str = buckets_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		bucket_list = buckets_str.split(',')
+	get_result_set = 60
+	if request.args.get('get_result_set'):
+		get_result_set = int(request.args.get('get_result_set'))
 	result_set = 60
 	if application.config['CB_RESULTSET']:
 		result_set = application.config['CB_RESULTSET']
-	print("{}, {}".format(application.config['CB_RESULTSET'], result_set))
 	_value = cb_fts.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
 		nodes_list,
 		bucket_list,
+		get_result_set,
 		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
@@ -200,6 +214,9 @@ def indexes():
 		indexes_str = request.args.get('indexes')
 		indexes_str = indexes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		indexes_list = indexes_str.split(',')
+	get_result_set = 60
+	if request.args.get('get_result_set'):
+		get_result_set = int(request.args.get('get_result_set'))
 	result_set = 60
 	if application.config['CB_RESULTSET']:
 		result_set = application.config['CB_RESULTSET']
@@ -210,6 +227,7 @@ def indexes():
 		nodes_list,
 		bucket_list,
 		indexes_list,
+		get_result_set,
 		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
@@ -231,6 +249,9 @@ def node_exporter():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	get_result_set = 60
+	if request.args.get('get_result_set'):
+		get_result_set = int(request.args.get('get_result_set'))
 	result_set = 60
 	if application.config['CB_RESULTSET']:
 		result_set = application.config['CB_RESULTSET']
@@ -239,6 +260,7 @@ def node_exporter():
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
 		nodes_list,
+		get_result_set,
 		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
@@ -265,6 +287,9 @@ def query():
 		slow_queries_str = request.args.get('slow_queries')
 		slow_queries_str = slow_queries_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		slow_queries = slow_queries_str.split(',')
+	get_result_set = 60
+	if request.args.get('get_result_set'):
+		get_result_set = int(request.args.get('get_result_set'))
 	result_set = 60
 	if application.config['CB_RESULTSET']:
 		result_set = application.config['CB_RESULTSET']
@@ -274,6 +299,7 @@ def query():
 		application.config['CB_PASSWORD'],
 		nodes_list,
 		slow_queries,
+		get_result_set,
 		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
@@ -295,6 +321,9 @@ def system():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	get_result_set = 60
+	if request.args.get('get_result_set'):
+		get_result_set = int(request.args.get('get_result_set'))
 	result_set = 60
 	if application.config['CB_RESULTSET']:
 		result_set = application.config['CB_RESULTSET']
@@ -303,6 +332,7 @@ def system():
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
 		nodes_list,
+		get_result_set,
 		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
@@ -329,6 +359,9 @@ def xdcr():
 		buckets_str = request.args.get('buckets')
 		buckets_str = buckets_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		bucket_list = buckets_str.split(',')
+	get_result_set = 60
+	if request.args.get('get_result_set'):
+		get_result_set = int(request.args.get('get_result_set'))
 	result_set = 60
 	if application.config['CB_RESULTSET']:
 		result_set = application.config['CB_RESULTSET']
@@ -338,6 +371,7 @@ def xdcr():
 		application.config['CB_PASSWORD'],
 		nodes_list,
 		bucket_list,
+		get_result_set,
 		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():

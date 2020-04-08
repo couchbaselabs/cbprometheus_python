@@ -52,6 +52,11 @@ def make_views():
                     filter_str = "\tif request.args.get('{}'):\n".format(filter['name'])
                     filter_str += "\t\t{} = str2bool(request.args.get('{}'))\n".format(filter['name'], filter['name'])
                     view_str += filter_str
+                elif filter['type'] == "int":
+                    view_str += "\t{} = {}\n".format(filter['name'], filter['value'])
+                    filter_str = "\tif request.args.get('{}'):\n".format(filter['name'])
+                    filter_str += "\t\t{} = int(request.args.get('{}'))\n".format(filter['name'], filter['name'])
+                    view_str += filter_str
             view_str += "\tresult_set = 60\n"
             view_str += "\tif application.config['CB_RESULTSET']:\n"
             view_str += "\t\tresult_set = application.config['CB_RESULTSET']\n"
