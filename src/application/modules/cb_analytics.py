@@ -5,7 +5,8 @@ class view():
     def __init__(self):
         self.methods = ["GET"]
         self.name = "analytics"
-        self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]}]
+        self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]},
+                        {"variable":"result_set","type":"int","name":"result_set","value":60}]
         self.comment = '''This is the method used to access FTS metrics'''
         self.service_identifier = "cbas"
         self.inputs = [{"value":"user"},
