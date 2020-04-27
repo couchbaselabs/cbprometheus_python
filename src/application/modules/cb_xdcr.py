@@ -1,7 +1,6 @@
 from cb_utilities import *
 import cb_cluster, cb_bucket
 import sys
-import json
 
 class view():
     def __init__(self):
