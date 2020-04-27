@@ -1,5 +1,7 @@
 from cb_utilities import *
 import cb_cluster, cb_bucket
+import sys
+import json
 
 class view():
     def __init__(self):
@@ -25,42 +27,41 @@ def run(url="", user="", passwrd="", nodes=[], buckets=[], num_samples = 60, res
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
     if num_samples != 60:
         result_set = num_samples
-    if len(nodes) == 0:
-        if len(buckets) == 0:
-            if len(cluster_values['serviceNodes']['kv']) > 0:
+    try:
+        if len(nodes) == 0:
+            if len(buckets) == 0:
+                if len(cluster_values['serviceNodes']['kv']) > 0:
+                    bucket_metrics = cb_bucket._get_buckets(
+                        cluster_values['serviceNodes']['kv'][0],
+                        user,
+                        passwrd)
+            else:
+                bucket_metrics = buckets
+            xdcr_metrics = _get_metrics(
+                user,
+                passwrd,
+                cluster_values['serviceNodes']['kv'],
+                bucket_metrics, cluster_values['clusterName'],
+                result_set)
+            metrics = xdcr_metrics['metrics']
+
+        else:
+            if len(buckets) == 0:
                 bucket_metrics = cb_bucket._get_metrics(
-                    user,
-                    passwrd,
-                    cluster_values['serviceNodes']['kv'],
-                    cluster_values['clusterName'],
-                    result_set)
-        else:
-            bucket_metrics = {"buckets": buckets}
+                    user, passwrd, nodes, cluster_values['clusterName'])
+            else:
+                bucket_metrics = {"buckets": buckets}
 
-        xdcr_metrics = _get_metrics(
-            user,
-            passwrd,
-            cluster_values['serviceNodes']['kv'],
-            bucket_metrics['buckets'], cluster_values['clusterName'],
-            result_set)
+            xdcr_metrics = _get_metrics(
+                user,
+                passwrd,
+                nodes,
+                bucket_metrics['buckets'], cluster_values['clusterName'])
 
-        metrics = xdcr_metrics['metrics']
-
-    else:
-        if len(buckets) == 0:
-            bucket_metrics = cb_bucket._get_metrics(
-                user, passwrd, nodes, cluster_values['clusterName'])
-        else:
-            bucket_metrics = {"buckets": buckets}
-
-        xdcr_metrics = _get_metrics(
-            user,
-            passwrd,
-            nodes,
-            bucket_metrics['buckets'], cluster_values['clusterName'])
-
-        metrics = xdcr_metrics['metrics']
-
+            metrics = xdcr_metrics['metrics']
+    except Exception as e:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        print("Error getting xdcr started {}: {} {}, {}".format(nodes, str(e.args), exc_value, exc_traceback.tb_lineno))
     return metrics
 
 def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
@@ -68,7 +69,6 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
     the metrics for each link'''
     xdcr_metrics = {}
     xdcr_metrics['metrics'] = []
-
     auth = basic_authorization(user, passwrd)
     sample_list = get_sample_list(result_set)
     uri = ""
@@ -82,7 +82,8 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                 uri = _uri
                 break
             except Exception as e:
-                print("Error getting xdcr node {}: {}".format(uri, str(e.args)))
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                print("Error getting xdcr node {}: {} {}, {}".format(uri, str(e.args), exc_value, exc_traceback.tb_lineno))
         for entry in _rc_json:
             cluster_definition[entry['uuid']] = {}
             cluster_definition[entry['uuid']]['hostname'] = entry['hostname']
@@ -235,9 +236,11 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                                     dest_bucket,
                                     record[metric]))
         except Exception as e:
-            print("xdcr in: " + str(e))
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            print("xdcr in: {}: {}, {}".format(str(e.args), exc_value, exc_traceback.tb_lineno))
     except Exception as e:
-        print("xcdr out: " + str(e))
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        print("xcdr out: {}, {}, {}".format(str(e), exc_value, exc_traceback.tb_lineno))
 
     for node in nodes:
         for bucket in buckets:
@@ -293,5 +296,6 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                                         datapoint,
                                         n_json['op']['samples']['timestamp'][idx]))
             except Exception as e:
-                print("xdcr: " + str(e) + node + bucket)
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                print("xdcr: {}: {} {} {} {}".format(str(e), exc_value, exc_traceback.tb_lineno, node, bucket))
     return xdcr_metrics
