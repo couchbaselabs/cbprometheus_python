@@ -99,8 +99,8 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                     dest_bucket = record['target'].split("/")[4]
                     remote_cluster_id = record['id'].split("/")[0]
                     replication_id = record['id']
-                    hostname = value_to_string(cluster_definition[remote_cluster_id]['hostname'])
-                    remote_cluster_name = snake_caseify(value_to_string(cluster_definition[remote_cluster_id]['name']))
+                    hostname = cluster_definition[remote_cluster_id]['hostname']
+                    remote_cluster_name = cluster_definition[remote_cluster_id]['name']
                     for metric in record:
                         if metric in ["source",
                                       "target",
