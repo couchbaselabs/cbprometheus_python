@@ -39,6 +39,13 @@ def run(url="", user="", passwrd="", nodes=[], num_samples = 60, result_set=60):
                 cluster_values['nodeList'], cluster_values['clusterName'],
                 result_set)
             metrics = metrics + cluster_metrics['metrics']
+            # get disk metrics
+            disk_metrics = _get_disk_metrics(
+                user,
+                passwrd,
+                cluster_values['nodeList'],
+                cluster_values['clusterName'])
+            metrics = metrics + disk_metrics['metrics']
     else:
         # get node metrics
         node_metrics = cb_nodes._get_metrics(
@@ -54,8 +61,14 @@ def run(url="", user="", passwrd="", nodes=[], num_samples = 60, result_set=60):
             nodes, cluster_values['clusterName'],
             result_set)
         metrics = cluster_metrics['metrics']
+        # get disk metrics
+        disk_metrics = _get_disk_metrics(
+            user,
+            passwrd,
+            cluster_values['nodeList'],
+            cluster_values['clusterName'])
+        metrics = metrics + disk_metrics['metrics']
     return metrics
-
 
 
 def _get_metrics(user, passwrd, node_list, cluster_name="", result_set=60):
@@ -87,3 +100,41 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", result_set=60):
         except Exception as e:
             print("system base: " + str(e))
     return system_info
+
+
+def _get_disk_metrics(user, passwrd, node_list, cluster_name=""):
+    '''Gets the disk stats'''
+    disk_info = {}
+    disk_info['metrics'] = []
+
+    auth = basic_authorization(user, passwrd)
+    for node in node_list:
+        try:
+            _query_url = "http://{}:8091/nodes/self".format(
+                node.split(":")[0])
+            q_json = rest_request(auth, _query_url)
+            _node = node
+            # loop over each of the available storage types
+            for storage_type in q_json['availableStorage']:
+                # loop over each disk
+                for i, disk in enumerate(q_json['availableStorage'][storage_type]):
+                    disk_info['metrics'].append(
+                        "disk_usage_bytes {{cluster=\"{}\", node=\"{}\", "
+                        "storage_type=\"{}\", path=\"{}\", type=\"system\"}} {}".format(
+                            cluster_name,
+                            _node,
+                            storage_type,
+                            disk['path'],
+                            disk['sizeKBytes'] * 1000))
+                    disk_info['metrics'].append(
+                        "disk_usage_percent {{cluster=\"{}\", node=\"{}\", "
+                        "storage_type=\"{}\", path=\"{}\", type=\"system\"}} {}".format(
+                            cluster_name,
+                            _node,
+                            storage_type,
+                            disk['path'],
+                            disk['usagePercent']))
+
+        except Exception as e:
+            print("system disk: " + str(e))
+    return disk_info
