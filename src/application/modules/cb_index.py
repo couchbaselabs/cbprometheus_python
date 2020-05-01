@@ -29,8 +29,11 @@ def run(url="", user="", passwrd="", index=[], buckets=[], nodes=[], num_samples
     if len(buckets) == 0:
         buckets = cb_bucket._get_index_buckets(url, user, passwrd)
 
-    if len(nodes) == 0:
+    # get the index replica stats
+    index_replicas = _get_index_replica_counts(url, user, passwrd, cluster_values['clusterName'])
+    metrics = metrics + index_replicas['metrics']
 
+    if len(nodes) == 0:
         if len(cluster_values['serviceNodes']['index']) > 0 and len(buckets) > 0:
             index_metrics = _get_metrics(
                 user,
@@ -40,7 +43,7 @@ def run(url="", user="", passwrd="", index=[], buckets=[], nodes=[], num_samples
                 cluster_values['clusterName'],
                 result_set)
 
-            metrics = index_metrics['metrics']
+            metrics = metrics + index_metrics['metrics']
     else:
 
         if len(buckets) > 0:
@@ -52,7 +55,7 @@ def run(url="", user="", passwrd="", index=[], buckets=[], nodes=[], num_samples
                 cluster_values['clusterName'],
                 result_set)
 
-            metrics = index_metrics['metrics']
+            metrics = metrics + index_metrics['metrics']
 
     return metrics
 
@@ -164,3 +167,30 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                 print("index: " + str(e))
 
     return index_info
+
+def _get_index_replica_counts(url, user, passwrd, cluster_name=""):
+    '''Get a list of all the indexes and their replica counts'''
+    replica_info = {}
+    replica_info['metrics'] = []
+
+    auth = basic_authorization(user, passwrd)
+
+    try:
+        _url = "http://{}:8091/indexStatus".format(url.split(":")[0])
+        result = rest_request(auth, _url)
+
+        for index in result['indexes']:
+            replica_info['metrics'].append(
+                "index_num_replica {{cluster=\"{}\", node=\"{}\","
+                "index=\"{}\", "
+                "bucket=\"{}\", "
+                "type=\"index\"}} {}".format(
+                    cluster_name,
+                    index['hosts'][0],
+                    index['indexName'],
+                    index['bucket'],
+                    index['numReplica']))
+
+    except Exception as e:
+        print("indexReplicas: " + str(e))
+    return replica_info
