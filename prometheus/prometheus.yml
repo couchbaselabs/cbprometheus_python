@@ -256,3 +256,30 @@ scrape_configs:
         regex: '(.*)'
         replacement: 'fts_$1'
         target_label: __name__
+# This config is used to scrap the metrics/cbstats endpoint of the Couchbase
+# Node exporter. This renames the metrics scraped from the bucket endpoint to
+# prefix them with cbstats_ for easier filtering in Grafana. The example targets
+# also assume multiple exporters running on the same host with different ports.
+# To use docker or seperate hosts, replace the taget with the IP address and the
+# configured port for the exporter.
+  - job_name: couchbase-cbstats
+    honor_labels: true
+    honor_timestamps: true
+    scheme: http
+    scrape_interval: 60s
+    scrape_timeout: 55s
+    metrics_path: /metrics/cbstats
+    static_configs:
+    - targets: ['localhost:5000']
+    - targets: ['localhost:5001']
+    metric_relabel_configs:
+      # if the stat name starts with cbstats_* strip off index_
+      - source_labels: [__name__]
+        regex: 'cbstats_(.*)'
+        replacement: '$1'
+        target_label: __name__
+      # add cbstats_ to the start of every stat
+      - source_labels: [__name__]
+        regex: '(.*)'
+        replacement: 'cbstats_$1'
+        target_label: __name__
