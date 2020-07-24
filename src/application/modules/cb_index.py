@@ -17,6 +17,7 @@ class view():
                         {"value": "index_buckets"},
                         {"value":"cluster_values['clusterName']"},
                         {"value":"result_set"}]
+        self.exclude = False
 
 
 def run(url="", user="", passwrd="", index=[], buckets=[], nodes=[], num_samples = 60, result_set=60):

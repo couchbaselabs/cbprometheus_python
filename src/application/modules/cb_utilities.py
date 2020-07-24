@@ -53,8 +53,8 @@ def str2bool(v):
     return v.lower() in ("yes", "true", "t", "1")
 
 def value_to_string(ip_address):
-    '''converts IP addresses and other values to strings without special characters'''
-    ip_address = ip_address.split(":")[0].replace(".", "_").replace("+", "_")
+    '''converts values to strings without special characters'''
+    ip_address = ip_address.split(":")[0].replace(".", "_").replace("+", "_").replace("+", "_")
     return ip_address
 
 def rest_request(auth, url):
