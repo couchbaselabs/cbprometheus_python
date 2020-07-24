@@ -86,7 +86,8 @@ def _get_metrics(user, passwrd, node_list, cluster_name):
                                                     "configuredHostname",
                                                     "externalListeners",
                                                     "addressFamily",
-                                                    "nodeUUID"
+                                                    "nodeUUID",
+                                                    "otpCookie"
                                                     ]:
                                         pass
                                     elif metric == "interestingStats":
