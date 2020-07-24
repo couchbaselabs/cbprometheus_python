@@ -14,6 +14,7 @@ class BaseConfig(object):
     CB_PASSWORD = os.environ.get("CB_PASSWORD", "password")
     CB_STREAMING = os.environ.get("CB_STREAMING")
     CB_TIMINGS = os.environ.get("CB_TIMINGS")
+    CB_RESULTSET = os.environ.get("CB_RESULTSET")
 
 config = {
     "default": "config.BaseConfig"

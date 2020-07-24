@@ -11,11 +11,12 @@ class view():
         self.inputs = [{"value":"user"},
                         {"value":"passwrd"},
                         {"value":"cluster_values['nodeList']"},
-                        {"value":"cluster_values['clusterName']"}]
+                        {"value":"cluster_values['clusterName']"},
+                        {"value":"result_set"}]
         self.exclude = False
 
 
-def run(url="", user="", passwrd=""):
+def run(url="", user="", passwrd="", result_set=60):
     exporter_metrics = get_metrics()
     metrics = exporter_metrics['metrics']
     return metrics

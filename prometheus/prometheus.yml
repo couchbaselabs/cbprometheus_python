@@ -14,8 +14,11 @@ alerting:
 # evaluation_interval.
 rule_files:
 
-# This endpoint if for monitoring Prometheus itself and not a part of monitoring
-# Couchbase and assumes you have multiple prometheus clusters.
+# This endpoint if for monitoring node_metrics from the Prometheus project's
+# node exporter available at: https://github.com/prometheus/node_exporter
+# This exporter runs as an agent on the Couchbase node itself and provides
+# metrics associated with the underlying node. This is not required but will
+# be helpful in correlating Couchbase behavior with hardware metrics.
 scrape_configs:
   - job_name: prometheus
     honor_labels: true

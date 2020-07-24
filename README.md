@@ -23,6 +23,11 @@ if you are working with very large clusters or clusters with many indexes it may
 export CB_STREAMING=true
 ```
 
+Another way to lower the payload size is to reduce the number of samples per poll. You can do this by saying how many samples you want from the last 1 minute. Valid entries are: 1,2,3,4,5,6,10,12,15,20,30,60. You can enter other values but if they are not valid the system will get as close as possible to your number. 
+```
+export  CB_RESULTSET=1
+```
+
 If you are not using docker to run this it may be beneficial to create and add these variables to the /etc/profile.d/exporter.sh
 ```
 sudo su
