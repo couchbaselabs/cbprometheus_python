@@ -1,6 +1,11 @@
-from cb_utilities import *
 from datetime import datetime
+import sys
 
+if sys.version_info[0] == 3:
+    from .cb_utilities import *
+else:
+    from cb_utilities import *
+    
 class view():
     def __init__(self):
         self.methods = ["GET"]

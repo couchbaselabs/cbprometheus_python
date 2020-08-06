@@ -1,12 +1,16 @@
-try:
-    import urllib.request
-except:
-    import urllib2
 import json
 import re
 from random import shuffle
 from datetime import datetime
 import socket
+import sys
+
+
+if sys.version_info[0] == 3:
+    from urllib.request import *
+    import base64
+else:
+    from urllib2 import *
 
 class Error(Exception):
    """Base class for other exceptions"""
@@ -49,7 +53,12 @@ def snake_caseify(input_str):
 def basic_authorization(user, password):
     '''Doc String'''
     s = user + ":" + password
-    return "Basic " + s.encode("base64").rstrip()
+    if sys.version_info[0] == 3:
+        return_string = "Basic " + base64.b64encode(bytes(s, 'utf-8')).decode('ascii')
+        return return_string
+    else:
+        return_string = "Basic " + s.encode("base64").rstrip()
+        return return_string
 
 def str2bool(v):
     '''Converts string values to boolean'''
@@ -62,7 +71,7 @@ def value_to_string(ip_address):
 
 def rest_request(auth, url):
     _url = url
-    req = urllib2.Request(_url,
+    req = Request(_url,
                           headers={
                               "Authorization": auth,
                               "Content-Type": "application/x-www-form-urlencoded",
@@ -72,13 +81,13 @@ def rest_request(auth, url):
                               "User-Agent": "check_version/1",
                           })
 
-    f = (urllib2.urlopen(req, timeout=1)).read()
+    f = (urlopen(req, timeout=1)).read()
     result = json.loads(f)
     return result
 
 def text_request(url):
     _url = url
-    req = urllib2.Request(_url,
+    req = Request(_url,
                           headers={
                               "Content-Type": "application/x-www-form-urlencoded",
 
@@ -86,7 +95,7 @@ def text_request(url):
                               "Accept": "*/*",  # curl does this
                               "User-Agent": "check_version/1",
                           })
-    f = (urllib2.urlopen(req, timeout=0.1)).readlines()
+    f = (urlopen(req, timeout=0.1)).readlines()
     return(f)
 
 def check_cluster(url, username, pw):
@@ -100,7 +109,8 @@ def check_cluster(url, username, pw):
             url = _url
             active = True
             break
-        except:
+        except Exception as e:
+            print(e)
             pass
     if active == False:
         raise SeedNodeDown

@@ -2,9 +2,16 @@
 
 from flask import Response, make_response, Request, request, session, stream_with_context
 from application import application
-import main
-from modules.cb_utilities import *
-from modules import *
+import sys
+
+if sys.version_info[0] == 3:
+	from .modules.cb_utilities import *
+	from . import main
+	from .modules import *
+else:
+	from modules.cb_utilities import *
+	from modules import *
+	import main
 
 @application.route('/metrics', methods=['GET'])
 @application.route('/', methods=['GET', 'POST'])
@@ -103,10 +110,11 @@ def buckets():
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
 
+
 @application.route('/metrics/cbstats', methods=['GET'])
 @application.route('/cbstats', methods=['GET'])
 def cbstats():
-	'''This is the method used to access cbstats'''
+	'''This is the method used to access cbstat'''
 	bucket_list = []
 	if request.args.get('buckets'):
 		buckets_str = request.args.get('buckets')
@@ -117,12 +125,16 @@ def cbstats():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	result_set = 60
+	if application.config['CB_RESULTSET']:
+		result_set = application.config['CB_RESULTSET']
 	_value = cb_cbstats.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
 		bucket_list,
-		nodes_list)
+		nodes_list,
+		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
 			for row in _value:
@@ -132,6 +144,7 @@ def cbstats():
 		metrics_str = '\n'
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
+
 
 @application.route('/metrics/eventing', methods=['GET'])
 @application.route('/eventing', methods=['GET'])
@@ -272,10 +285,11 @@ def indexes():
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
 
+
 @application.route('/metrics/mctimings', methods=['GET'])
 @application.route('/mctimings', methods=['GET'])
 def mctimings():
-	'''This is the method used to access mctimings'''
+	'''This is the method used to access mctiming'''
 	bucket_list = []
 	if request.args.get('buckets'):
 		buckets_str = request.args.get('buckets')
@@ -286,12 +300,16 @@ def mctimings():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	result_set = 60
+	if application.config['CB_RESULTSET']:
+		result_set = application.config['CB_RESULTSET']
 	_value = cb_mctimings.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
 		bucket_list,
-		nodes_list)
+		nodes_list,
+		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
 			for row in _value:
@@ -301,6 +319,7 @@ def mctimings():
 		metrics_str = '\n'
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
+
 
 @application.route('/metrics/node_exporter', methods=['GET'])
 @application.route('/node_exporter', methods=['GET'])

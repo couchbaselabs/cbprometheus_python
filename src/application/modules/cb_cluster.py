@@ -1,4 +1,9 @@
-from cb_utilities import *
+import sys
+
+if sys.version_info[0] == 3:
+    from .cb_utilities import *
+else:
+    from cb_utilities import *
 
 # class view():
 #     def __init__(self):
