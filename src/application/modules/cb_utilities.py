@@ -1,4 +1,7 @@
-import urllib2
+try:
+    import urllib.request
+except:
+    import urllib2
 import json
 import re
 from random import shuffle

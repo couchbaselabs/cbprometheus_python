@@ -1,8 +1,15 @@
-from cb_utilities import *
-import cb_cluster
-import urllib
 import re
 import hashlib
+import sys
+
+if sys.version_info[0] == 3:
+    from .cb_utilities import *
+    from . import cb_cluster
+    import urllib.request
+else:
+    from cb_utilities import *
+    import cb_cluster
+    import urllib
 
 class view():
     def __init__(self):

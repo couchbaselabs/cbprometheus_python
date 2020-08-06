@@ -1,11 +1,18 @@
+import sys
 import re
 import json
 import subprocess
-import timing_matrix
-from cb_utilities import *
-from datetime import datetime
-import cb_cluster
 import os
+from datetime import datetime
+
+if sys.version_info[0] == 3:
+    from .cb_utilities import *
+    from . import cb_cluster
+    from . import timing_matrix
+else:
+    from cb_utilities import *
+    import cb_cluster
+    import timing_matrix
 
 class view():
     def __init__(self):
