@@ -15,6 +15,8 @@ class BaseConfig(object):
     CB_STREAMING = os.environ.get("CB_STREAMING")
     CB_TIMINGS = os.environ.get("CB_TIMINGS")
     CB_RESULTSET = os.environ.get("CB_RESULTSET")
+    CB_CBSTAT_PATH = os.environ.get("CB_CBSTAT_PATH")
+    CB_MCTIMING_PATH = os.environ.get("CB_MCTIMING_PATH")
 
 config = {
     "default": "config.BaseConfig"

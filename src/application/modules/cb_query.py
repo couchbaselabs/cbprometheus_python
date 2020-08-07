@@ -6,10 +6,12 @@ if sys.version_info[0] == 3:
     from .cb_utilities import *
     from . import cb_cluster
     import urllib.request
+    from urllib.parse import urlencode
 else:
     from cb_utilities import *
     import cb_cluster
     import urllib
+    from urllib import urlencode
 
 class view():
     def __init__(self):
@@ -123,7 +125,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
 
     # strip new lines and convert two or more spaces to a single space
     # and then url encode the statement
-    n1ql_stmt = urllib.urlencode({ "statement": re.sub(" +", " ", n1ql_stmt.strip("\r\n")) })
+    n1ql_stmt = urlencode({ "statement": re.sub(" +", " ", n1ql_stmt.strip("\r\n")) })
 
     for node in node_list:
         try:

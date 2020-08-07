@@ -133,8 +133,7 @@ def cbstats():
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
 		bucket_list,
-		nodes_list,
-		result_set)
+		nodes_list)
 	if application.config['CB_STREAMING']:
 		def generate():
 			for row in _value:

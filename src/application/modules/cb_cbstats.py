@@ -7,9 +7,11 @@ import sys
 if sys.version_info[0] == 3:
     from .cb_utilities import *
     from . import cb_cluster, cb_bucket, timing_matrix
+    from .remote_control import SSH_controller
 else:
     from cb_utilities import *
     import cb_cluster, cb_bucket, timing_matrix
+    from remote_control import SSH_controller
 
 class view():
     def __init__(self):
@@ -17,7 +19,7 @@ class view():
         self.name = "cbstats"
         self.filters = [{"variable":"buckets","type":"default","name":"bucket_list","value":[]},
                         {"variable":"nodes","type":"default","name":"nodes_list","value":[]}]
-        self.comment = '''This is the method used to access cbstat'''
+        self.comment = '''This is the method used to access cbstats'''
         self.service_identifier = "kv"
         self.inputs = [{"value":"user"},
                         {"value":"passwrd"},
@@ -68,52 +70,39 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
     cbstat_info['buckets'] = []
     cbstat_info['metrics'] = []
 
-    # determine executable path to cbstats
-    dirpath = os.getcwd()
-    _path = dirpath.split("/")
-    backup = "../" * (_path[::-1].index("src")+0)
-    # default to cbstats with the project
-    exec_path='{}application/resources/cbstats'.format(backup)
-    # check to see if cbstats exists
-    if (os.path.isfile("/opt/couchbase/bin/cbstats")):
-        exec_path = '/opt/couchbase/bin/cbstats'
-    elif (os.path.isfile('/Applications/Couchbase Server.app/Contents/Resources/couchbase-core/bin/cbstats')):
-        exec_path = '/Applications/Couchbase Server.app/Contents/Resources/couchbase-core/bin/cbstats'
+    #need to figure out how to get these
+    ssh_username = "vagrant"
+    key = "~/.ssh/tdenton"
+
+    ssh_controller = SSH_controller("cbstats", key, ssh_username, user, passwrd)
+
+
     for node in nodes:
         for bucket in buckets:
-            proc = subprocess.Popen([exec_path,
-                                    '{}:11210'.format(node),
-                                    '-u', user,
-                                    '-p', passwrd,
-                                    '-b', bucket,
-                                    '-j',
-                                    'all'], stdout=subprocess.PIPE,
-                                           stderr=subprocess.PIPE,
-                                           stdin=subprocess.PIPE)
-            stdout, stderr = proc.communicate()
-            if len(stderr) > 0:
-                print("Error: {}".format(stderr))
-            result = json.loads(stdout)
-            for record in result:
-                # only output results that are a number
-                if isinstance(result[record], (int, float)) == True:
-                    cbstat_info['metrics'].append(
-                        "{} {{cluster=\"{}\", node=\"{}\", bucket=\"{}\", "
-                        "type=\"cbstats\"}} {}".format(
-                            value_to_string(record),
-                            cluster,
-                            node,
-                            bucket,
-                            result[record]))
-                elif str(result[record]).lower() == "true" or str(result[record]).lower() == "false":
-                    cbstat_info['metrics'].append(
-                        "{} {{cluster=\"{}\", node=\"{}\", bucket=\"{}\", "
-                        "type=\"cbstats\"}} {}".format(
-                            value_to_string(record),
-                            cluster,
-                            node,
-                            bucket,
-                            int(str2bool(str(result[record])))))
+            try:
+                result = ssh_controller.get_connection(node, bucket, "/opt/couchbase/bin/cbstats")
+                for record in result:
+                    # only output results that are a number
+                    if isinstance(result[record], (int, float)) == True:
+                        cbstat_info['metrics'].append(
+                            "{} {{cluster=\"{}\", node=\"{}\", bucket=\"{}\", "
+                            "type=\"cbstats\"}} {}".format(
+                                value_to_string(record),
+                                cluster,
+                                node,
+                                bucket,
+                                result[record]))
+                    elif str(result[record]).lower() == "true" or str(result[record]).lower() == "false":
+                        cbstat_info['metrics'].append(
+                            "{} {{cluster=\"{}\", node=\"{}\", bucket=\"{}\", "
+                            "type=\"cbstats\"}} {}".format(
+                                value_to_string(record),
+                                cluster,
+                                node,
+                                bucket,
+                                int(str2bool(str(result[record])))))
+            except Exception as e:
+                print(e)
     return(cbstat_info)
 
 
