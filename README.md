@@ -23,9 +23,17 @@ if you are working with very large clusters or clusters with many indexes it may
 export CB_STREAMING=true
 ```
 
-Another way to lower the payload size is to reduce the number of samples per poll. You can do this by saying how many samples you want from the last 1 minute. Valid entries are: 1,2,3,4,5,6,10,12,15,20,30,60. You can enter other values but if they are not valid the system will get as close as possible to your number. 
+Another way to lower the payload size is to reduce the number of samples per poll. You can do this by saying how many samples you want from the last 1 minute. Valid entries are: 1,2,3,4,5,6,10,12,15,20,30,60. You can enter other values but if they are not valid the system will get as close as possible to your number.
 ```
 export  CB_RESULTSET=1
+```
+
+If you would like to run cbstats from the exporter to load into prometheus and grafana you need to set up passwordless ssh using an ssh key. Once the public key is loaded on each of the couchbase nodes and the private key loaded on the exporter you can then configure the exporter to use the key. The user will need to have access to run cbstats in whatever directory you have installed it. By default that will be /opt/couchbase/bin/cbstats
+
+```
+export CB_KEY=/path/to/private/key
+export CB_CBSTAT_PATH = /opt/couchbase/bin/cbstats
+export CB_SSH_UN = username associated with key
 ```
 
 If you are not using docker to run this it may be beneficial to create and add these variables to the /etc/profile.d/exporter.sh
@@ -35,6 +43,9 @@ sudo su
     echo 'export CB_DATABASE="<>,<>"'
     echo 'export CB_USERNAME="<>"'
     echo 'export CB_PASSWORD="<>"'
+    echo 'export CB_KEY=/path/to/private/key'
+    echo 'export CB_CBSTAT_PATH = /opt/couchbase/bin/cbstats'
+    echo 'export CB_SSH_UN = username associated with key'
 } > /etc/profile.d/exporter.sh
 sudo chmod +x /etc/profile.d/exporter.sh
 source /etc/profile.d/exporter.sh
