@@ -6,12 +6,12 @@ import sys
 
 if sys.version_info[0] == 3:
 	from .modules.cb_utilities import *
-	from . import main
 	from .modules import *
+	from . import main
 else:
+	import main
 	from modules.cb_utilities import *
 	from modules import *
-	import main
 
 @application.route('/metrics', methods=['GET'])
 @application.route('/', methods=['GET', 'POST'])
@@ -114,7 +114,7 @@ def buckets():
 @application.route('/metrics/cbstats', methods=['GET'])
 @application.route('/cbstats', methods=['GET'])
 def cbstats():
-	'''This is the method used to access cbstat'''
+	'''This is the method used to access cbstats'''
 	bucket_list = []
 	if request.args.get('buckets'):
 		buckets_str = request.args.get('buckets')
@@ -133,7 +133,11 @@ def cbstats():
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
 		bucket_list,
-		nodes_list)
+		nodes_list,
+		application.config['CB_KEY'],
+		application.config['CB_CBSTAT_PATH'],
+		application.config['CB_SSH_UN'],
+		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
 			for row in _value:

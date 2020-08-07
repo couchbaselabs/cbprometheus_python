@@ -16,7 +16,6 @@ if sys.version_info[0] == 3:
 else:
     from modules import *
 
-
 def get_metrics(url='', user='', passwrd='', num_samples=60, result_set=60):
 	url = cb_cluster.check_cluster(url, user, passwrd)
 	cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
