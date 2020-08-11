@@ -20,7 +20,7 @@ class view():
         self.filters = [{"variable":"buckets","type":"default","name":"bucket_list","value":[]},
                         {"variable":"nodes","type":"default","name":"nodes_list","value":[]},
                         {"variable":"key", "type":"configuration","name":"application.config['CB_KEY']", "value":""},
-                        {"variable":"cb_stat_path", "type":"configuration","name":"application.config['CB_CBSTAT_PATH']", "value":""},
+                        {"variable":"mctiming_path", "type":"configuration","name":"application.config['CB_MCTIMING_PATH']", "value":""},
                         {"variable":"ssh_user", "type":"configuration","name":"application.config['CB_SSH_UN']", "value":""},
                         {"variable":"ssh_host", "type":"configuration","name":"application.config['CB_SSH_HOST']", "value":""}]
         self.comment = '''This is the method used to access cbstats'''

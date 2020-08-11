@@ -53,7 +53,39 @@ class SSH_controller():
                     self.result = json.loads("".join([i.encode("utf-8") for i in self.result]))
 
             return self.result
+        if self.service == "mctimings":
+            self.command = " ".join([self.path,
+                        '-h', '{}:11210'.format(self.node),
+                        '-u', self.cb_username,
+                        '-P', self.cb_pw,
+                        '-b', bucket,
+                        '-j'])
+
+            if self.ssh_host is None:
+                self.ssh_host = self.node
+            self.ssh = subprocess.Popen(["ssh", "-i", self.key, "-o", "StrictHostKeyChecking=no",
+                                            "-o", "PasswordAuthentication=no",
+                                            "{}@{}".format(self.username,
+                                                            self.ssh_host),
+                                            self.command],
+                                        shell=False,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
+            self.result = self.ssh.stdout.readlines()
+            self.error = self.ssh.stderr.readlines()
+            if self.result == []:
+                print("{} had an error: {}".format(self.node, self.error))
+                return ""
+            else:
+                try:
+                    # python 3
+                    self.result = "".join([str(i, 'utf-8') for i in self.result])
+                except:
+                    # python 2
+                    self.result = "".join([i.encode("utf-8") for i in self.result])
+
+                return self.result
 
 if __name__ == '__main__':
-    jim = ssh_controller("cbstats", "~/.ssh/tdenton", "vagrant", "Administrator", "password")
-    print(jim.get_connection("10.112.194.101", "IdentityStore", "/opt/couchbase/bin/cbstats"))
+    jim = SSH_controller("mctimings", "~/.ssh/tdenton", "vagrant", "Administrator", "password")
+    print(jim.get_connection("10.112.194.101", "IdentityStore", "/opt/couchbase/bin/mctimings"))

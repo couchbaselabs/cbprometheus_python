@@ -134,7 +134,7 @@ def cbstats():
 		bucket_list,
 		nodes_list,
 		application.config['CB_KEY'],
-		application.config['CB_CBSTAT_PATH'],
+		application.config['CB_MCTIMING_PATH'],
 		application.config['CB_SSH_UN'],
 		application.config['CB_SSH_HOST'],
 		result_set)
@@ -312,6 +312,10 @@ def mctimings():
 		application.config['CB_PASSWORD'], 
 		bucket_list,
 		nodes_list,
+		application.config['CB_KEY'],
+		application.config['CB_MCTIMING_PATH'],
+		application.config['CB_SSH_UN'],
+		application.config['CB_SSH_HOST'],
 		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
