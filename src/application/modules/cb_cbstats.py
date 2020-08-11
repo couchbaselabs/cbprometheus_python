@@ -21,7 +21,8 @@ class view():
                         {"variable":"nodes","type":"default","name":"nodes_list","value":[]},
                         {"variable":"key", "type":"configuration","name":"application.config['CB_KEY']", "value":""},
                         {"variable":"cb_stat_path", "type":"configuration","name":"application.config['CB_CBSTAT_PATH']", "value":""},
-                        {"variable":"ssh_user", "type":"configuration","name":"application.config['CB_SSH_UN']", "value":""}]
+                        {"variable":"ssh_user", "type":"configuration","name":"application.config['CB_SSH_UN']", "value":""},
+                        {"variable":"ssh_host", "type":"configuration","name":"application.config['CB_SSH_HOST']", "value":""}]
         self.comment = '''This is the method used to access cbstats'''
         self.service_identifier = "kv"
         self.inputs = [{"value":"user"},
@@ -42,11 +43,8 @@ def get_buckets(url, user, passwrd):
     return(buckets)
 
 def run(url="", user="", passwrd="", buckets=[], nodes=[], key = "",
-            cbstat_path = "", ssh_un = "", result_set=60):
+            cbstat_path = "", ssh_un = "", ssh_host = "", result_set=60):
     '''Entry point for getting the cbstats'''
-    print("key: " + key)
-    print("cbstat_path: " + cbstat_path)
-    print("ssh_un: " + ssh_un)
 
     url = check_cluster(url, user, passwrd)
     metrics = []
@@ -67,7 +65,8 @@ def run(url="", user="", passwrd="", buckets=[], nodes=[], key = "",
                 node_list,
                 ssh_un,
                 key,
-                cbstat_path)
+                cbstat_path,
+                ssh_host)
             metrics = filter(None, cbstats_metrics['metrics'])
     else:
         cbstats_metrics = _get_metrics(user,
@@ -77,22 +76,27 @@ def run(url="", user="", passwrd="", buckets=[], nodes=[], key = "",
                                         nodes,
                                         ssh_un,
                                         key,
-                                        cbstat_path)
+                                        cbstat_path,
+                                        ssh_host)
         metrics = filter(None, cbstats_metrics['metrics'])
     return metrics
 
-def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = [], ssh_username="", key="", cbstat_path=""):
+def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = [],
+                    ssh_username="", key="", cbstat_path="",
+                    ssh_host=""):
     cbstat_info = {}
     cbstat_info['buckets'] = []
     cbstat_info['metrics'] = []
 
+    if cbstat_path is None:
+        cbstat_path = "/opt/couchbase/bin/cbstats"
     ssh_controller = SSH_controller("cbstats", key, ssh_username, user, passwrd)
 
 
     for node in nodes:
         for bucket in buckets:
             try:
-                result = ssh_controller.get_connection(node, bucket, cbstat_path)
+                result = ssh_controller.get_connection(node, bucket, cbstat_path, ssh_host)
                 for record in result:
                     # only output results that are a number
                     if isinstance(result[record], (int, float)) == True:

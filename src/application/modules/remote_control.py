@@ -14,11 +14,13 @@ class SSH_controller():
         self.cb_pw = cb_pw
         self.ssh = None
         self.command = None
+        self.ssh_host = None
 
-    def get_connection(self, node = None, bucket = None, path=None):
+    def get_connection(self, node = None, bucket = None, path=None, ssh_host=None):
         self.node = node
         self.bucket = bucket
         self.path = path
+        self.ssh_host = ssh_host
 
         if self.service == "cbstats":
             self.command = " ".join([self.path,
@@ -28,10 +30,12 @@ class SSH_controller():
                         '-b', bucket,
                         '-j',
                         'all'])
+            if self.ssh_host is None:
+                self.ssh_host = self.node
             self.ssh = subprocess.Popen(["ssh", "-i", self.key, "-o", "StrictHostKeyChecking=no",
                                             "-o", "PasswordAuthentication=no",
                                             "{}@{}".format(self.username,
-                                                            self.node),
+                                                            self.ssh_host),
                                             self.command],
                                         shell=False,
                                         stdout=subprocess.PIPE,

@@ -9,10 +9,12 @@ if sys.version_info[0] == 3:
     from .cb_utilities import *
     from . import cb_cluster
     from . import timing_matrix
+    from .remote_control import SSH_controller
 else:
     from cb_utilities import *
     import cb_cluster
     import timing_matrix
+    from remote_control import SSH_controller
 
 class view():
     def __init__(self):
