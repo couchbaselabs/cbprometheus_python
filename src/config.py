@@ -17,7 +17,7 @@ class BaseConfig(object):
     CB_CBSTAT_PATH = os.environ.get("CB_CBSTAT_PATH")
     CB_MCTIMING_PATH = os.environ.get("CB_MCTIMING_PATH")
     CB_KEY = os.environ.get("CB_KEY")
-    CB_SSH_UN = os.environ.get("CB_SSH_UN")
+    CB_SSH_UN = os.environ.get("CB_SSH_USER")
     CB_SSH_HOST = os.environ.get("CB_SSH_HOST")
 
 config = {
