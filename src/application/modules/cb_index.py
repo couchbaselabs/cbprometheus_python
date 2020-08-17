@@ -1,5 +1,11 @@
-from cb_utilities import *
-import cb_cluster, cb_bucket
+import sys
+
+if sys.version_info[0] == 3:
+    from .cb_utilities import *
+    from . import cb_cluster, cb_bucket
+else:
+    from cb_utilities import *
+    import cb_cluster, cb_bucket
 
 class view():
     def __init__(self):
@@ -180,18 +186,26 @@ def _get_index_replica_counts(url, user, passwrd, cluster_name=""):
         _url = "http://{}:8091/indexStatus".format(url.split(":")[0])
         result = rest_request(auth, _url)
 
-        for index in result['indexes']:
-            replica_info['metrics'].append(
-                "index_num_replica {{cluster=\"{}\", node=\"{}\","
-                "index=\"{}\", "
-                "bucket=\"{}\", "
-                "type=\"index\"}} {}".format(
-                    cluster_name,
-                    index['hosts'][0],
-                    index['indexName'],
-                    index['bucket'],
-                    index['numReplica']))
+        for _index in result['indexes']:
+            try:
+                num_replica = 0
+                try:
+                    num_replica = _index['numReplica']
+                except:
+                    pass
+                replica_info['metrics'].append(
+                    "index_num_replica {{cluster=\"{}\", node=\"{}\","
+                    "index=\"{}\", "
+                    "bucket=\"{}\", "
+                    "type=\"index\"}} {}".format(
+                        cluster_name,
+                        _index['hosts'][0],
+                        _index['index'],
+                        _index['bucket'],
+                        num_replica))
+            except Exception as e:
+                print("error: {}, {}".format(_index, str(e)))
 
     except Exception as e:
-        print("indexReplicas: " + str(e))
+        print("indexReplicas: {}".format(str(e)))
     return replica_info

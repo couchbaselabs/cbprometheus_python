@@ -1,5 +1,11 @@
-from cb_utilities import *
-import cb_cluster, cb_nodes
+import sys
+
+if sys.version_info[0] == 3:
+    from .cb_utilities import *
+    from . import cb_cluster, cb_nodes
+else:
+    from cb_utilities import *
+    import cb_cluster, cb_nodes
 
 class view():
     def __init__(self):

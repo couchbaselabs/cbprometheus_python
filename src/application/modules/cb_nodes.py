@@ -1,4 +1,9 @@
-from cb_utilities import *
+import sys
+
+if sys.version_info[0] == 3:
+    from .cb_utilities import *
+else:
+    from cb_utilities import *
 
 def _get_metrics(user, passwrd, node_list, cluster_name, result_set=60):
     '''gets the metrics for each node'''

@@ -1,18 +1,31 @@
+import sys
 import re
 import json
 import subprocess
-import timing_matrix
-from cb_utilities import *
-from datetime import datetime
-import cb_cluster
 import os
+from datetime import datetime
+
+if sys.version_info[0] == 3:
+    from .cb_utilities import *
+    from . import cb_cluster
+    from . import timing_matrix
+    from .remote_control import SSH_controller
+else:
+    from cb_utilities import *
+    import cb_cluster
+    import timing_matrix
+    from remote_control import SSH_controller
 
 class view():
     def __init__(self):
         self.methods = ["GET"]
         self.name = "mctimings"
         self.filters = [{"variable":"buckets","type":"default","name":"bucket_list","value":[]},
-                        {"variable":"nodes","type":"default","name":"nodes_list","value":[]}]
+                        {"variable":"nodes","type":"default","name":"nodes_list","value":[]},
+                        {"variable":"key", "type":"configuration","name":"application.config['CB_KEY']", "value":""},
+                        {"variable":"cb_stat_path", "type":"configuration","name":"application.config['CB_MCTIMING_PATH']", "value":""},
+                        {"variable":"ssh_user", "type":"configuration","name":"application.config['CB_SSH_UN']", "value":""},
+                        {"variable":"ssh_host", "type":"configuration","name":"application.config['CB_SSH_HOST']", "value":""}]
         self.comment = '''This is the method used to access mctiming'''
         self.service_identifier = "kv"
         self.inputs = [{"value":"user"},
@@ -32,7 +45,8 @@ def get_buckets(url, user, passwrd):
     buckets.sort()
     return(buckets)
 
-def run(url="", user="", passwrd="", buckets=[], nodes=[], cluster=""):
+def run(url="", user="", passwrd="", buckets=[], nodes=[], key = "",
+            mctiming_path = "", ssh_un = "", ssh_host = "", result_set=60):
     '''Entry point for getting the mctimings'''
     url = check_cluster(url, user, passwrd)
     metrics = []
@@ -42,8 +56,7 @@ def run(url="", user="", passwrd="", buckets=[], nodes=[], cluster=""):
         buckets = get_buckets(url, user, passwrd)
     for _node in cluster_values['serviceNodes']['kv']:
         node_list.append(_node.split(":")[0])
-    if cluster == "":
-        cluster = cluster_values['clusterName']
+    cluster = cluster_values['clusterName']
     if len(nodes) == 0:
         if len(cluster_values['serviceNodes']['kv']) > 0:
             mctiming_metrics = _get_metrics(
@@ -51,11 +64,22 @@ def run(url="", user="", passwrd="", buckets=[], nodes=[], cluster=""):
                 passwrd,
                 cluster_values['clusterName'],
                 buckets,
-                node_list)
+                node_list,
+                key,
+                mctiming_path,
+                ssh_un,
+                ssh_host)
             metrics = filter(None, mctiming_metrics['metrics'])
     else:
-        mctiming_metrics = _get_metrics(
-            user, passwrd, cluster_values['clusterName'], buckets, nodes)
+        mctiming_metrics = _get_metrics(user,
+                                        passwrd,
+                                        cluster_values['clusterName'],
+                                        buckets,
+                                        nodes,
+                                        key,
+                                        mctiming_path,
+                                        ssh_un,
+                                        ssh_host)
         metrics = filter(None, mctiming_metrics['metrics'])
     return metrics
 
@@ -261,7 +285,8 @@ def get_version(url="", user="", passwrd=""):
     version = float("{}.{}".format(f_json['implementationVersion'].split(".")[0], f_json['implementationVersion'].split(".")[1]))
     return(version)
 
-def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
+def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = [], key = "",
+            mctiming_path = None, ssh_un = "", ssh_host = ""):
     mctiming_info = {}
     mctiming_info['buckets'] = []
     mctiming_info['metrics'] = []
@@ -271,175 +296,169 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
 
         if version < 6.5:
             tm = timing_matrix.timing_matrix()
-            for bucket in buckets:
-                dirpath = os.getcwd()
-                _path = dirpath.split("/")
-                backup = "../" * (_path[::-1].index("src")+0)
-                proc = subprocess.Popen(['{}application/resources/mctimings'.format(backup),
-                                        '-h', '{}:11210'.format(node),
-                                        '-u', user,
-                                        '-P', passwrd,
-                                        '-b', bucket,
-                                        '-j'], stdout=subprocess.PIPE,
-                                               stderr=subprocess.PIPE,
-                                               stdin=subprocess.PIPE)
 
-                stdout, stderr = proc.communicate()
-                if len(stderr) > 0:
-                    print("Error: {}".format(stderr))
-                new_stdout = re.sub('\s+', " ", stdout)
-                arr_stdout = new_stdout.split("} {")
-                arr_mctimings = []
-                for x in arr_stdout:
-                    new_str = x.strip()
-                    if new_str[0:1] != "{":
-                        new_str = "{" + new_str
-                    if new_str[-1:] != "}":
-                        new_str = new_str + "}"
-                    arr_mctimings.append(json.loads(new_str))
-                for mctiming in arr_mctimings:
-                    count = 0
-                    sum = 0
-                    if mctiming['ns'] > 0:
-                        mctiming_info['metrics'].append(
-                            process_metric_pre65(
-                                "{}_bucket".format(mctiming['command']),
-                                "ns",
-                                0,
-                                mctiming['ns'],
-                                cluster,
-                                node,
-                                bucket,
-                                tm))
-                        count += mctiming['ns']
-                        sum = sum + (mctiming['ns'] * float(tm.ns))
-                    for x, timing in enumerate(mctiming["us"]):
-                        if timing > 0:
+            if mctiming_path is None:
+                mctiming_path = "/opt/couchbase/bin/mctimings"
+
+            ssh_controller = SSH_controller("mctimings", key, ssh_un, user, passwrd)
+
+            for bucket in buckets:
+                result = ssh_controller.get_connection(node, bucket, mctiming_path, ssh_host)
+                if result != "":
+
+                    new_result = re.sub('\s+', " ", result)
+                    arr_result = new_result.split("} {")
+                    arr_mctimings = []
+                    for x in arr_result:
+                        new_str = x.strip()
+                        if new_str[0:1] != "{":
+                            new_str = "{" + new_str
+                        if new_str[-1:] != "}":
+                            new_str = new_str + "}"
+                        arr_mctimings.append(json.loads(new_str))
+                    for mctiming in arr_mctimings:
+                        count = 0
+                        sum = 0
+                        if mctiming['ns'] > 0:
                             mctiming_info['metrics'].append(
                                 process_metric_pre65(
                                     "{}_bucket".format(mctiming['command']),
-                                    "us",
-                                    x,
-                                    timing + count,
+                                    "ns",
+                                    0,
+                                    mctiming['ns'],
                                     cluster,
                                     node,
                                     bucket,
                                     tm))
-                            count += timing
-                            sum = sum + (timing * float(tm.us[str(x)]))
-                    for x, timing in enumerate(mctiming["ms"]):
-                        if timing > 0:
+                            count += mctiming['ns']
+                            sum = sum + (mctiming['ns'] * float(tm.ns))
+                        for x, timing in enumerate(mctiming["us"]):
+                            if timing > 0:
+                                mctiming_info['metrics'].append(
+                                    process_metric_pre65(
+                                        "{}_bucket".format(mctiming['command']),
+                                        "us",
+                                        x,
+                                        timing + count,
+                                        cluster,
+                                        node,
+                                        bucket,
+                                        tm))
+                                count += timing
+                                sum = sum + (timing * float(tm.us[str(x)]))
+                        for x, timing in enumerate(mctiming["ms"]):
+                            if timing > 0:
+                                mctiming_info['metrics'].append(
+                                    process_metric_pre65(
+                                        "{}_bucket".format(mctiming['command']),
+                                        "ms",
+                                        x,
+                                        timing + count,
+                                        cluster,
+                                        node,
+                                        bucket,
+                                        tm))
+                                count += timing
+                                sum = sum + (timing * float(tm.ms[str(x)]))
+                        for x, timing in enumerate(mctiming["500ms"]):
+                            if timing > 0:
+                                mctiming_info['metrics'].append(
+                                    process_metric_pre65(
+                                        "{}_bucket".format(mctiming['command']),
+                                        "500ms",
+                                        x,
+                                        timing + count,
+                                        cluster,
+                                        node,
+                                        bucket,
+                                        tm))
+                                count += timing
+                                sum = sum + (timing * float(tm._500ms[str(x)]))
+                        if mctiming['5s-9s'] > 0:
                             mctiming_info['metrics'].append(
                                 process_metric_pre65(
                                     "{}_bucket".format(mctiming['command']),
-                                    "ms",
-                                    x,
-                                    timing + count,
+                                    "5s-9s",
+                                    0,
+                                    count + mctiming['5s-9s'],
                                     cluster,
                                     node,
                                     bucket,
                                     tm))
-                            count += timing
-                            sum = sum + (timing * float(tm.ms[str(x)]))
-                    for x, timing in enumerate(mctiming["500ms"]):
-                        if timing > 0:
+                            count += mctiming['5s-9s']
+                        if mctiming['10s-19s'] > 0:
                             mctiming_info['metrics'].append(
                                 process_metric_pre65(
                                     "{}_bucket".format(mctiming['command']),
-                                    "500ms",
-                                    x,
-                                    timing + count,
+                                    "10s-19s",
+                                    0,
+                                    count + mctiming['10s-19s'],
                                     cluster,
                                     node,
                                     bucket,
                                     tm))
-                            count += timing
-                            sum = sum + (timing * float(tm._500ms[str(x)]))
-                    if mctiming['5s-9s'] > 0:
-                        mctiming_info['metrics'].append(
-                            process_metric_pre65(
-                                "{}_bucket".format(mctiming['command']),
-                                "5s-9s",
-                                0,
-                                count + mctiming['5s-9s'],
-                                cluster,
-                                node,
-                                bucket,
-                                tm))
-                        count += mctiming['5s-9s']
-                    if mctiming['10s-19s'] > 0:
-                        mctiming_info['metrics'].append(
-                            process_metric_pre65(
-                                "{}_bucket".format(mctiming['command']),
-                                "10s-19s",
-                                0,
-                                count + mctiming['10s-19s'],
-                                cluster,
-                                node,
-                                bucket,
-                                tm))
-                        count += mctiming['10s-19s']
-                        sum = sum + (timing * float(tm['10s-19s']))
-                    if mctiming['20s-39s'] > 0:
-                        mctiming_info['metrics'].append(
-                            process_metric_pre65(
-                                "{}_bucket".format(mctiming['command']),
-                                "20s-39s",
-                                0,
-                                mctiming['20s-39s'],
-                                cluster,
-                                node,
-                                bucket,
-                                tm))
-                        count += mctiming['20s-39s']
-                        sum = sum + (timing * float(tm['20s-39s']))
-                    if mctiming['20s-39s'] > 0:
-                        mctiming_info['metrics'].append(
-                            process_metric_pre65(
-                                "{}_bucket".format(mctiming['command']),
-                                "40s-79s",
-                                0,
-                                count + mctiming['40s-79s'],
-                                cluster,
-                                node,
-                                bucket,
-                                tm))
-                        count += mctiming['40s-79s']
-                        sum = sum + (timing * float(tm._40s_79s))
-                    if count + mctiming['80s-inf'] > 0:
-                        mctiming_info['metrics'].append(
-                            process_metric_pre65(
-                                "{}_bucket".format(mctiming['command']),
-                                "80s-inf",
-                                0,
-                                count + mctiming['80s-inf'],
-                                cluster,
-                                node,
-                                bucket,
-                                tm))
-                        count += mctiming['80s-inf']
-                        sum = sum + (timing * float(tm._40s_79s))
-                    if count > 0:
-                        mctiming_info['metrics'].append(
-                            process_metric_pre65(
-                                "{}_count".format(mctiming['command']),
-                                "count",
-                                0,
-                                count,
-                                cluster,
-                                node,
-                                bucket,
-                                tm))
-                        mctiming_info['metrics'].append(
-                            process_metric_pre65(
-                                "{}_sum".format(mctiming['command']),
-                                "sum",
-                                0,
-                                sum,
-                                cluster,
-                                node,
-                                bucket,
-                                tm))
+                            count += mctiming['10s-19s']
+                            sum = sum + (timing * float(tm['10s-19s']))
+                        if mctiming['20s-39s'] > 0:
+                            mctiming_info['metrics'].append(
+                                process_metric_pre65(
+                                    "{}_bucket".format(mctiming['command']),
+                                    "20s-39s",
+                                    0,
+                                    mctiming['20s-39s'],
+                                    cluster,
+                                    node,
+                                    bucket,
+                                    tm))
+                            count += mctiming['20s-39s']
+                            sum = sum + (timing * float(tm['20s-39s']))
+                        if mctiming['20s-39s'] > 0:
+                            mctiming_info['metrics'].append(
+                                process_metric_pre65(
+                                    "{}_bucket".format(mctiming['command']),
+                                    "40s-79s",
+                                    0,
+                                    count + mctiming['40s-79s'],
+                                    cluster,
+                                    node,
+                                    bucket,
+                                    tm))
+                            count += mctiming['40s-79s']
+                            sum = sum + (timing * float(tm._40s_79s))
+                        if count + mctiming['80s-inf'] > 0:
+                            mctiming_info['metrics'].append(
+                                process_metric_pre65(
+                                    "{}_bucket".format(mctiming['command']),
+                                    "80s-inf",
+                                    0,
+                                    count + mctiming['80s-inf'],
+                                    cluster,
+                                    node,
+                                    bucket,
+                                    tm))
+                            count += mctiming['80s-inf']
+                            sum = sum + (timing * float(tm._40s_79s))
+                        if count > 0:
+                            mctiming_info['metrics'].append(
+                                process_metric_pre65(
+                                    "{}_count".format(mctiming['command']),
+                                    "count",
+                                    0,
+                                    count,
+                                    cluster,
+                                    node,
+                                    bucket,
+                                    tm))
+                            mctiming_info['metrics'].append(
+                                process_metric_pre65(
+                                    "{}_sum".format(mctiming['command']),
+                                    "sum",
+                                    0,
+                                    sum,
+                                    cluster,
+                                    node,
+                                    bucket,
+                                    tm))
         else:
             for bucket in buckets:
                 dirpath = os.getcwd()

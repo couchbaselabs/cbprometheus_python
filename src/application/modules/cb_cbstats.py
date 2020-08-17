@@ -1,18 +1,29 @@
 import json
 import subprocess
-import timing_matrix
-from cb_utilities import *
 from datetime import datetime
-import cb_cluster
 import os
+import sys
+
+if sys.version_info[0] == 3:
+    from .cb_utilities import *
+    from . import cb_cluster, cb_bucket, timing_matrix
+    from .remote_control import SSH_controller
+else:
+    from cb_utilities import *
+    import cb_cluster, cb_bucket, timing_matrix
+    from remote_control import SSH_controller
 
 class view():
     def __init__(self):
         self.methods = ["GET"]
         self.name = "cbstats"
         self.filters = [{"variable":"buckets","type":"default","name":"bucket_list","value":[]},
-                        {"variable":"nodes","type":"default","name":"nodes_list","value":[]}]
-        self.comment = '''This is the method used to access cbstat'''
+                        {"variable":"nodes","type":"default","name":"nodes_list","value":[]},
+                        {"variable":"key", "type":"configuration","name":"application.config['CB_KEY']", "value":""},
+                        {"variable":"mctiming_path", "type":"configuration","name":"application.config['CB_MCTIMING_PATH']", "value":""},
+                        {"variable":"ssh_user", "type":"configuration","name":"application.config['CB_SSH_UN']", "value":""},
+                        {"variable":"ssh_host", "type":"configuration","name":"application.config['CB_SSH_HOST']", "value":""}]
+        self.comment = '''This is the method used to access cbstats'''
         self.service_identifier = "kv"
         self.inputs = [{"value":"user"},
                         {"value":"passwrd"},
@@ -31,8 +42,10 @@ def get_buckets(url, user, passwrd):
     buckets.sort()
     return(buckets)
 
-def run(url="", user="", passwrd="", buckets=[], nodes=[], cluster=""):
+def run(url="", user="", passwrd="", buckets=[], nodes=[], key = "",
+            cbstat_path = "", ssh_un = "", ssh_host = "", result_set=60):
     '''Entry point for getting the cbstats'''
+
     url = check_cluster(url, user, passwrd)
     metrics = []
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
@@ -41,8 +54,7 @@ def run(url="", user="", passwrd="", buckets=[], nodes=[], cluster=""):
         buckets = get_buckets(url, user, passwrd)
     for _node in cluster_values['serviceNodes']['kv']:
         node_list.append(_node.split(":")[0])
-    if cluster == "":
-        cluster = cluster_values['clusterName']
+    cluster = cluster_values['clusterName']
     if len(nodes) == 0:
         if len(cluster_values['serviceNodes']['kv']) > 0:
             cbstats_metrics = _get_metrics(
@@ -50,65 +62,63 @@ def run(url="", user="", passwrd="", buckets=[], nodes=[], cluster=""):
                 passwrd,
                 cluster_values['clusterName'],
                 buckets,
-                node_list)
+                node_list,
+                ssh_un,
+                key,
+                cbstat_path,
+                ssh_host)
             metrics = filter(None, cbstats_metrics['metrics'])
     else:
-        cbstats_metrics = _get_metrics(
-            user, passwrd, cluster_values['clusterName'], buckets, nodes)
+        cbstats_metrics = _get_metrics(user,
+                                        passwrd,
+                                        cluster_values['clusterName'],
+                                        buckets,
+                                        nodes,
+                                        ssh_un,
+                                        key,
+                                        cbstat_path,
+                                        ssh_host)
         metrics = filter(None, cbstats_metrics['metrics'])
     return metrics
 
-def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = []):
+def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = [],
+                    ssh_username="", key="", cbstat_path="",
+                    ssh_host=""):
     cbstat_info = {}
     cbstat_info['buckets'] = []
     cbstat_info['metrics'] = []
 
-    # determine executable path to cbstats
-    dirpath = os.getcwd()
-    _path = dirpath.split("/")
-    backup = "../" * (_path[::-1].index("src")+0)
-    # default to cbstats with the project
-    exec_path='{}application/resources/cbstats'.format(backup)
-    # check to see if cbstats exists
-    if (os.path.isfile("/opt/couchbase/bin/cbstats")):
-        exec_path = '/opt/couchbase/bin/cbstats'
-    elif (os.path.isfile('/Applications/Couchbase Server.app/Contents/Resources/couchbase-core/bin/cbstats')):
-        exec_path = '/Applications/Couchbase Server.app/Contents/Resources/couchbase-core/bin/cbstats'
+    if cbstat_path is None:
+        cbstat_path = "/opt/couchbase/bin/cbstats"
+    ssh_controller = SSH_controller("cbstats", key, ssh_username, user, passwrd)
+
+
     for node in nodes:
         for bucket in buckets:
-            proc = subprocess.Popen([exec_path,
-                                    '{}:11210'.format(node),
-                                    '-u', user,
-                                    '-p', passwrd,
-                                    '-b', bucket,
-                                    '-j',
-                                    'all'], stdout=subprocess.PIPE,
-                                           stderr=subprocess.PIPE,
-                                           stdin=subprocess.PIPE)
-            stdout, stderr = proc.communicate()
-            if len(stderr) > 0:
-                print("Error: {}".format(stderr))
-            result = json.loads(stdout)
-            for record in result:
-                # only output results that are a number
-                if isinstance(result[record], (int, float)) == True:
-                    cbstat_info['metrics'].append(
-                        "{} {{cluster=\"{}\", node=\"{}\", bucket=\"{}\", "
-                        "type=\"cbstats\"}} {}".format(
-                            value_to_string(record),
-                            cluster,
-                            node,
-                            bucket,
-                            result[record]))
-                elif str(result[record]).lower() == "true" or str(result[record]).lower() == "false":
-                    cbstat_info['metrics'].append(
-                        "{} {{cluster=\"{}\", node=\"{}\", bucket=\"{}\", "
-                        "type=\"cbstats\"}} {}".format(
-                            value_to_string(record),
-                            cluster,
-                            node,
-                            bucket,
-                            int(str2bool(str(result[record])))))
+            try:
+                result = ssh_controller.get_connection(node, bucket, cbstat_path, ssh_host)
+                for record in result:
+                    # only output results that are a number
+                    if isinstance(result[record], (int, float)) == True:
+                        cbstat_info['metrics'].append(
+                            "{} {{cluster=\"{}\", node=\"{}\", bucket=\"{}\", "
+                            "type=\"cbstats\"}} {}".format(
+                                value_to_string(record),
+                                cluster,
+                                node,
+                                bucket,
+                                result[record]))
+                    elif str(result[record]).lower() == "true" or str(result[record]).lower() == "false":
+                        cbstat_info['metrics'].append(
+                            "{} {{cluster=\"{}\", node=\"{}\", bucket=\"{}\", "
+                            "type=\"cbstats\"}} {}".format(
+                                value_to_string(record),
+                                cluster,
+                                node,
+                                bucket,
+                                int(str2bool(str(result[record])))))
+            except Exception as e:
+                print(e)
     return(cbstat_info)
 
 

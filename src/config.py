@@ -13,8 +13,12 @@ class BaseConfig(object):
     CB_USERNAME = os.environ.get("CB_USERNAME", "Administrator")
     CB_PASSWORD = os.environ.get("CB_PASSWORD", "password")
     CB_STREAMING = os.environ.get("CB_STREAMING")
-    CB_TIMINGS = os.environ.get("CB_TIMINGS")
     CB_RESULTSET = os.environ.get("CB_RESULTSET")
+    CB_CBSTAT_PATH = os.environ.get("CB_CBSTAT_PATH")
+    CB_MCTIMING_PATH = os.environ.get("CB_MCTIMING_PATH")
+    CB_KEY = os.environ.get("CB_KEY")
+    CB_SSH_UN = os.environ.get("CB_SSH_USER")
+    CB_SSH_HOST = os.environ.get("CB_SSH_HOST")
 
 config = {
     "default": "config.BaseConfig"
