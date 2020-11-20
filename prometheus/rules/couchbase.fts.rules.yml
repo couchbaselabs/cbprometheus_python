@@ -1,5 +1,5 @@
 groups:
-- name: couchbase
+- name: Couchbase FTS Rules
   rules:
   # pre-compute rule to hold the number of nodes in the cluster
   - record: couchbase_node_count
