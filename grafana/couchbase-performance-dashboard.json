@@ -58,7 +58,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1606167192433,
+  "iteration": 1606248291393,
   "links": [],
   "panels": [
     {
@@ -113,7 +113,7 @@
       },
       "gridPos": {
         "h": 2,
-        "w": 8,
+        "w": 6,
         "x": 0,
         "y": 1
       },
@@ -194,9 +194,9 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 8,
+        "w": 6,
         "x": 0,
-        "y": 3
+        "y": 5
       },
       "id": 36,
       "interval": null,
@@ -237,7 +237,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 19
       },
       "id": 38,
       "panels": [],
@@ -264,7 +264,7 @@
         "h": 5,
         "w": 8,
         "x": 0,
-        "y": 11
+        "y": 20
       },
       "hiddenSeries": false,
       "id": 8,
@@ -366,7 +366,7 @@
         "h": 5,
         "w": 8,
         "x": 8,
-        "y": 11
+        "y": 20
       },
       "hiddenSeries": false,
       "id": 6,
@@ -467,7 +467,7 @@
         "h": 5,
         "w": 8,
         "x": 16,
-        "y": 11
+        "y": 20
       },
       "hiddenSeries": false,
       "id": 4,
@@ -570,7 +570,7 @@
         "h": 5,
         "w": 8,
         "x": 0,
-        "y": 16
+        "y": 25
       },
       "hiddenSeries": false,
       "id": 18,
@@ -671,7 +671,7 @@
         "h": 5,
         "w": 8,
         "x": 8,
-        "y": 16
+        "y": 25
       },
       "hiddenSeries": false,
       "id": 12,
@@ -773,7 +773,7 @@
         "h": 5,
         "w": 8,
         "x": 16,
-        "y": 16
+        "y": 25
       },
       "hiddenSeries": false,
       "id": 16,
@@ -874,7 +874,7 @@
         "h": 4,
         "w": 8,
         "x": 0,
-        "y": 21
+        "y": 30
       },
       "hiddenSeries": false,
       "id": 10,
@@ -975,7 +975,7 @@
         "h": 4,
         "w": 8,
         "x": 8,
-        "y": 21
+        "y": 30
       },
       "hiddenSeries": false,
       "id": 14,
@@ -1077,7 +1077,7 @@
         "h": 4,
         "w": 8,
         "x": 16,
-        "y": 21
+        "y": 30
       },
       "hiddenSeries": false,
       "id": 26,
@@ -1179,7 +1179,7 @@
         "h": 5,
         "w": 8,
         "x": 0,
-        "y": 25
+        "y": 34
       },
       "hiddenSeries": false,
       "id": 28,
@@ -1281,7 +1281,7 @@
         "h": 5,
         "w": 8,
         "x": 8,
-        "y": 25
+        "y": 34
       },
       "hiddenSeries": false,
       "id": 20,
@@ -1383,7 +1383,7 @@
         "h": 5,
         "w": 8,
         "x": 16,
-        "y": 25
+        "y": 34
       },
       "hiddenSeries": false,
       "id": 24,
@@ -1485,7 +1485,7 @@
         "h": 5,
         "w": 8,
         "x": 0,
-        "y": 30
+        "y": 39
       },
       "hiddenSeries": false,
       "id": 30,
@@ -1574,7 +1574,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 35
+        "y": 44
       },
       "id": 52,
       "panels": [],
@@ -1601,7 +1601,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 36
+        "y": 45
       },
       "hiddenSeries": false,
       "id": 54,
@@ -1703,7 +1703,7 @@
         "h": 6,
         "w": 7,
         "x": 8,
-        "y": 36
+        "y": 45
       },
       "hiddenSeries": false,
       "id": 56,
@@ -1805,7 +1805,7 @@
         "h": 6,
         "w": 9,
         "x": 15,
-        "y": 36
+        "y": 45
       },
       "hiddenSeries": false,
       "id": 58,
@@ -1907,7 +1907,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 42
+        "y": 51
       },
       "hiddenSeries": false,
       "id": 60,
@@ -2010,7 +2010,7 @@
         "h": 6,
         "w": 7,
         "x": 8,
-        "y": 42
+        "y": 51
       },
       "hiddenSeries": false,
       "id": 62,
@@ -2112,7 +2112,7 @@
         "h": 6,
         "w": 9,
         "x": 15,
-        "y": 42
+        "y": 51
       },
       "hiddenSeries": false,
       "id": 64,
@@ -2214,7 +2214,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 48
+        "y": 57
       },
       "hiddenSeries": false,
       "id": 66,
@@ -2316,7 +2316,7 @@
         "h": 7,
         "w": 7,
         "x": 8,
-        "y": 48
+        "y": 57
       },
       "hiddenSeries": false,
       "id": 68,
@@ -2418,7 +2418,7 @@
         "h": 7,
         "w": 9,
         "x": 15,
-        "y": 48
+        "y": 57
       },
       "hiddenSeries": false,
       "id": 70,
@@ -2504,7 +2504,10 @@
   "refresh": "5s",
   "schemaVersion": 26,
   "style": "dark",
-  "tags": [],
+  "tags": [
+    "Couchbase",
+    "Performance"
+  ],
   "templating": {
     "list": [
       {
@@ -2529,7 +2532,7 @@
       {
         "allValue": null,
         "current": {},
-        "datasource": "${DS_PROMETHEUS}",
+        "datasource": "$datasource",
         "definition": "{type=\"bucket\"}",
         "error": null,
         "hide": 0,
@@ -2552,8 +2555,8 @@
       {
         "allValue": null,
         "current": {},
-        "datasource": "${DS_PROMETHEUS}",
-        "definition": "{type=\"bucket\", cluster=\"$cluster\"}",
+        "datasource": "$datasource",
+        "definition": "{type=\"bucket\", cluster=~\"$cluster\"}",
         "error": null,
         "hide": 0,
         "includeAll": true,
@@ -2561,7 +2564,7 @@
         "multi": true,
         "name": "node",
         "options": [],
-        "query": "{type=\"bucket\", cluster=\"$cluster\"}",
+        "query": "{type=\"bucket\", cluster=~\"$cluster\"}",
         "refresh": 1,
         "regex": ".*node=\"(.*?)\".*",
         "skipUrlSync": false,
@@ -2575,7 +2578,7 @@
       {
         "allValue": null,
         "current": {},
-        "datasource": "${DS_PROMETHEUS}",
+        "datasource": "$datasource",
         "definition": "{type=\"bucket\", cluster=~\"$cluster\", node=~\"$node\"}",
         "error": null,
         "hide": 0,
@@ -2598,7 +2601,7 @@
       {
         "allValue": null,
         "current": {},
-        "datasource": "${DS_PROMETHEUS}",
+        "datasource": "$datasource",
         "definition": "{type=\"index\", cluster=~\"$cluster\"}",
         "error": null,
         "hide": 0,
@@ -2621,7 +2624,7 @@
       {
         "allValue": null,
         "current": {},
-        "datasource": "${DS_PROMETHEUS}",
+        "datasource": "$datasource",
         "definition": "{type=\"index\", cluster=~\"$cluster\", node=~\"$node_index\"}",
         "error": null,
         "hide": 0,
@@ -2675,5 +2678,5 @@
   "timezone": "",
   "title": "Couchbase Performance Dashboard",
   "uid": "MIkGkEJWk",
-  "version": 10
+  "version": 14
 }

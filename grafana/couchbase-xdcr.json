@@ -52,7 +52,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1606164556151,
+  "iteration": 1606244485730,
   "links": [],
   "panels": [
     {
@@ -4526,10 +4526,13 @@
       "type": "row"
     }
   ],
-  "refresh": false,
+  "refresh": "30s",
   "schemaVersion": 26,
   "style": "dark",
-  "tags": [],
+  "tags": [
+    "Couchbase",
+    "XDCR"
+  ],
   "templating": {
     "list": [
       {
@@ -4554,7 +4557,7 @@
       {
         "allValue": "",
         "current": {},
-        "datasource": "${DS_PROMETHEUS}",
+        "datasource": "$datasource",
         "definition": "{type=\"xdcr\"}",
         "error": null,
         "hide": 0,
@@ -4563,7 +4566,7 @@
         "multi": true,
         "name": "cluster",
         "options": [],
-        "query": "{type=\"xdcr\"}",
+        "query": "",
         "refresh": 1,
         "regex": "/.*cluster=\"([^\"]*).*/",
         "skipUrlSync": false,
@@ -4577,7 +4580,7 @@
       {
         "allValue": "",
         "current": {},
-        "datasource": "${DS_PROMETHEUS}",
+        "datasource": "$datasource",
         "definition": "{type=\"xdcr\", cluster=~\"$cluster\"}",
         "error": null,
         "hide": 0,
@@ -4586,7 +4589,7 @@
         "multi": true,
         "name": "replication",
         "options": [],
-        "query": "{type=\"xdcr\", cluster=~\"$cluster\"}",
+        "query": "",
         "refresh": 1,
         "regex": ".*replication=\"(.*?)\".*",
         "skipUrlSync": false,
@@ -4631,5 +4634,5 @@
   "timezone": "",
   "title": "Couchbase XDCR",
   "uid": "X5mgwrPWk",
-  "version": 2
+  "version": 4
 }

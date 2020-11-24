@@ -37,7 +37,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1606162484144,
+  "iteration": 1606244165169,
   "links": [],
   "panels": [
     {
@@ -7998,10 +7998,14 @@
       "type": "row"
     }
   ],
-  "refresh": false,
+  "refresh": "5s",
   "schemaVersion": 26,
   "style": "dark",
-  "tags": [],
+  "tags": [
+    "Couchbase",
+    "Data",
+    "Buckets"
+  ],
   "templating": {
     "list": [
       {
@@ -8051,7 +8055,7 @@
         "allValue": "",
         "current": {},
         "datasource": "$datasource",
-        "definition": "{type=\"bucket\", cluster=\"$cluster\"}",
+        "definition": "{type=\"bucket\", cluster=~\"$cluster\"}",
         "error": null,
         "hide": 0,
         "includeAll": true,
@@ -8059,7 +8063,7 @@
         "multi": true,
         "name": "node",
         "options": [],
-        "query": "{type=\"bucket\", cluster=\"$cluster\"}",
+        "query": "{type=\"bucket\", cluster=~\"$cluster\"}",
         "refresh": 1,
         "regex": ".*node=\"(.*?)\".*",
         "skipUrlSync": false,

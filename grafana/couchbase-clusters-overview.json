@@ -46,7 +46,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1606165110156,
+  "iteration": 1606245626275,
   "links": [],
   "panels": [
     {
@@ -3744,10 +3744,16 @@
       }
     }
   ],
-  "refresh": false,
+  "refresh": "30s",
   "schemaVersion": 26,
   "style": "dark",
-  "tags": [],
+  "tags": [
+    "Couchbase",
+    "Cluster",
+    "Buckets",
+    "Index",
+    "Query"
+  ],
   "templating": {
     "list": [
       {
@@ -3772,7 +3778,7 @@
       {
         "allValue": null,
         "current": {},
-        "datasource": "${DS_PROMETHEUS}",
+        "datasource": "$datasource",
         "definition": "{type=\"bucket\"}",
         "error": null,
         "hide": 0,
@@ -3825,6 +3831,6 @@
   },
   "timezone": "",
   "title": "Couchbase Cluster(s) Overview",
-  "uid": "MIkGkEJWk",
+  "uid": "MIkGkEJWk1",
   "version": 3
 }

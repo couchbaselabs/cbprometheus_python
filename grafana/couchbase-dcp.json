@@ -46,7 +46,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1606160320101,
+  "iteration": 1606247913271,
   "links": [],
   "panels": [
     {
@@ -5822,10 +5822,14 @@
       }
     }
   ],
-  "refresh": false,
+  "refresh": "30s",
   "schemaVersion": 26,
   "style": "dark",
-  "tags": [],
+  "tags": [
+    "Couchbase",
+    "Buckets",
+    "DCP"
+  ],
   "templating": {
     "list": [
       {
@@ -5850,7 +5854,7 @@
       {
         "allValue": "",
         "current": {},
-        "datasource": "${DS_PROMETHEUS}",
+        "datasource": "$datasource",
         "definition": "{type=\"bucket\"}",
         "error": null,
         "hide": 0,
@@ -5873,8 +5877,8 @@
       {
         "allValue": "",
         "current": {},
-        "datasource": "${DS_PROMETHEUS}",
-        "definition": "{type=\"bucket\", cluster=\"$cluster\"}",
+        "datasource": "$datasource",
+        "definition": "{type=\"bucket\",cluster=~\"$cluster\"}",
         "error": null,
         "hide": 0,
         "includeAll": true,
@@ -5882,7 +5886,7 @@
         "multi": true,
         "name": "node",
         "options": [],
-        "query": "{type=\"bucket\", cluster=\"$cluster\"}",
+        "query": "{type=\"bucket\",cluster=~\"$cluster\"}",
         "refresh": 1,
         "regex": ".*node=\"(.*?)\".*",
         "skipUrlSync": false,
@@ -5896,8 +5900,8 @@
       {
         "allValue": "",
         "current": {},
-        "datasource": "${DS_PROMETHEUS}",
-        "definition": "{type=\"bucket\", cluster=~\"$cluster\", node=~\"$node\"}",
+        "datasource": "$datasource",
+        "definition": "{type=\"bucket\",cluster=~\"$cluster\",node=~\"$node\"}",
         "error": null,
         "hide": 0,
         "includeAll": true,
@@ -5905,7 +5909,7 @@
         "multi": true,
         "name": "bucket",
         "options": [],
-        "query": "{type=\"bucket\", cluster=~\"$cluster\", node=~\"$node\"}",
+        "query": "{type=\"bucket\",cluster=~\"$cluster\",node=~\"$node\"}",
         "refresh": 1,
         "regex": ".*bucket=\"(.*?)\".*",
         "skipUrlSync": false,
@@ -5950,5 +5954,5 @@
   "timezone": "",
   "title": "Couchbase DCP",
   "uid": "cVr-PlPWz",
-  "version": 6
+  "version": 1
 }
