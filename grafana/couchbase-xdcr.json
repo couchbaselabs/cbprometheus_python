@@ -52,7 +52,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1606244485730,
+  "iteration": 1606756080816,
   "links": [],
   "panels": [
     {
@@ -542,6 +542,8 @@
       "targets": [
         {
           "expr": "avg(xdcr_status{type=\"xdcr\",replication=~\"$replication\"})",
+          "instant": true,
+          "interval": "",
           "legendFormat": "{{replication}}",
           "refId": "A"
         }
@@ -4529,10 +4531,7 @@
   "refresh": "30s",
   "schemaVersion": 26,
   "style": "dark",
-  "tags": [
-    "Couchbase",
-    "XDCR"
-  ],
+  "tags": [],
   "templating": {
     "list": [
       {
@@ -4566,7 +4565,7 @@
         "multi": true,
         "name": "cluster",
         "options": [],
-        "query": "",
+        "query": "{type=\"xdcr\"}",
         "refresh": 1,
         "regex": "/.*cluster=\"([^\"]*).*/",
         "skipUrlSync": false,
@@ -4589,7 +4588,7 @@
         "multi": true,
         "name": "replication",
         "options": [],
-        "query": "",
+        "query": "{type=\"xdcr\", cluster=~\"$cluster\"}",
         "refresh": 1,
         "regex": ".*replication=\"(.*?)\".*",
         "skipUrlSync": false,
@@ -4634,5 +4633,5 @@
   "timezone": "",
   "title": "Couchbase XDCR",
   "uid": "X5mgwrPWk",
-  "version": 4
+  "version": 6
 }
