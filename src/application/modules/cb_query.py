@@ -102,7 +102,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
         resultCount AS result_count, resultSize AS result_size, query_selectivity_percent,
         scan_results, fetches
     FROM system:completed_requests
-    LET request_time_ms = STR_TO_MILLIS(REPLACE(requestTime, " +0000 UTC", "Z")),
+    LET request_time_ms = STR_TO_MILLIS(STR_TO_UTC(REPLACE(REGEX_REPLACE(REPLACE(REPLACE(REGEX_REPLACE(requestTime, " [A-Z]{3}$", ''), ' -', '-'), ' +', '+'), '00$', ':00'), ' ', 'T'))),
         service_time_ms = ROUND(STR_TO_DURATION(serviceTime) / 1e6),
         elapsed_time_ms = ROUND(STR_TO_DURATION(elapsedTime) / 1e6),
         queue_time_ms = ROUND(
@@ -121,7 +121,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
         AND UPPER(IFMISSING(preparedText, statement)) NOT LIKE 'ADVISE %'
         AND UPPER(IFMISSING(preparedText, statement)) NOT LIKE '% INDEX%'
         AND UPPER(IFMISSING(preparedText, statement)) NOT LIKE '% SYSTEM:%'
-        AND request_time_ms >= ROUND(NOW_MILLIS(), 0) - 60000"""
+        AND request_time_ms >= ROUND(STR_TO_MILLIS(NOW_UTC()), 0) - 60000"""
 
     # strip new lines and convert two or more spaces to a single space
     # and then url encode the statement
