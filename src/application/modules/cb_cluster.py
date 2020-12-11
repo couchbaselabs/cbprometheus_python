@@ -21,6 +21,7 @@ def _get_cluster(url, user, passwrd, node_list=[]):
     service_nodes['eventing'] = []
     service_nodes['fts'] = []
     service_nodes['cbas'] = []
+    service_nodes['thisNode'] = ""
     current_url = ""
     nodes = []
 
@@ -61,7 +62,9 @@ def _get_cluster(url, user, passwrd, node_list=[]):
 
                 if "cbas" in node['services']:
                     service_nodes['cbas'].append(node['hostname'])
-
+                # if the thisNode attribute is set, save the hostname
+                if "thisNode" in node.keys() and node['thisNode'] == True:
+                    service_nodes['thisNode'] = node['hostname']
             result['serviceNodes'] = service_nodes
             result['nodeList'] = nodes
 

@@ -47,6 +47,12 @@ def analytics():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	elif application.config['CB_EXPORTER_MODE'] == "local":
+		# if we're running in local mode, we need to get the Couchbase hostname of the localhost
+		nodes_list = [cb_cluster._get_cluster(
+			application.config['CB_DATABASE'],
+			application.config['CB_USERNAME'],
+			application.config['CB_PASSWORD'])['serviceNodes']['thisNode']]
 	num_samples = 60
 	if request.args.get('num_samples'):
 		num_samples = int(request.args.get('num_samples'))
@@ -56,7 +62,7 @@ def analytics():
 	_value = cb_analytics.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'], 
+		application.config['CB_PASSWORD'],
 		nodes_list,
 		num_samples,
 		result_set)
@@ -80,6 +86,12 @@ def buckets():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	elif application.config['CB_EXPORTER_MODE'] == "local":
+		# if we're running in local mode, we need to get the Couchbase hostname of the localhost
+		nodes_list = [cb_cluster._get_cluster(
+			application.config['CB_DATABASE'],
+			application.config['CB_USERNAME'],
+			application.config['CB_PASSWORD'])['serviceNodes']['thisNode']]
 	bucket_list = []
 	if request.args.get('buckets'):
 		buckets_str = request.args.get('buckets')
@@ -94,9 +106,9 @@ def buckets():
 	_value = cb_bucket.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'], 
-		nodes_list,
+		application.config['CB_PASSWORD'],
 		bucket_list,
+		nodes_list,
 		num_samples,
 		result_set)
 	if application.config['CB_STREAMING']:
@@ -124,13 +136,19 @@ def cbstats():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	elif application.config['CB_EXPORTER_MODE'] == "local":
+		# if we're running in local mode, we need to get the Couchbase hostname of the localhost
+		nodes_list = [cb_cluster._get_cluster(
+			application.config['CB_DATABASE'],
+			application.config['CB_USERNAME'],
+			application.config['CB_PASSWORD'])['serviceNodes']['thisNode']]
 	result_set = 60
 	if application.config['CB_RESULTSET']:
 		result_set = application.config['CB_RESULTSET']
 	_value = cb_cbstats.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'], 
+		application.config['CB_PASSWORD'],
 		bucket_list,
 		nodes_list,
 		application.config['CB_KEY'],
@@ -158,6 +176,12 @@ def eventing():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	elif application.config['CB_EXPORTER_MODE'] == "local":
+		# if we're running in local mode, we need to get the Couchbase hostname of the localhost
+		nodes_list = [cb_cluster._get_cluster(
+			application.config['CB_DATABASE'],
+			application.config['CB_USERNAME'],
+			application.config['CB_PASSWORD'])['serviceNodes']['thisNode']]
 	num_samples = 60
 	if request.args.get('num_samples'):
 		num_samples = int(request.args.get('num_samples'))
@@ -167,7 +191,7 @@ def eventing():
 	_value = cb_eventing.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'], 
+		application.config['CB_PASSWORD'],
 		nodes_list,
 		num_samples,
 		result_set)
@@ -192,7 +216,7 @@ def exporter():
 	_value = cb_exporter.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'], 
+		application.config['CB_PASSWORD'],
 		result_set)
 	if application.config['CB_STREAMING']:
 		def generate():
@@ -214,6 +238,12 @@ def fts():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	elif application.config['CB_EXPORTER_MODE'] == "local":
+		# if we're running in local mode, we need to get the Couchbase hostname of the localhost
+		nodes_list = [cb_cluster._get_cluster(
+			application.config['CB_DATABASE'],
+			application.config['CB_USERNAME'],
+			application.config['CB_PASSWORD'])['serviceNodes']['thisNode']]
 	bucket_list = []
 	if request.args.get('buckets'):
 		buckets_str = request.args.get('buckets')
@@ -228,7 +258,7 @@ def fts():
 	_value = cb_fts.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'], 
+		application.config['CB_PASSWORD'],
 		nodes_list,
 		bucket_list,
 		num_samples,
@@ -247,12 +277,18 @@ def fts():
 @application.route('/metrics/indexes', methods=['GET'])
 @application.route('/indexes', methods=['GET'])
 def indexes():
-	'''This is the method used to access FTS metrics'''
+	'''This is the method used to access GSI metrics'''
 	nodes_list = []
 	if request.args.get('nodes'):
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	elif application.config['CB_EXPORTER_MODE'] == "local":
+		# if we're running in local mode, we need to get the Couchbase hostname of the localhost
+		nodes_list = [cb_cluster._get_cluster(
+			application.config['CB_DATABASE'],
+			application.config['CB_USERNAME'],
+			application.config['CB_PASSWORD'])['serviceNodes']['thisNode']]
 	bucket_list = []
 	if request.args.get('buckets'):
 		buckets_str = request.args.get('buckets')
@@ -272,10 +308,10 @@ def indexes():
 	_value = cb_index.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'], 
-		nodes_list,
-		bucket_list,
+		application.config['CB_PASSWORD'],
 		indexes_list,
+		bucket_list,
+		nodes_list,
 		num_samples,
 		result_set)
 	if application.config['CB_STREAMING']:
@@ -303,13 +339,19 @@ def mctimings():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	elif application.config['CB_EXPORTER_MODE'] == "local":
+		# if we're running in local mode, we need to get the Couchbase hostname of the localhost
+		nodes_list = [cb_cluster._get_cluster(
+			application.config['CB_DATABASE'],
+			application.config['CB_USERNAME'],
+			application.config['CB_PASSWORD'])['serviceNodes']['thisNode']]
 	result_set = 60
 	if application.config['CB_RESULTSET']:
 		result_set = application.config['CB_RESULTSET']
 	_value = cb_mctimings.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'], 
+		application.config['CB_PASSWORD'],
 		bucket_list,
 		nodes_list,
 		application.config['CB_KEY'],
@@ -337,6 +379,12 @@ def node_exporter():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	elif application.config['CB_EXPORTER_MODE'] == "local":
+		# if we're running in local mode, we need to get the Couchbase hostname of the localhost
+		nodes_list = [cb_cluster._get_cluster(
+			application.config['CB_DATABASE'],
+			application.config['CB_USERNAME'],
+			application.config['CB_PASSWORD'])['serviceNodes']['thisNode']]
 	num_samples = 60
 	if request.args.get('num_samples'):
 		num_samples = int(request.args.get('num_samples'))
@@ -346,7 +394,7 @@ def node_exporter():
 	_value = cb_node_exporter.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'], 
+		application.config['CB_PASSWORD'],
 		nodes_list,
 		num_samples,
 		result_set)
@@ -370,6 +418,12 @@ def query():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	elif application.config['CB_EXPORTER_MODE'] == "local":
+		# if we're running in local mode, we need to get the Couchbase hostname of the localhost
+		nodes_list = [cb_cluster._get_cluster(
+			application.config['CB_DATABASE'],
+			application.config['CB_USERNAME'],
+			application.config['CB_PASSWORD'])['serviceNodes']['thisNode']]
 	slow_queries = True
 	if request.args.get('slow_queries'):
 		slow_queries_str = request.args.get('slow_queries')
@@ -384,7 +438,7 @@ def query():
 	_value = cb_query.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'], 
+		application.config['CB_PASSWORD'],
 		nodes_list,
 		slow_queries,
 		num_samples,
@@ -409,6 +463,12 @@ def system():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	elif application.config['CB_EXPORTER_MODE'] == "local":
+		# if we're running in local mode, we need to get the Couchbase hostname of the localhost
+		nodes_list = [cb_cluster._get_cluster(
+			application.config['CB_DATABASE'],
+			application.config['CB_USERNAME'],
+			application.config['CB_PASSWORD'])['serviceNodes']['thisNode']]
 	num_samples = 60
 	if request.args.get('num_samples'):
 		num_samples = int(request.args.get('num_samples'))
@@ -418,7 +478,7 @@ def system():
 	_value = cb_system.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'], 
+		application.config['CB_PASSWORD'],
 		nodes_list,
 		num_samples,
 		result_set)
@@ -442,6 +502,12 @@ def xdcr():
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
+	elif application.config['CB_EXPORTER_MODE'] == "local":
+		# if we're running in local mode, we need to get the Couchbase hostname of the localhost
+		nodes_list = [cb_cluster._get_cluster(
+			application.config['CB_DATABASE'],
+			application.config['CB_USERNAME'],
+			application.config['CB_PASSWORD'])['serviceNodes']['thisNode']]
 	bucket_list = []
 	if request.args.get('buckets'):
 		buckets_str = request.args.get('buckets')
@@ -456,7 +522,7 @@ def xdcr():
 	_value = cb_xdcr.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
-		application.config['CB_PASSWORD'], 
+		application.config['CB_PASSWORD'],
 		nodes_list,
 		bucket_list,
 		num_samples,

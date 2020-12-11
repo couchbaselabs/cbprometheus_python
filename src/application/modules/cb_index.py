@@ -1,5 +1,5 @@
 import sys
-
+from application import application
 if sys.version_info[0] == 3:
     from .cb_utilities import *
     from . import cb_cluster, cb_bucket
@@ -193,16 +193,20 @@ def _get_index_replica_counts(url, user, passwrd, cluster_name=""):
                     num_replica = _index['numReplica']
                 except:
                     pass
-                replica_info['metrics'].append(
-                    "index_num_replica {{cluster=\"{}\", node=\"{}\","
-                    "index=\"{}\", "
-                    "bucket=\"{}\", "
-                    "type=\"index\"}} {}".format(
-                        cluster_name,
-                        _index['hosts'][0],
-                        _index['index'],
-                        _index['bucket'],
-                        num_replica))
+                # only output the index_num_replica stat, if we're in cluster mode, or if we're in local mode
+                # and the local nodes Couchbase hostname is in the indexes hosts list
+                if (application.config['CB_EXPORTER_MODE'] == "local" and url + ":8091" in _index['hosts']) or application.config['CB_EXPORTER_MODE'] == "cluster":
+                    replica_info['metrics'].append(
+                        "index_num_replica {{cluster=\"{}\", node=\"{}\","
+                        "index=\"{}\", "
+                        "bucket=\"{}\", "
+                        "type=\"index\"}} {}".format(
+                            cluster_name,
+                            _index['hosts'][0],
+                            _index['index'],
+                            _index['bucket'],
+                            num_replica))
+
             except Exception as e:
                 print("error: {}, {}".format(_index, str(e)))
 
