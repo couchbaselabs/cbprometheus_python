@@ -25,7 +25,7 @@ class SSH_controller():
 
         if self.service == "cbstats":
             self.command = " ".join([self.path,
-                        '{}:11210'.format(self.node),
+                        '{}:11210'.format(self.node.split(":")[0]),
                         '-u', self.cb_username,
                         '-p', self.cb_pw,
                         '-b', bucket,
@@ -34,10 +34,8 @@ class SSH_controller():
             if self.ssh_host is None:
                 self.ssh_host = self.node
             if application.config['CB_EXPORTER_MODE'] == "local":
-                if path is None:
-                    path = "/opt/couchbase/bin/cbstats"
-                self.ssh = subprocess.Popen([self.command],
-                                            shell=False,
+                self.ssh = subprocess.Popen(self.command,
+                                            shell=True,
                                             stdout=subprocess.PIPE,
                                             stderr=subprocess.PIPE)
                 self.result = self.ssh.stdout.readlines()
