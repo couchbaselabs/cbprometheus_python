@@ -79,23 +79,24 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
     uri = ""
     try:
         for _uri in nodes:
+            node_hostname = _uri.split(":")[0]
             try:
                 cluster_definition = {}
                 _remote_cluster_url = "http://{}:8091/pools/default/" \
-                                      "remoteClusters".format(_uri.split(":")[0])
+                                      "remoteClusters".format(node_hostname)
                 _rc_json = rest_request(auth, _remote_cluster_url)
                 uri = _uri
                 break
             except Exception as e:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
-                print("Error getting xdcr node {}: {} {}, {}".format(uri, str(e.args), exc_value, exc_traceback.tb_lineno))
+                print("Error getting xdcr node {}: {} {}, {}".format(node_hostname, str(e.args), exc_value, exc_traceback.tb_lineno))
         for entry in _rc_json:
             cluster_definition[entry['uuid']] = {}
             cluster_definition[entry['uuid']]['hostname'] = entry['hostname']
             cluster_definition[entry['uuid']]['name'] = entry['name']
 
         try:
-            _xdcr_url = "http://{}:8091/pools/default/tasks".format(uri.split(":")[0])
+            _xdcr_url = "http://{}:8091/pools/default/tasks".format(node_hostname)
             _x_json = rest_request(auth, _xdcr_url)
             # get generic stats for each replication
             for record in _x_json:
@@ -248,12 +249,13 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
         print("xcdr out: {}, {}, {}".format(str(e), exc_value, exc_traceback.tb_lineno))
 
     for node in nodes:
+        node_hostname = node.split(":")[0]
         for bucket in buckets:
             try:
                 _node_url = "http://{}:8091/pools/default/buckets/" \
-                            "@xdcr-{}/nodes/{}:8091/stats".format(node.split(":")[0],
+                            "@xdcr-{}/nodes/{}:8091/stats".format(node_hostname,
                                                                   bucket,
-                                                                  node.split(":")[0])
+                                                                  node_hostname)
                 n_json = rest_request(auth, _node_url)
                 for entry in n_json['op']['samples']:
                     key_split = entry.split("/")
@@ -283,7 +285,7 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                                                     cluster_definition[key_split[1]]['name'],
                                                     cluster_definition[key_split[1]]['hostname'],
                                                     key_split[3],
-                                                    node,
+                                                    node_hostname,
                                                     datapoint,
                                                     n_json['op']['samples']['timestamp'][idx]))
                         elif len(key_split) == 1:
@@ -297,7 +299,7 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                                         entry,
                                         cluster_name,
                                         bucket,
-                                        node,
+                                        node_hostname,
                                         datapoint,
                                         n_json['op']['samples']['timestamp'][idx]))
             except Exception as e:

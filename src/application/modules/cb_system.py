@@ -86,11 +86,11 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", result_set=60):
     auth = basic_authorization(user, passwrd)
     sample_list = get_sample_list(result_set)
     for node in node_list:
+        node_hostname = node.split(":")[0]
         try:
             _query_url = "http://{}:8091/pools/default/buckets/@system/nodes/{}:8091/stats".format(
-                node.split(":")[0], node.split(":")[0])
+                node_hostname, node_hostname)
             q_json = rest_request(auth, _query_url)
-            _node = node
             for record in q_json['op']['samples']:
                 if record != "timestamp":
                     for idx, datapoint in enumerate(q_json['op']['samples'][record]):
@@ -100,7 +100,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", result_set=60):
                                 "type=\"system\"}} {} {}".format(
                                     record,
                                     cluster_name,
-                                    _node,
+                                    node_hostname,
                                     datapoint,
                                     q_json['op']['samples']['timestamp'][idx]))
 
@@ -116,11 +116,10 @@ def _get_disk_metrics(user, passwrd, node_list, cluster_name=""):
 
     auth = basic_authorization(user, passwrd)
     for node in node_list:
+        node_hostname = node.split(":")[0]
         try:
-            _query_url = "http://{}:8091/nodes/self".format(
-                node.split(":")[0])
+            _query_url = "http://{}:8091/nodes/self".format(node_hostname)
             q_json = rest_request(auth, _query_url)
-            _node = node
             # loop over each of the available storage types
             for storage_type in q_json['availableStorage']:
                 # loop over each disk
@@ -129,7 +128,7 @@ def _get_disk_metrics(user, passwrd, node_list, cluster_name=""):
                         "disk_usage_bytes {{cluster=\"{}\", node=\"{}\", "
                         "storage_type=\"{}\", path=\"{}\", type=\"system\"}} {}".format(
                             cluster_name,
-                            _node,
+                            node_hostname,
                             storage_type,
                             disk['path'],
                             disk['sizeKBytes'] * 1000))
@@ -137,7 +136,7 @@ def _get_disk_metrics(user, passwrd, node_list, cluster_name=""):
                         "disk_usage_percent {{cluster=\"{}\", node=\"{}\", "
                         "storage_type=\"{}\", path=\"{}\", type=\"system\"}} {}".format(
                             cluster_name,
-                            _node,
+                            node_hostname,
                             storage_type,
                             disk['path'],
                             disk['usagePercent']))

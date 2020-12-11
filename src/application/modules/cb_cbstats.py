@@ -94,6 +94,7 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = [],
 
 
     for node in nodes:
+        node_hostname = node.split(":")[0]
         for bucket in buckets:
             try:
                 result = ssh_controller.get_connection(node, bucket, cbstat_path, ssh_host)
@@ -105,7 +106,7 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = [],
                             "type=\"cbstats\"}} {}".format(
                                 value_to_string(record),
                                 cluster,
-                                node,
+                                node_hostname,
                                 bucket,
                                 result[record]))
                     elif str(result[record]).lower() == "true" or str(result[record]).lower() == "false":
@@ -114,7 +115,7 @@ def _get_metrics(user="", passwrd="", cluster="", buckets=[], nodes = [],
                             "type=\"cbstats\"}} {}".format(
                                 value_to_string(record),
                                 cluster,
-                                node,
+                                node_hostname,
                                 bucket,
                                 int(str2bool(str(result[record])))))
             except Exception as e:

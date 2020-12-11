@@ -85,6 +85,7 @@ def run(url="", user="", passwrd="", buckets=[], nodes=[], key = "",
 
 def process_metric_65(cmd, _range, value, cluster, node, bucket, _type="metric"):
     metric = []
+    node_hostname = node.split(":")[0]
     if _type == "metric":
         metric.append(
             "{} {{cluster=\"{}\", "
@@ -94,7 +95,7 @@ def process_metric_65(cmd, _range, value, cluster, node, bucket, _type="metric")
             "le=\"{}\""
             "}} {}".format(cmd,
                             cluster,
-                            node,
+                            node_hostname,
                             bucket,
                             _range,
                             value))
@@ -106,14 +107,14 @@ def process_metric_65(cmd, _range, value, cluster, node, bucket, _type="metric")
             "type=\"mctimings\" "
             "}} {}".format(cmd,
                             cluster,
-                            node,
+                            node_hostname,
                             bucket,
                             value))
 
     return(metric[0])
 
 def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket, tm):
-
+    node_hostname = node.split(":")[0]
     if _type == "ms":
         metric = []
         metric.append(
@@ -124,7 +125,7 @@ def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket, tm)
             "le=\"{}\""
             "}} {}".format(cmd,
                             cluster,
-                            node,
+                            node_hostname,
                             bucket,
                             tm.ms[str(position)],
                             value))
@@ -139,7 +140,7 @@ def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket, tm)
             "le=\"{}\""
             "}} {}".format(cmd,
                             cluster,
-                            node,
+                            node_hostname,
                             bucket,
                             tm.us[str(position)],
                             value))
@@ -154,7 +155,7 @@ def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket, tm)
             "le=\"{}\""
             "}} {}".format(cmd,
                             cluster,
-                            node,
+                            node_hostname,
                             bucket,
                             tm._500ms[str(position)],
                             value))
@@ -169,7 +170,7 @@ def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket, tm)
             "le=\"{}\""
             "}} {}".format(cmd,
                             cluster,
-                            node,
+                            node_hostname,
                             bucket,
                             tm.ns,
                             value))
@@ -184,7 +185,7 @@ def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket, tm)
             "le=\"{}\""
             "}} {}".format(cmd,
                             cluster,
-                            node,
+                            node_hostname,
                             bucket,
                             tm._5s_9s,
                             value))
@@ -199,7 +200,7 @@ def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket, tm)
             "le=\"{}\""
             "}} {}".format(cmd,
                             cluster,
-                            node,
+                            node_hostname,
                             bucket,
                             tm._10s_19s,
                             value))
@@ -214,7 +215,7 @@ def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket, tm)
             "le=\"{}\""
             "}} {}".format(cmd,
                             cluster,
-                            node,
+                            node_hostname,
                             bucket,
                             tm._20s_39s,
                             value))
@@ -229,7 +230,7 @@ def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket, tm)
             "le=\"{}\""
             "}} {}".format(cmd,
                             cluster,
-                            node,
+                            node_hostname,
                             bucket,
                             tm._40s_79s,
                             value))
@@ -244,7 +245,7 @@ def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket, tm)
             "le=\"{}\""
             "}} {}".format(cmd,
                             cluster,
-                            node,
+                            node_hostname,
                             bucket,
                             tm._80s_inf,
                             value))
@@ -260,7 +261,7 @@ def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket, tm)
             "type=\"mctimings\", "
             "}} {}".format(cmd,
                             cluster,
-                            node,
+                            node_hostname,
                             bucket,
                             value))
         return(metric[0])
@@ -273,7 +274,7 @@ def process_metric_pre65(cmd, _type, position, value, cluster, node, bucket, tm)
             "type=\"mctimings\", "
             "}} {}".format(cmd,
                             cluster,
-                            node,
+                            node_hostname,
                             bucket,
                             value))
         return(metric[0])

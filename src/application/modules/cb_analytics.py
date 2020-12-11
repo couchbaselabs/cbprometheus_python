@@ -59,8 +59,9 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", result_set=60):
     sample_list = get_sample_list(result_set)
     for node in node_list:
         try:
+            node_hostname = node.split(":")[0]
             _cbas_url = "http://{}:8091/pools/default/buckets/@cbas/nodes/{}:8091/stats".format(
-                node.split(":")[0], node.split(":")[0])
+                node_hostname, node_hostname)
             a_json = rest_request(auth, _cbas_url)
             _node = node
             for record in a_json['op']['samples']:
@@ -73,7 +74,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", result_set=60):
                                 "type=\"cbas\"}} {} {}".format(
                                     record,
                                     cluster_name,
-                                    _node,
+                                    node_hostname,
                                     datapoint,
                                     a_json['op']['samples']['timestamp'][idx]))
         except Exception as e:
