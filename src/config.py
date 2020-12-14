@@ -20,6 +20,8 @@ class BaseConfig(object):
     CB_SSH_UN = os.environ.get("CB_SSH_USER")
     CB_SSH_HOST = os.environ.get("CB_SSH_HOST")
     CB_EXPORTER_MODE = os.environ.get("CB_EXPORTER_MODE", "cluster")
+    CB_NODE_EXPORTER_PORT = os.environ.get("CB_NODE_EXPORTER_PORT", "9200")
+    CB_PROCESS_EXPORTER_PORT = os.environ.get("CB_PROCESS_EXPORTER_PORT", "9256")
 
     # if the exporter is being ran in local mode, i.e. on each couchbase node,
     # override the CB_DATABASE value to be localhost so that all requests will be

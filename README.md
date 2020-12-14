@@ -18,7 +18,7 @@ export CB_PASSWORD='<>'
 
 Please list more than one node in the list of nodes. It does not matter the order or the service running on the node. The nodes must be separated by commas.
 
-By default the exporter runs in a "cluster" configuration, this way when it is scraped it will return all of the relevant metrics for a particular service for each node in the cluster.  This way only a single exporter has to be configured per cluster, however this may be undesirable or you may wish to install the exporter on each node in the cluster to reduce the overall payload size of metrics returned.  To do this set the variable `CB_EXPORTER_MODE` to local, then all requests will only be made to the localhost, and only relevant metrics to that single node will be returned. 
+By default the exporter runs in a "cluster" configuration, this way when it is scraped it will return all of the relevant metrics for a particular service for each node in the cluster.  This way only a single exporter has to be configured per cluster, however this may be undesirable or you may wish to install the exporter on each node in the cluster to reduce the overall payload size of metrics returned.  To do this set the variable `CB_EXPORTER_MODE` to local, then all requests will only be made to the localhost, and only relevant metrics to that single node will be returned.
 
 ```bash
 export CB_EXPORTER_MODE="local"
@@ -35,7 +35,7 @@ Another way to lower the payload size is to reduce the number of samples per pol
 export  CB_RESULTSET=1
 ```
 
-If you would like to run cbstats from the exporter to load into prometheus and grafana you need to set up passwordless ssh using an ssh key. Once the public key is loaded on each of the couchbase nodes and the private key loaded on the exporter you can then configure the exporter to use the key. The user will need to have access to run cbstats in whatever directory you have installed it. By default that will be /opt/couchbase/bin/cbstats
+If you would like to run cbstats from the exporter in cluster mode to load into prometheus and grafana you need to set up passwordless ssh using an ssh key. If you are running the exporter in local mode, it is not required to setup SSH as the local path will be used. Once the public key is loaded on each of the couchbase nodes and the private key loaded on the exporter you can then configure the exporter to use the key. The user will need to have access to run cbstats in whatever directory you have installed it. By default that will be /opt/couchbase/bin/cbstats
 
 ```
 export CB_KEY=/path/to/private/key
@@ -61,6 +61,13 @@ source /etc/profile.d/exporter.sh
 run with uwsgi<br/>
 ```
 uwsgi --http :5000 --processes 5 --pidfile /tmp/cbstats.pid --master --wsgi-file wsgi.py
+```
+
+[Node Exporter](https://prometheus.io/docs/guides/node-exporter/) and [Process Exporter](https://github.com/ncabatoff/process-exporter) are valuable exporters to that extract information which is not gathered by Couchbase or the Couchbase Exporter.  There is plenty of documentation of how to get these setup and running.  However, to correlate these metrics with the Couchbase Metrics there needs to be common labels.  The Couchbase Exporter exposes two additional endpoints `/metrics/node_exporter` and `/metrics/process_exporter`, these endpoints act as a proxy calling the Node / Process Exporter directly, but before the stats are returned, the cluster and node name labels are added to the metrics they return.   By default Node Exporter runs on port 9100, this should be changed to 9200 or some other port, as that is a port used by Couchbase Server, Process Exporter runs on port 9256.  These ports can be changed in the exporter by setting: 
+
+```
+export CB_NODE_EXPORTER_PORT = 9200
+export CB_PROCESS_EXPORTER_PORT = 9256
 ```
 
 ### To Run with Docker:
