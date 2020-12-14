@@ -13,25 +13,21 @@ class view():
     def __init__(self):
         self.methods = ["GET"]
         self.name = "process_exporter"
-        self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]},
-                        {"variable":"result_set","type":"int","name":"num_samples","value":60}]
+        self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]}]
         self.comment = '''This is the method used to access prometheus provided Node Exporter Metrics'''
         self.service_identifier = False
         self.inputs = [{"value":"user"},
                         {"value":"passwrd"},
                         {"value":"cluster_values['nodeList']"},
-                        {"value":"cluster_values['clusterName']"},
-                        {"value":"result_set"}]
+                        {"value":"cluster_values['clusterName']"}]
         self.exclude = False
 
 
-def run(url="", user="", passwrd="", nodes=[], num_samples = 60, result_set=60):
+def run(url="", user="", passwrd="", nodes=[]):
     '''Entry point for getting the metrics for the analytics nodes'''
     url = check_cluster(url, user, passwrd)
     metrics = []
     cluster_values = cb_cluster._get_cluster(url, user, passwrd, [])
-    if num_samples != 60:
-        result_set = num_samples
     if len(nodes) == 0:
         if len(cluster_values['nodeList']) > 0:
             __metrics = _get_metrics(
@@ -55,7 +51,7 @@ def _create_metric(tag, label="", value=""):
     else:
      return "{} {{{}}} {}".format(tag, ",".join(label), value)
 
-def _get_metrics(user, passwrd, node_list, cluster_name="", result_set=60):
+def _get_metrics(user, passwrd, node_list, cluster_name=""):
     '''Process Exporter Metrics'''
     process_metrics = {}
     process_metrics['metrics'] = []
