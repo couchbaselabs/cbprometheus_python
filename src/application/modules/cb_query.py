@@ -70,11 +70,11 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", slow_queries=True, r
         query_info['metrics'] = _get_completed_query_metrics(auth, node_list, cluster_name)
 
     for node in node_list:
+        node_hostname = node.split(":")[0]
         try:
             _query_url = "http://{}:8091/pools/default/buckets/@query/nodes/{}:8091/stats".format(
-                node.split(":")[0], node.split(":")[0])
+                node_hostname, node_hostname)
             q_json = rest_request(auth, _query_url)
-            _node = node
             for record in q_json['op']['samples']:
                 if record != "timestamp":
                     for idx, datapoint in enumerate(q_json['op']['samples'][record]):
@@ -84,7 +84,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", slow_queries=True, r
                                 "type=\"query\"}} {} {}".format(
                                     record,
                                     cluster_name,
-                                    _node,
+                                    node_hostname,
                                     datapoint,
                                     q_json['op']['samples']['timestamp'][idx]))
 
@@ -128,13 +128,13 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
     n1ql_stmt = urlencode({ "statement": re.sub(" +", " ", n1ql_stmt.strip("\r\n")) })
 
     for node in node_list:
+        node_hostname = node.split(":")[0]
         try:
             _query_url = "http://{}:8093/query/service?{}".format(
-                node.split(":")[0],
+                node_hostname,
                 n1ql_stmt
             )
             q_json = rest_request(auth, _query_url)
-            _node = node
             for record in q_json['results']:
                 statement = record['statement'].replace('"','\\"').replace('\n', ' ')
                 # generate a hash of the statement so that if the user wants the statement
@@ -156,7 +156,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                     "type=\"completed-query\"}} {} {}".format(
                         "completed_request",
                         cluster_name,
-                        _node,
+                        node_hostname,
                         record['queue_time_ms'],
                         record['elapsed_time_ms'],
                         record['result_count'],
@@ -180,7 +180,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                     "type=\"completed-request\"}} {} {}".format(
                         "completed_request_service_time_ms",
                         cluster_name,
-                        _node,
+                        node_hostname,
                         record['request_id'],
                         statement_signature,
                         statement,
@@ -197,7 +197,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                     "type=\"completed-request\"}} {} {}".format(
                         "completed_request_queue_time_ms",
                         cluster_name,
-                        _node,
+                        node_hostname,
                         record['request_id'],
                         statement_signature,
                         statement,
@@ -214,7 +214,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                     "type=\"completed-request\"}} {} {}".format(
                         "completed_request_elapsed_time_ms",
                         cluster_name,
-                        _node,
+                        node_hostname,
                         record['request_id'],
                         statement_signature,
                         statement,
@@ -231,7 +231,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                     "type=\"completed-request\"}} {} {}".format(
                         "completed_request_result_count",
                         cluster_name,
-                        _node,
+                        node_hostname,
                         record['request_id'],
                         statement_signature,
                         statement,
@@ -248,7 +248,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                     "type=\"completed-request\"}} {} {}".format(
                         "completed_request_result_size_bytes",
                         cluster_name,
-                        _node,
+                        node_hostname,
                         record['request_id'],
                         statement_signature,
                         statement,
@@ -265,7 +265,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                     "type=\"completed-request\"}} {} {}".format(
                         "completed_request_query_selectivity_percent",
                         cluster_name,
-                        _node,
+                        node_hostname,
                         record['request_id'],
                         statement_signature,
                         statement,
@@ -282,7 +282,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                     "type=\"completed-request\"}} {} {}".format(
                         "completed_request_scan_results",
                         cluster_name,
-                        _node,
+                        node_hostname,
                         record['request_id'],
                         statement_signature,
                         statement,
@@ -299,7 +299,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                     "type=\"completed-request\"}} {} {}".format(
                         "completed_request_fetches",
                         cluster_name,
-                        _node,
+                        node_hostname,
                         record['request_id'],
                         statement_signature,
                         statement,

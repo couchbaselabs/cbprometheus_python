@@ -103,14 +103,14 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", bucket_names=[], res
                 print("Error getting buckets from node: {}: {}".format(uri, str(e.args)))
         for node in node_list:
             try:
+                node_hostname = node.split(":")[0]
                 if len(bucket_names) == 0:
                     for bucket in f_json:
                         bucket_info['buckets'].append(bucket['name'])
                         bucket_url = "http://{}:8091/pools/default/buckets/" \
                                      "{}/nodes/{}:8091/stats".format(
-                            node.split(":")[0], bucket['name'], node.split(":")[0])
+                            node_hostname, bucket['name'], node_hostname)
                         b_json = rest_request(auth, bucket_url)
-                        _node = node
                         for _record in b_json['op']['samples']:
                             record = value_to_string(_record)
                             if record != "timestamp":
@@ -129,7 +129,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", bucket_names=[], res
                                                     ddoc_stat,
                                                     cluster_name,
                                                     bucket['name'],
-                                                    _node,
+                                                    node_hostname,
                                                     ddoc_type,
                                                     ddoc_uuid,
                                                     dpt,
@@ -145,18 +145,17 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", bucket_names=[], res
                                                     record,
                                                     cluster_name,
                                                     bucket['name'],
-                                                    _node,
+                                                    node_hostname,
                                                     dpt,
                                                     b_json['op']['samples']['timestamp'][idx]))
                 else:
                     for bucket in bucket_names:
                         bucket_info['buckets'].append(bucket)
                         bucket_url = "http://{}:8091/pools/default/buckets/" \
-                                     "{}/nodes/{}:8091/stats".format(node.split(":")[0],
+                                     "{}/nodes/{}:8091/stats".format(node_hostname,
                                                                      bucket,
-                                                                     node.split(":")[0])
+                                                                     node_hostname)
                         b_json = rest_request(auth, bucket_url)
-                        _node = node
                         for _record in b_json['op']['samples']:
                             record = value_to_string(_record)
                             if record != "timestamp":
@@ -175,7 +174,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", bucket_names=[], res
                                                     ddoc_stat,
                                                     cluster_name,
                                                     bucket,
-                                                    _node,
+                                                    node_hostname,
                                                     ddoc_type,
                                                     ddoc_uuid,
                                                     dpt,
@@ -191,7 +190,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", bucket_names=[], res
                                                     record,
                                                     cluster_name,
                                                     bucket,
-                                                    _node,
+                                                    node_hostname,
                                                     dpt,
                                                     b_json['op']['samples']['timestamp'][idx]))
             except Exception as e:

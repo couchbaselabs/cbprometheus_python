@@ -2,6 +2,7 @@ import sys
 import os
 import subprocess
 import json
+from application import application
 
 class SSH_controller():
     def __init__(self, service, key, username, cb_username=None, cb_pw=None):
@@ -24,7 +25,7 @@ class SSH_controller():
 
         if self.service == "cbstats":
             self.command = " ".join([self.path,
-                        '{}:11210'.format(self.node),
+                        '{}:11210'.format(self.node.split(":")[0]),
                         '-u', self.cb_username,
                         '-p', self.cb_pw,
                         '-b', bucket,
@@ -32,16 +33,24 @@ class SSH_controller():
                         'all'])
             if self.ssh_host is None:
                 self.ssh_host = self.node
-            self.ssh = subprocess.Popen(["ssh", "-i", self.key, "-o", "StrictHostKeyChecking=no",
-                                            "-o", "PasswordAuthentication=no",
-                                            "{}@{}".format(self.username,
-                                                            self.ssh_host),
-                                            self.command],
-                                        shell=False,
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE)
-            self.result = self.ssh.stdout.readlines()
-            self.error = self.ssh.stderr.readlines()
+            if application.config['CB_EXPORTER_MODE'] == "local":
+                self.ssh = subprocess.Popen(self.command,
+                                            shell=True,
+                                            stdout=subprocess.PIPE,
+                                            stderr=subprocess.PIPE)
+                self.result = self.ssh.stdout.readlines()
+                self.error = self.ssh.stderr.readlines()
+            else:
+                self.ssh = subprocess.Popen(["ssh", "-i", self.key, "-o", "StrictHostKeyChecking=no",
+                                                "-o", "PasswordAuthentication=no",
+                                                "{}@{}".format(self.username,
+                                                                self.ssh_host),
+                                                self.command],
+                                            shell=False,
+                                            stdout=subprocess.PIPE,
+                                            stderr=subprocess.PIPE)
+                self.result = self.ssh.stdout.readlines()
+                self.error = self.ssh.stderr.readlines()
             if self.result == []:
                 print("{} had an error: {}".format(self.node, self.error))
             else:

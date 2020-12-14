@@ -1,5 +1,5 @@
 import sys
-
+from application import application
 if sys.version_info[0] == 3:
     from .cb_utilities import *
     from . import cb_cluster, cb_bucket
@@ -74,11 +74,11 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
     sample_list = get_sample_list(result_set)
     # get cluster index info
     for node in nodes:
+        node_hostname = node.split(":")[0]
         _index_url = "http://{}:8091/pools/default/buckets/@index/nodes/{}:8091/stats".format(
-            node.split(":")[0], node.split(":")[0])
+            node_hostname, node_hostname)
         try:
             i_json = rest_request(auth, _index_url)
-            _node = node
             for record in i_json['op']['samples']:
                 if record != "timestamp":
                     for idx, datapoint in enumerate(i_json['op']['samples'][record]):
@@ -88,7 +88,7 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                                 "type=\"index-service\"}} {} {}".format(
                                     record,
                                     cluster_name,
-                                    _node,
+                                    node_hostname,
                                     datapoint,
                                     i_json['op']['samples']['timestamp'][idx]))
 
@@ -96,17 +96,17 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
             print("index base: " + str(e))
 
     for node in nodes:
+        node_hostname = node.split(":")[0]
         for bucket in buckets:
             try:
                 index_info_url = "http://{}:8091/pools/default/buckets/@index-{}/" \
-                                 "nodes/{}:8091/stats".format(node.split(":")[0],
+                                 "nodes/{}:8091/stats".format(node_hostname,
                                                               bucket,
-                                                              node.split(":")[0])
+                                                              node_hostname)
                 ii_json = rest_request(auth, index_info_url)
                 for record in ii_json['op']['samples']:
                     name = ""
                     index_type = ""
-                    _node = node
                     try:
                         split_record = record.split("/")
                         if len(split_record) == 3:
@@ -122,7 +122,7 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                                             "type=\"index\"}} {} {}".format(
                                                 index_type,
                                                 cluster_name,
-                                                _node,
+                                                node_hostname,
                                                 name,
                                                 bucket,
                                                 datapoint,
@@ -135,7 +135,7 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                                     "type=\"index\"}} {}".format(
                                         index_type,
                                         cluster_name,
-                                        _node,
+                                        node_hostname,
                                         name,
                                         bucket,
                                         ii_json['op']['samples'][record]))
@@ -151,7 +151,7 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                                             "type=\"index\"}} {} {}".format(
                                                 index_type,
                                                 cluster_name,
-                                                _node,
+                                                node_hostname,
                                                 bucket,
                                                 datapoint,
                                                 ii_json['op']['samples']['timestamp'][idx]))
@@ -162,7 +162,7 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                                     "type=\"index\"}} {}".format(
                                         index_type,
                                         cluster_name,
-                                        _node,
+                                        node_hostname,
                                         bucket,
                                         ii_json['op']['samples'][record]))
                         else:
@@ -193,16 +193,20 @@ def _get_index_replica_counts(url, user, passwrd, cluster_name=""):
                     num_replica = _index['numReplica']
                 except:
                     pass
-                replica_info['metrics'].append(
-                    "index_num_replica {{cluster=\"{}\", node=\"{}\","
-                    "index=\"{}\", "
-                    "bucket=\"{}\", "
-                    "type=\"index\"}} {}".format(
-                        cluster_name,
-                        _index['hosts'][0],
-                        _index['index'],
-                        _index['bucket'],
-                        num_replica))
+                # only output the index_num_replica stat, if we're in cluster mode, or if we're in local mode
+                # and the local nodes Couchbase hostname is in the indexes hosts list
+                if (application.config['CB_EXPORTER_MODE'] == "local" and url + ":8091" in _index['hosts']) or application.config['CB_EXPORTER_MODE'] == "cluster":
+                    replica_info['metrics'].append(
+                        "index_num_replica {{cluster=\"{}\", node=\"{}\","
+                        "index=\"{}\", "
+                        "bucket=\"{}\", "
+                        "type=\"index\"}} {}".format(
+                            cluster_name,
+                            _index['hosts'][0],
+                            _index['index'],
+                            _index['bucket'],
+                            num_replica))
+
             except Exception as e:
                 print("error: {}, {}".format(_index, str(e)))
 

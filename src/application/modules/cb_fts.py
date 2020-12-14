@@ -77,17 +77,17 @@ def _get_metrics(user, passwrd, node_list, bucket_list, cluster_name="", result_
     auth = basic_authorization(user, passwrd)
     sample_list = get_sample_list(result_set)
     for node in node_list:
+        node_hostname = node.split(":")[0]
         for bucket in bucket_list:
             try:
                 _fts_url = "http://{}:8091/pools/default/buckets/" \
-                           "@fts-{}/nodes/{}:8091/stats".format(node.split(":")[0],
+                           "@fts-{}/nodes/{}:8091/stats".format(node_hostname,
                                                                 bucket,
-                                                                node.split(":")[0])
+                                                                node_hostname)
                 f_json = rest_request(auth, _fts_url)
                 for record in f_json['op']['samples']:
                     name = ""
                     metric_type = ""
-                    _node = node
                     try:
                         split_record = record.split("/")
                         if len(split_record) == 3:
@@ -103,7 +103,7 @@ def _get_metrics(user, passwrd, node_list, bucket_list, cluster_name="", result_
                                             "type=\"fts_stat\"}} {} {}".format(
                                                 metric_type,
                                                 cluster_name,
-                                                _node,
+                                                node_hostname,
                                                 name,
                                                 datapoint,
                                                 f_json['op']['samples']['timestamp'][idx]))
@@ -114,7 +114,7 @@ def _get_metrics(user, passwrd, node_list, bucket_list, cluster_name="", result_
                                     "type=\"fts_stat\"}} {}".format(
                                         metric_type,
                                         cluster_name,
-                                        _node,
+                                        node_hostname,
                                         name,
                                         f_json['op']['samples'][record]))
                         elif len(split_record) == 2:
@@ -127,7 +127,7 @@ def _get_metrics(user, passwrd, node_list, bucket_list, cluster_name="", result_
                                             "type=\"fts_stat\"}} {} {}".format(
                                                 metric_type,
                                                 cluster_name,
-                                                _node,
+                                                node_hostname,
                                                 datapoint,
                                                 f_json['op']['samples']['timestamp'][idx]))
 
@@ -137,7 +137,7 @@ def _get_metrics(user, passwrd, node_list, bucket_list, cluster_name="", result_
                                     "type=\"fts_stat\"}} {}".format(
                                         metric_type,
                                         cluster_name,
-                                        _node,
+                                        node_hostname,
                                         f_json['op']['samples'][record]))
                         else:
                             pass

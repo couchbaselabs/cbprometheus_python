@@ -18,7 +18,14 @@ export CB_PASSWORD='<>'
 
 Please list more than one node in the list of nodes. It does not matter the order or the service running on the node. The nodes must be separated by commas.
 
+By default the exporter runs in a "cluster" configuration, this way when it is scraped it will return all of the relevant metrics for a particular service for each node in the cluster.  This way only a single exporter has to be configured per cluster, however this may be undesirable or you may wish to install the exporter on each node in the cluster to reduce the overall payload size of metrics returned.  To do this set the variable `CB_EXPORTER_MODE` to local, then all requests will only be made to the localhost, and only relevant metrics to that single node will be returned. 
+
+```bash
+export CB_EXPORTER_MODE="local"
+```
+
 if you are working with very large clusters or clusters with many indexes it may be more performant to stream your results to prometheus instead of trying to load the full dataset at one time. To do that export the following variable</br>
+
 ```
 export CB_STREAMING=true
 ```

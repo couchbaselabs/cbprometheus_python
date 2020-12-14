@@ -64,7 +64,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", result_set=60):
             for record in e_json['op']['samples']:
                 name = ""
                 metric_type = ""
-                _node = node
+                node_hostname = node.split(":")[0]
                 try:
                     split_record = record.split("/")
                     if len(split_record) == 3:
@@ -79,7 +79,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", result_set=60):
                                         "type=\"eventing_stat\"}} {} {}".format(
                                             metric_type,
                                             cluster_name,
-                                            _node,
+                                            node_hostname,
                                             name,
                                             datapoint,
                                             e_json['op']['samples']['timestamp'][idx]))
@@ -90,7 +90,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", result_set=60):
                                 "type=\"eventing_stat\"}} {}".format(
                                     metric_type,
                                     cluster_name,
-                                    _node,
+                                    node_hostname,
                                     name,
                                     e_json['op']['samples'][record]))
                     elif len(split_record) == 2:
@@ -104,7 +104,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", result_set=60):
                                         "type=\"eventing_stat\"}} {} {}".format(
                                             metric_type,
                                             cluster_name,
-                                            _node,
+                                            node_hostname,
                                             datapoint,
                                             e_json['op']['samples']['timestamp'][idx]))
                         else:
@@ -113,7 +113,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", result_set=60):
                                 "type=\"eventing_stat\"}} {}".format(
                                     metric_type,
                                     cluster_name,
-                                    _node,
+                                    node_hostname,
                                     datapoint))
                     else:
                         next
