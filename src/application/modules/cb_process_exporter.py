@@ -12,7 +12,7 @@ else:
 class view():
     def __init__(self):
         self.methods = ["GET"]
-        self.name = "node_exporter"
+        self.name = "process_exporter"
         self.filters = [{"variable":"nodes","type":"default","name":"nodes_list","value":[]}]
         self.comment = '''This is the method used to access prometheus provided Node Exporter Metrics'''
         self.service_identifier = False
@@ -52,9 +52,9 @@ def _create_metric(tag, label="", value=""):
      return "{} {{{}}} {}".format(tag, ",".join(label), value)
 
 def _get_metrics(user, passwrd, node_list, cluster_name=""):
-    '''Node Exporter Metrics'''
-    node_metrics = {}
-    node_metrics['metrics'] = []
+    '''Process Exporter Metrics'''
+    process_metrics = {}
+    process_metrics['metrics'] = []
     # Doing this to prevent updating the nodeList with the IP of the exporter
     __node_list = node_list
     if application.config['CB_EXPORTER_MODE'] != "local":
@@ -67,14 +67,14 @@ def _get_metrics(user, passwrd, node_list, cluster_name=""):
         try:
             _ne_url = "http://{}:{}/metrics".format(
                 node_hostname,
-                application.config['CB_NODE_EXPORTER_PORT'])
+                application.config['CB_PROCESS_EXPORTER_PORT'])
             a_json = text_request(_ne_url)
             _node = node
             for record in a_json:
                 tag = ""
                 label = ['\"cluster\":\"{}\"'.format(cluster_name),
                             '\"node\":\"{}\"'.format(node_hostname),
-                            '\"type\"=\"node_exporter\"']
+                            '\"type\"=\"process_exporter\"']
                 _value = ""
                 if len(record) == 0:
                     next
@@ -83,12 +83,12 @@ def _get_metrics(user, passwrd, node_list, cluster_name=""):
                     label += _label
                     tag = re.search('(.*)\{', record.strip()).group(1)
                     _value = re.search('\}(.*)', record.strip()).group(1)
-                    node_metrics['metrics'].append(_create_metric(tag, label, _value))
+                    process_metrics['metrics'].append(_create_metric(tag, label, _value))
                 elif "#" in record:
-                    node_metrics['metrics'].append(_create_metric(record))
+                    process_metrics['metrics'].append(_create_metric(record))
                 else:
                     tag, _value = record.strip().split(" ")
-                    node_metrics['metrics'].append(_create_metric(tag, label, _value))
+                    process_metrics['metrics'].append(_create_metric(tag, label, _value))
         except Exception as e:
-            print("node_exporter base: " + str(e))
-    return node_metrics
+            print("process_exporter base: " + str(e))
+    return process_metrics

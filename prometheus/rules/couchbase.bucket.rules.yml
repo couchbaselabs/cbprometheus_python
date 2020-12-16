@@ -36,7 +36,7 @@ groups:
     for: 1s
     labels:
       severity: warning
-      cluster: '{{ $labels.clsuter }}'
+      cluster: '{{ $labels.cluster }}'
     annotations:
       summary: 'Disk usage increased more than 1tb in the last 24h'
   # alert if the disk usage has descreased by more than 1tb in the past day

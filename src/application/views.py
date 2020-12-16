@@ -385,19 +385,12 @@ def node_exporter():
 			application.config['CB_DATABASE'],
 			application.config['CB_USERNAME'],
 			application.config['CB_PASSWORD'])['serviceNodes']['thisNode']]
-	num_samples = 60
-	if request.args.get('num_samples'):
-		num_samples = int(request.args.get('num_samples'))
-	result_set = 60
-	if application.config['CB_RESULTSET']:
-		result_set = application.config['CB_RESULTSET']
+
 	_value = cb_node_exporter.run(
 		application.config['CB_DATABASE'],
 		application.config['CB_USERNAME'],
 		application.config['CB_PASSWORD'],
-		nodes_list,
-		num_samples,
-		result_set)
+		nodes_list)
 	if application.config['CB_STREAMING']:
 		def generate():
 			for row in _value:
@@ -408,6 +401,37 @@ def node_exporter():
 		metrics_str = metrics_str.join(_value)
 		return Response(metrics_str, mimetype='text/plain')
 
+
+@application.route('/metrics/process_exporter', methods=['GET'])
+@application.route('/process_exporter', methods=['GET'])
+def process_exporter():
+	'''This is the method used to access Process Exporter Metrics'''
+	nodes_list = []
+	if request.args.get('nodes'):
+		nodes_str = request.args.get('nodes')
+		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
+		nodes_list = nodes_str.split(',')
+	elif application.config['CB_EXPORTER_MODE'] == "local":
+		# if we're running in local mode, we need to get the Couchbase hostname of the localhost
+		nodes_list = [cb_cluster._get_cluster(
+			application.config['CB_DATABASE'],
+			application.config['CB_USERNAME'],
+			application.config['CB_PASSWORD'])['serviceNodes']['thisNode']]
+
+	_value = cb_process_exporter.run(
+		application.config['CB_DATABASE'],
+		application.config['CB_USERNAME'],
+		application.config['CB_PASSWORD'],
+		nodes_list)
+	if application.config['CB_STREAMING']:
+		def generate():
+			for row in _value:
+				yield(row + '\n')
+		return Response(stream_with_context(generate()), mimetype='text/plain')
+	else:
+		metrics_str = '\n'
+		metrics_str = metrics_str.join(_value)
+		return Response(metrics_str, mimetype='text/plain')
 
 @application.route('/metrics/query', methods=['GET'])
 @application.route('/query', methods=['GET'])
