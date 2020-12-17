@@ -72,9 +72,8 @@ def _get_metrics(user, passwrd, node_list, cluster_name=""):
             _node = node
             for record in a_json:
                 tag = ""
-                label = ['\"cluster\":\"{}\"'.format(cluster_name),
-                            '\"node\":\"{}\"'.format(node_hostname),
-                            '\"type\"=\"process_exporter\"']
+                label = ['cluster=\"{}\"'.format(cluster_name),
+                            'node=\"{}\"'.format(node_hostname)]
                 _value = ""
                 if len(record) == 0:
                     next
