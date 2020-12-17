@@ -2,6 +2,7 @@ import json
 import re
 from random import shuffle
 from datetime import datetime
+from application import application
 import socket
 import sys
 
@@ -81,7 +82,7 @@ def rest_request(auth, url):
                               "User-Agent": "check_version/1",
                           })
 
-    f = (urlopen(req, timeout=1)).read()
+    f = (urlopen(req, timeout=application.config['CB_EXPORTER_TIMEOUT'])).read()
     result = json.loads(f)
     return result
 

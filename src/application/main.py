@@ -31,8 +31,7 @@ def get_metrics(url='', user='', passwrd='', num_samples=60, result_set=60):
 		metrics = metrics + analytics_metrics['metrics']
 
 	if len(cluster_values['serviceNodes']['kv']) > 0:
-		buckets_metrics = cb_bucket._get_metrics(
-			user, passwrd, cluster_values['serviceNodes']['kv'], cluster_values['clusterName'], result_set)
+		buckets_metrics = cb_bucket._get_metrics(user, passwrd, cluster_values['serviceNodes']['kv'], cluster_values['clusterName'], buckets, result_set)
 		metrics = metrics + buckets_metrics['metrics']
 
 	if len(cluster_values['serviceNodes']['eventing']) > 0:
@@ -51,7 +50,7 @@ def get_metrics(url='', user='', passwrd='', num_samples=60, result_set=60):
 		metrics = metrics + indexes_metrics['metrics']
 
 	node_exporter_metrics = cb_node_exporter._get_metrics(
-		user, passwrd, cluster_values['nodeList'], cluster_values['clusterName'], result_set)
+		user, passwrd, cluster_values['nodeList'], cluster_values['clusterName'])
 	metrics = metrics + node_exporter_metrics['metrics']
 
 	if len(cluster_values['serviceNodes']['n1ql']) > 0:
