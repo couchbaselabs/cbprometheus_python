@@ -96,7 +96,7 @@ def text_request(url):
                               "Accept": "*/*",  # curl does this
                               "User-Agent": "check_version/1",
                           })
-    f = (urlopen(req, timeout=0.1)).readlines()
+    f = (urlopen(req, timeout=application.config['CB_EXPORTER_TIMEOUT'])).readlines()
     return(f)
 
 def check_cluster(url, username, pw):
