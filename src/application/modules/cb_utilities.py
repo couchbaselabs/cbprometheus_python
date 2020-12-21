@@ -65,10 +65,10 @@ def str2bool(v):
     '''Converts string values to boolean'''
     return v.lower() in ("yes", "true", "t", "1")
 
-def value_to_string(ip_address):
+def value_to_string(str):
     '''converts values to strings without special characters'''
-    ip_address = ip_address.split(":")[0].replace(".", "_").replace("+", "_").replace("+", "_")
-    return ip_address
+    str = str.split(":")[0].replace(".", "_").replace("+", "_").replace("+", "_").replace(",", "_")
+    return str
 
 def rest_request(auth, url):
     _url = url
