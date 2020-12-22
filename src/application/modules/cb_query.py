@@ -76,17 +76,33 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", slow_queries=True, r
                 node_hostname, node_hostname)
             q_json = rest_request(auth, _query_url)
             for record in q_json['op']['samples']:
+                samples_count = len(q_json['op']['samples'][record])
                 if record != "timestamp":
-                    for idx, datapoint in enumerate(q_json['op']['samples'][record]):
-                        if idx in sample_list:
-                            query_info['metrics'].append(
-                                "{} {{cluster=\"{}\", node=\"{}\", "
-                                "type=\"query\"}} {} {}".format(
-                                    record,
-                                    cluster_name,
-                                    node_hostname,
-                                    datapoint,
-                                    q_json['op']['samples']['timestamp'][idx]))
+                    # if the sample list value is greater than the samples count, just use the last sample
+                    if samples_count < sample_list[0]:
+                        query_info['metrics'].append(
+                            "{} {{cluster=\"{}\", node=\"{}\", "
+                            "type=\"query\"}} {} {}".format(
+                                record,
+                                cluster_name,
+                                node_hostname,
+                                q_json['op']['samples'][record][samples_count - 1],
+                                q_json['op']['samples']['timestamp'][samples_count - 1]
+                            )
+                        )
+                    else:
+                        for idx, datapoint in enumerate(q_json['op']['samples'][record]):
+                            if idx in sample_list:
+                                query_info['metrics'].append(
+                                    "{} {{cluster=\"{}\", node=\"{}\", "
+                                    "type=\"query\"}} {} {}".format(
+                                        record,
+                                        cluster_name,
+                                        node_hostname,
+                                        datapoint,
+                                        q_json['op']['samples']['timestamp'][idx]
+                                    )
+                                )
 
         except Exception as e:
             print("query base: " + str(e))
