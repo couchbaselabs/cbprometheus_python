@@ -113,27 +113,50 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", bucket_names=[], res
                         b_json = rest_request(auth, bucket_url)
                         for _record in b_json['op']['samples']:
                             record = value_to_string(_record)
+                            split_record = record.split("/")
+                            samples_count = len(b_json['op']['samples'][_record])
                             if record != "timestamp":
-                                if len(record.split("/")) == 3:
-                                    ddoc_type = record.split("/")[0]
-                                    ddoc_uuid = record.split("/")[1]
-                                    ddoc_stat = record.split("/")[2]
-                                    for idx, dpt in enumerate(b_json['op']['samples'][_record]):
-                                        if idx in sample_list:
-                                            bucket_info['metrics'].append(
-                                                "{} {{cluster=\"{}\", bucket=\"{}\", "
-                                                "node=\"{}\", "
-                                                "type=\"view\" "
-                                                "viewType=\"{}\", "
-                                                "view=\"{}\"}} {} {}".format(
-                                                    ddoc_stat,
-                                                    cluster_name,
-                                                    bucket['name'],
-                                                    node_hostname,
-                                                    ddoc_type,
-                                                    ddoc_uuid,
-                                                    dpt,
-                                                    b_json['op']['samples']['timestamp'][idx]))
+                                if len(split_record) == 3:
+                                    ddoc_type = split_record[0]
+                                    ddoc_uuid = split_record[1]
+                                    ddoc_stat = split_record[2]
+                                    # if the sample list value is greater than the samples count, just use the last sample
+                                    if samples_count < sample_list[0]:
+                                        bucket_info['metrics'].append(
+                                            "{} {{cluster=\"{}\", bucket=\"{}\", "
+                                            "node=\"{}\", "
+                                            "type=\"view\" "
+                                            "viewType=\"{}\", "
+                                            "view=\"{}\"}} {} {}".format(
+                                                ddoc_stat,
+                                                cluster_name,
+                                                bucket['name'],
+                                                node_hostname,
+                                                ddoc_type,
+                                                ddoc_uuid,
+                                                b_json['op']['samples'][_record][samples_count - 1],
+                                                b_json['op']['samples']['timestamp'][samples_count - 1]
+                                            )
+                                        )
+                                    else:
+                                        for idx, dpt in enumerate(b_json['op']['samples'][_record]):
+                                            if idx in sample_list:
+                                                bucket_info['metrics'].append(
+                                                    "{} {{cluster=\"{}\", bucket=\"{}\", "
+                                                    "node=\"{}\", "
+                                                    "type=\"view\" "
+                                                    "viewType=\"{}\", "
+                                                    "view=\"{}\"}} {} {}".format(
+                                                        ddoc_stat,
+                                                        cluster_name,
+                                                        bucket['name'],
+                                                        node_hostname,
+                                                        ddoc_type,
+                                                        ddoc_uuid,
+                                                        dpt,
+                                                        b_json['op']['samples']['timestamp'][idx]
+                                                    )
+                                                )
 
                                 else:
                                     for idx, dpt in enumerate(b_json['op']['samples'][_record]):
@@ -158,13 +181,34 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", bucket_names=[], res
                         b_json = rest_request(auth, bucket_url)
                         for _record in b_json['op']['samples']:
                             record = value_to_string(_record)
+                            split_record = record.split("/")
+                            samples_count = len(b_json['op']['samples'][_record])
                             if record != "timestamp":
-                                if len(record.split("/")) == 3:
-                                    ddoc_type = record.split("/")[0]
-                                    ddoc_uuid = record.split("/")[1]
-                                    ddoc_stat = record.split("/")[2]
-                                    for idx, dpt in enumerate(b_json['op']['samples'][_record]):
-                                        if idx in sample_list:
+                                if len(split_record) == 3:
+                                    ddoc_type = split_record[0]
+                                    ddoc_uuid = split_record[1]
+                                    ddoc_stat = split_record[2]
+                                    # if the sample list value is greater than the samples count, just use the last sample
+                                    if samples_count < sample_list[0]:
+                                        bucket_info['metrics'].append(
+                                            "{} {{cluster=\"{}\", bucket=\"{}\", "
+                                            "node=\"{}\", "
+                                            "type=\"view\" "
+                                            "viewType=\"{}\", "
+                                            "view=\"{}\"}} {} {}".format(
+                                                ddoc_stat,
+                                                cluster_name,
+                                                bucket,
+                                                node_hostname,
+                                                ddoc_type,
+                                                ddoc_uuid,
+                                                b_json['op']['samples'][_record][samples_count - 1],
+                                                b_json['op']['samples']['timestamp'][samples_count - 1]
+                                            )
+                                        )
+                                    else:
+                                        # if the sample list value is greater than the samples count, just use the last sample
+                                        if samples_count < sample_list[0]:
                                             bucket_info['metrics'].append(
                                                 "{} {{cluster=\"{}\", bucket=\"{}\", "
                                                 "node=\"{}\", "
@@ -177,22 +221,60 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", bucket_names=[], res
                                                     node_hostname,
                                                     ddoc_type,
                                                     ddoc_uuid,
-                                                    dpt,
-                                                    b_json['op']['samples']['timestamp'][idx]))
+                                                    b_json['op']['samples'][_record][samples_count - 1],
+                                                    b_json['op']['samples']['timestamp'][samples_count - 1]
+                                                )
+                                            )
+                                        else:
+                                            for idx, dpt in enumerate(b_json['op']['samples'][_record]):
+                                                if idx in sample_list:
+                                                    bucket_info['metrics'].append(
+                                                        "{} {{cluster=\"{}\", bucket=\"{}\", "
+                                                        "node=\"{}\", "
+                                                        "type=\"view\" "
+                                                        "viewType=\"{}\", "
+                                                        "view=\"{}\"}} {} {}".format(
+                                                            ddoc_stat,
+                                                            cluster_name,
+                                                            bucket,
+                                                            node_hostname,
+                                                            ddoc_type,
+                                                            ddoc_uuid,
+                                                            dpt,
+                                                            b_json['op']['samples']['timestamp'][idx]
+                                                        )
+                                                    )
 
                                 else:
-                                    for idx, dpt in enumerate(b_json['op']['samples'][_record]):
-                                        if idx in sample_list:
-                                            bucket_info['metrics'].append(
-                                                "{} {{cluster=\"{}\", bucket=\"{}\", "
-                                                "node=\"{}\", "
-                                                "type=\"bucket\"}} {} {}".format(
-                                                    record,
-                                                    cluster_name,
-                                                    bucket,
-                                                    node_hostname,
-                                                    dpt,
-                                                    b_json['op']['samples']['timestamp'][idx]))
+                                    # if the sample list value is greater than the samples count, just use the last sample
+                                    if samples_count < sample_list[0]:
+                                        bucket_info['metrics'].append(
+                                            "{} {{cluster=\"{}\", bucket=\"{}\", "
+                                            "node=\"{}\", "
+                                            "type=\"bucket\"}} {} {}".format(
+                                                record,
+                                                cluster_name,
+                                                bucket,
+                                                node_hostname,
+                                                b_json['op']['samples'][_record][samples_count - 1],
+                                                b_json['op']['samples']['timestamp'][samples_count - 1]
+                                            )
+                                        )
+                                    else:
+                                        for idx, dpt in enumerate(b_json['op']['samples'][_record]):
+                                            if idx in sample_list:
+                                                bucket_info['metrics'].append(
+                                                    "{} {{cluster=\"{}\", bucket=\"{}\", "
+                                                    "node=\"{}\", "
+                                                    "type=\"bucket\"}} {} {}".format(
+                                                        record,
+                                                        cluster_name,
+                                                        bucket,
+                                                        node_hostname,
+                                                        dpt,
+                                                        b_json['op']['samples']['timestamp'][idx]
+                                                    )
+                                                )
             except Exception as e:
                 print(e)
     except Exception as e:

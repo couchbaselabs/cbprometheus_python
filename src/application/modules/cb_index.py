@@ -79,18 +79,32 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
             node_hostname, node_hostname)
         try:
             i_json = rest_request(auth, _index_url)
+            samples_count = len(i_json['op']['samples'][record])
             for record in i_json['op']['samples']:
                 if record != "timestamp":
-                    for idx, datapoint in enumerate(i_json['op']['samples'][record]):
-                        if idx in sample_list:
-                            index_info['metrics'].append(
-                                "{} {{cluster=\"{}\", node=\"{}\", "
-                                "type=\"index-service\"}} {} {}".format(
-                                    record,
-                                    cluster_name,
-                                    node_hostname,
-                                    datapoint,
-                                    i_json['op']['samples']['timestamp'][idx]))
+                    # if the sample list value is greater than the samples count, just use the last sample
+                    if samples_count < sample_list[0]:
+                        index_info['metrics'].append(
+                            "{} {{cluster=\"{}\", node=\"{}\", "
+                            "type=\"index-service\"}} {} {}".format(
+                                record,
+                                cluster_name,
+                                node_hostname,
+                                i_json['op']['samples'][record][samples_count - 1],
+                                i_json['op']['samples']['timestamp'][samples_count - 1]
+                            )
+                        )
+                    else:
+                        for idx, datapoint in enumerate(i_json['op']['samples'][record]):
+                            if idx in sample_list:
+                                index_info['metrics'].append(
+                                    "{} {{cluster=\"{}\", node=\"{}\", "
+                                    "type=\"index-service\"}} {} {}".format(
+                                        record,
+                                        cluster_name,
+                                        node_hostname,
+                                        datapoint,
+                                        i_json['op']['samples']['timestamp'][idx]))
 
         except Exception as e:
             print("index base: " + str(e))
@@ -109,24 +123,40 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                     index_type = ""
                     try:
                         split_record = record.split("/")
+                        samples_count = len(ii_json['op']['samples'][record])
                         if len(split_record) == 3:
                             name = (split_record[1]).replace("+", "_")
                             index_type = (split_record[2]).replace("+", "_")
                             if isinstance(ii_json['op']['samples'][record], type([])):
-                                for idx, datapoint in enumerate(ii_json['op']['samples'][record]):
-                                    if idx in sample_list:
-                                        index_info['metrics'].append(
-                                            "{} {{cluster=\"{}\", node=\"{}\","
-                                            "index=\"{}\", "
-                                            "bucket=\"{}\", "
-                                            "type=\"index\"}} {} {}".format(
-                                                index_type,
-                                                cluster_name,
-                                                node_hostname,
-                                                name,
-                                                bucket,
-                                                datapoint,
-                                                ii_json['op']['samples']['timestamp'][idx]))
+                                # if the sample list value is greater than the samples count, just use the last sample
+                                if samples_count < sample_list[0]:
+                                    index_info['metrics'].append(
+                                        "{} {{cluster=\"{}\", node=\"{}\", "
+                                        "type=\"index-service\"}} {} {}".format(
+                                            record,
+                                            cluster_name,
+                                            node_hostname,
+                                            ii_json['op']['samples'][record][samples_count - 1],
+                                            ii_json['op']['samples']['timestamp'][samples_count - 1]
+                                        )
+                                    )
+                                else:
+                                    for idx, datapoint in enumerate(ii_json['op']['samples'][record]):
+                                        if idx in sample_list:
+                                            index_info['metrics'].append(
+                                                "{} {{cluster=\"{}\", node=\"{}\","
+                                                "index=\"{}\", "
+                                                "bucket=\"{}\", "
+                                                "type=\"index\"}} {} {}".format(
+                                                    index_type,
+                                                    cluster_name,
+                                                    node_hostname,
+                                                    name,
+                                                    bucket,
+                                                    datapoint,
+                                                    ii_json['op']['samples']['timestamp'][idx]
+                                                )
+                                            )
                             else:
                                 index_info['metrics'].append(
                                     "{} {{cluster=\"{}\", node=\"{}\", "
@@ -138,23 +168,42 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                                         node_hostname,
                                         name,
                                         bucket,
-                                        ii_json['op']['samples'][record]))
+                                        ii_json['op']['samples'][record]
+                                    )
+                                )
 
                         elif len(split_record) == 2:
                             index_type = split_record[1]
                             if isinstance(ii_json['op']['samples'][record], type([])):
-                                for idx, datapoint in enumerate(ii_json['op']['samples'][record]):
-                                    if idx in sample_list:
-                                        index_info['metrics'].append(
-                                            "{} {{cluster=\"{}\", node=\"{}\", "
-                                            "bucket=\"{}\", "
-                                            "type=\"index\"}} {} {}".format(
-                                                index_type,
-                                                cluster_name,
-                                                node_hostname,
-                                                bucket,
-                                                datapoint,
-                                                ii_json['op']['samples']['timestamp'][idx]))
+                                # if the sample list value is greater than the samples count, just use the last sample
+                                if samples_count < sample_list[0]:
+                                    index_info['metrics'].append(
+                                        "{} {{cluster=\"{}\", node=\"{}\", "
+                                        "bucket=\"{}\", "
+                                        "type=\"index\"}} {} {}".format(
+                                            index_type,
+                                            cluster_name,
+                                            node_hostname,
+                                            bucket,
+                                            ii_json['op']['samples'][record][samples_count - 1],
+                                            ii_json['op']['samples']['timestamp'][samples_count - 1]
+                                        )
+                                    )
+                                else:
+                                    for idx, datapoint in enumerate(ii_json['op']['samples'][record]):
+                                        if idx in sample_list:
+                                            index_info['metrics'].append(
+                                                "{} {{cluster=\"{}\", node=\"{}\", "
+                                                "bucket=\"{}\", "
+                                                "type=\"index\"}} {} {}".format(
+                                                    index_type,
+                                                    cluster_name,
+                                                    node_hostname,
+                                                    bucket,
+                                                    datapoint,
+                                                    ii_json['op']['samples']['timestamp'][idx]
+                                                )
+                                            )
                             else:
                                 index_info['metrics'].append(
                                     "{} {{cluster=\"{}\", node=\"{}\", "
@@ -164,7 +213,9 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                                         cluster_name,
                                         node_hostname,
                                         bucket,
-                                        ii_json['op']['samples'][record]))
+                                        ii_json['op']['samples'][record]
+                                    )
+                                )
                         else:
                             next
                     except Exception as e:

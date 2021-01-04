@@ -64,19 +64,34 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", result_set=60):
                 node_hostname, node_hostname)
             a_json = rest_request(auth, _cbas_url)
             _node = node
-            for record in a_json['op']['samples']:
-                if record != "timestamp":
-                    for idx, datapoint in enumerate(
-                            a_json['op']['samples'][record]):
-                        if idx in sample_list:
-                            cbas_metrics['metrics'].append(
-                                "{} {{cluster=\"{}\", node=\"{}\", "
-                                "type=\"cbas\"}} {} {}".format(
-                                    record,
-                                    cluster_name,
-                                    node_hostname,
-                                    datapoint,
-                                    a_json['op']['samples']['timestamp'][idx]))
+            samples_count = len(a_json['op']['samples'][record])
+            # if the sample list value is greater than the samples count, just use the last sample
+            if samples_count < sample_list[0]:
+                cbas_metrics['metrics'].append(
+                    "{} {{cluster=\"{}\", node=\"{}\", "
+                    "type=\"cbas\"}} {} {}".format(
+                        record,
+                        cluster_name,
+                        node_hostname,
+                        a_json['op']['samples'][record][samples_count - 1],
+                        a_json['op']['samples']['timestamp'][samples_count - 1]
+                    )
+                )
+            else:
+                for record in a_json['op']['samples']:
+                    if record != "timestamp":
+                        for idx, datapoint in enumerate(a_json['op']['samples'][record]):
+                            if idx in sample_list:
+                                cbas_metrics['metrics'].append(
+                                    "{} {{cluster=\"{}\", node=\"{}\", "
+                                    "type=\"cbas\"}} {} {}".format(
+                                        record,
+                                        cluster_name,
+                                        node_hostname,
+                                        datapoint,
+                                        a_json['op']['samples']['timestamp'][idx]
+                                    )
+                                )
         except Exception as e:
             print("analytics base: " + str(e))
     return cbas_metrics
