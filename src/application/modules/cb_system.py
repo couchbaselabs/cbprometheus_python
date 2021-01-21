@@ -67,7 +67,7 @@ def run(url="", user="", passwrd="", nodes=[], num_samples = 60, result_set=60):
             passwrd,
             nodes, cluster_values['clusterName'],
             result_set)
-        metrics = cluster_metrics['metrics']
+        metrics = metrics + cluster_metrics['metrics']
         # get disk metrics
         disk_metrics = _get_disk_metrics(
             user,
@@ -92,6 +92,7 @@ def _get_metrics(user, passwrd, node_list, cluster_name="", result_set=60):
                 node_hostname, node_hostname)
             q_json = rest_request(auth, _query_url)
             for record in q_json['op']['samples']:
+                samples_count = len(q_json['op']['samples'][record])
                 if record != "timestamp":
                     # if the sample list value is greater than the samples count, just use the last sample
                     if samples_count < sample_list[0]:
