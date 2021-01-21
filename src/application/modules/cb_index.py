@@ -131,11 +131,15 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                                 # if the sample list value is greater than the samples count, just use the last sample
                                 if samples_count < sample_list[0]:
                                     index_info['metrics'].append(
-                                        "{} {{cluster=\"{}\", node=\"{}\", "
-                                        "type=\"index-service\"}} {} {}".format(
-                                            record,
+                                        "{} {{cluster=\"{}\", node=\"{}\","
+                                        "index=\"{}\", "
+                                        "bucket=\"{}\", "
+                                        "type=\"index\"}} {} {}".format(
+                                            index_type,
                                             cluster_name,
                                             node_hostname,
+                                            name,
+                                            bucket,
                                             ii_json['op']['samples'][record][samples_count - 1],
                                             ii_json['op']['samples']['timestamp'][samples_count - 1]
                                         )
