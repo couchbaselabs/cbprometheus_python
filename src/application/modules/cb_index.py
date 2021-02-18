@@ -36,12 +36,12 @@ def run(url="", user="", passwrd="", index=[], buckets=[], nodes=[], num_samples
     if len(buckets) == 0:
         buckets = cb_bucket._get_index_buckets(url, user, passwrd)
 
-    # get the index replica stats
-    index_replicas = _get_index_replica_counts(url, user, passwrd, cluster_values['clusterName'])
-    metrics = metrics + index_replicas['metrics']
-
     if len(nodes) == 0:
         if len(cluster_values['serviceNodes']['index']) > 0 and len(buckets) > 0:
+            # get the index replica stats
+            index_replicas = _get_index_replica_counts(cluster_values['serviceNodes']['index'][0], user, passwrd, cluster_values['clusterName'])
+            metrics = metrics + index_replicas['metrics']
+
             index_metrics = _get_metrics(
                 user,
                 passwrd,
@@ -54,6 +54,10 @@ def run(url="", user="", passwrd="", index=[], buckets=[], nodes=[], num_samples
     else:
 
         if len(buckets) > 0:
+            # get the index replica stats
+            index_replicas = _get_index_replica_counts(nodes[0], user, passwrd, cluster_values['clusterName'])
+            metrics = metrics + index_replicas['metrics']
+
             index_metrics = _get_metrics(
                 user,
                 passwrd,
@@ -79,8 +83,8 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
             node_hostname, node_hostname)
         try:
             i_json = rest_request(auth, _index_url)
-            samples_count = len(i_json['op']['samples'][record])
             for record in i_json['op']['samples']:
+                samples_count = len(i_json['op']['samples'][record])
                 if record != "timestamp":
                     # if the sample list value is greater than the samples count, just use the last sample
                     if samples_count < sample_list[0]:
@@ -236,7 +240,6 @@ def _get_index_replica_counts(url, user, passwrd, cluster_name=""):
     replica_info['metrics'] = []
 
     auth = basic_authorization(user, passwrd)
-
     try:
         _url = "http://{}:8091/indexStatus".format(url.split(":")[0])
         result = rest_request(auth, _url)
@@ -250,14 +253,14 @@ def _get_index_replica_counts(url, user, passwrd, cluster_name=""):
                     pass
                 # only output the index_num_replica stat, if we're in cluster mode, or if we're in local mode
                 # and the local nodes Couchbase hostname is in the indexes hosts list
-                if (application.config['CB_EXPORTER_MODE'] == "local" and url + ":8091" in _index['hosts']) or application.config['CB_EXPORTER_MODE'] == "cluster":
+                if (application.config['CB_EXPORTER_MODE'] == "local" and url in _index['hosts']) or application.config['CB_EXPORTER_MODE'] == "cluster":
                     replica_info['metrics'].append(
                         "index_num_replica {{cluster=\"{}\", node=\"{}\","
                         "index=\"{}\", "
                         "bucket=\"{}\", "
                         "type=\"index\"}} {}".format(
                             cluster_name,
-                            _index['hosts'][0],
+                            _index['hosts'][0].split(":")[0],
                             _index['index'],
                             _index['bucket'],
                             num_replica))
