@@ -113,7 +113,7 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
     metrics = []
 
     # n1ql statement to find all of the the completed requests from the past 60 seconds (if any)
-    n1ql_stmt = """SELECT IFMISSING(preparedText, statement) as statement, requestId AS request_id,
+    n1ql_stmt = """SELECT IFMISSING(preparedText, statement) as statement,
         service_time_ms, elapsed_time_ms, queue_time_ms, request_time_ms,
         resultCount AS result_count, resultSize AS result_size, query_selectivity_percent,
         scan_results, fetches
@@ -156,48 +156,15 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                 # generate a hash of the statement so that if the user wants the statement
                 # can be disregarded and the hash can still be used to group repeat statements
                 statement_signature = hashlib.sha1(statement).hexdigest()
-                # stat: consolidated by service_time_ms
-                metrics.append(
-                    "{} {{cluster=\"{}\", node=\"{}\", "
-                    "queue_time_ms=\"{}\", "
-                    "elapsed_time_ms=\"{}\", "
-                    "result_count=\"{}\", "
-                    "result_size=\"{}\", "
-                    "query_selectivity_percent=\"{}\", "
-                    "scan_results=\"{}\", "
-                    "fetches=\"{}\", "
-                    "request_id=\"{}\", "
-                    "signature=\"{}\", "
-                    "statement=\"{}\", "
-                    "type=\"completed-query\"}} {} {}".format(
-                        "completed_request",
-                        cluster_name,
-                        node_hostname,
-                        record['queue_time_ms'],
-                        record['elapsed_time_ms'],
-                        record['result_count'],
-                        record['result_size'],
-                        record['query_selectivity_percent'],
-                        record['scan_results'],
-                        record['fetches'],
-                        record['request_id'],
-                        statement_signature,
-                        statement,
-                        record['service_time_ms'],
-                        record['request_time_ms']
-                    )
-                )
                 # stat: service_time_ms
                 metrics.append(
                     "{} {{cluster=\"{}\", node=\"{}\", "
-                    "request_id=\"{}\", "
                     "signature=\"{}\", "
                     "statement=\"{}\", "
                     "type=\"completed-request\"}} {} {}".format(
                         "completed_request_service_time_ms",
                         cluster_name,
                         node_hostname,
-                        record['request_id'],
                         statement_signature,
                         statement,
                         record['service_time_ms'],
@@ -207,14 +174,12 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                 # stat: queue_time_ms
                 metrics.append(
                     "{} {{cluster=\"{}\", node=\"{}\", "
-                    "request_id=\"{}\", "
                     "signature=\"{}\", "
                     "statement=\"{}\", "
                     "type=\"completed-request\"}} {} {}".format(
                         "completed_request_queue_time_ms",
                         cluster_name,
                         node_hostname,
-                        record['request_id'],
                         statement_signature,
                         statement,
                         record['queue_time_ms'],
@@ -224,14 +189,12 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                 # stat: elapsed_time_ms
                 metrics.append(
                     "{} {{cluster=\"{}\", node=\"{}\", "
-                    "request_id=\"{}\", "
                     "signature=\"{}\", "
                     "statement=\"{}\", "
                     "type=\"completed-request\"}} {} {}".format(
                         "completed_request_elapsed_time_ms",
                         cluster_name,
                         node_hostname,
-                        record['request_id'],
                         statement_signature,
                         statement,
                         record['elapsed_time_ms'],
@@ -241,14 +204,12 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                 # stat: result_count
                 metrics.append(
                     "{} {{cluster=\"{}\", node=\"{}\", "
-                    "request_id=\"{}\", "
                     "signature=\"{}\", "
                     "statement=\"{}\", "
                     "type=\"completed-request\"}} {} {}".format(
                         "completed_request_result_count",
                         cluster_name,
                         node_hostname,
-                        record['request_id'],
                         statement_signature,
                         statement,
                         record['result_count'],
@@ -258,14 +219,12 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                 # stat: result_size_bytes
                 metrics.append(
                     "{} {{cluster=\"{}\", node=\"{}\", "
-                    "request_id=\"{}\", "
                     "signature=\"{}\", "
                     "statement=\"{}\", "
                     "type=\"completed-request\"}} {} {}".format(
                         "completed_request_result_size_bytes",
                         cluster_name,
                         node_hostname,
-                        record['request_id'],
                         statement_signature,
                         statement,
                         record['result_size'],
@@ -275,14 +234,12 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                 # stat: query_selectivity_percent
                 metrics.append(
                     "{} {{cluster=\"{}\", node=\"{}\", "
-                    "request_id=\"{}\", "
                     "signature=\"{}\", "
                     "statement=\"{}\", "
                     "type=\"completed-request\"}} {} {}".format(
                         "completed_request_query_selectivity_percent",
                         cluster_name,
                         node_hostname,
-                        record['request_id'],
                         statement_signature,
                         statement,
                         record['query_selectivity_percent'],
@@ -292,14 +249,12 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                 # stat: scan_results
                 metrics.append(
                     "{} {{cluster=\"{}\", node=\"{}\", "
-                    "request_id=\"{}\", "
                     "signature=\"{}\", "
                     "statement=\"{}\", "
                     "type=\"completed-request\"}} {} {}".format(
                         "completed_request_scan_results",
                         cluster_name,
                         node_hostname,
-                        record['request_id'],
                         statement_signature,
                         statement,
                         record['scan_results'],
@@ -309,14 +264,12 @@ def _get_completed_query_metrics(auth, node_list, cluster_name=""):
                 # stat: fetches
                 metrics.append(
                     "{} {{cluster=\"{}\", node=\"{}\", "
-                    "request_id=\"{}\", "
                     "signature=\"{}\", "
                     "statement=\"{}\", "
                     "type=\"completed-request\"}} {} {}".format(
                         "completed_request_fetches",
                         cluster_name,
                         node_hostname,
-                        record['request_id'],
                         statement_signature,
                         statement,
                         record['fetches'],
