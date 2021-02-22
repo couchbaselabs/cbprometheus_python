@@ -254,7 +254,7 @@ def _get_index_replica_counts(url, user, passwrd, cluster_name=""):
                     pass
                 # if it is an earlier version of CB we need to get the number of replicas from the index definition
                 try:
-                    num_replica = _index['definition'].split('\"num_replica\":')[0].split(' ')[0]
+                    num_replica = _index['definition'].split('\"num_replica\":')[1].split(' ')[0]
                     if not num_replica.isdigit():
                         num_replica = 0
                 except:
