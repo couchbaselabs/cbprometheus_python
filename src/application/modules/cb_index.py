@@ -247,13 +247,21 @@ def _get_index_replica_counts(url, user, passwrd, cluster_name=""):
         for _index in result['indexes']:
             try:
                 num_replica = 0
+                # in CB6.5+ there is a stat called numReplica, use it
                 try:
                     num_replica = _index['numReplica']
                 except:
                     pass
-                # only output the index_num_replica stat, if we're in cluster mode, or if we're in local mode
+                # if it is an earlier version of CB we need to get the number of replicas from the index definition
+                try:
+                    num_replica = _index['definition'].split('\"num_replica\":')[0].split(' ')[0]
+                    if not num_replica.isdigit():
+                        num_replica = 0
+                except:
+                    pass
+                # only output the index_num_replica stat for non-replica indexes, if we're in cluster mode, or if we're in local mode
                 # and the local nodes Couchbase hostname is in the indexes hosts list
-                if (application.config['CB_EXPORTER_MODE'] == "local" and url in _index['hosts']) or application.config['CB_EXPORTER_MODE'] == "cluster":
+                if ('(replica' not in _index['index']) and (application.config['CB_EXPORTER_MODE'] == "local" and url in _index['hosts']) or application.config['CB_EXPORTER_MODE'] == "cluster":
                     replica_info['metrics'].append(
                         "index_num_replica {{cluster=\"{}\", node=\"{}\","
                         "index=\"{}\", "
