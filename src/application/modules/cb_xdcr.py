@@ -53,7 +53,7 @@ def run(url="", user="", passwrd="", nodes=[], buckets=[], num_samples = 60, res
         else:
             if len(buckets) == 0:
                 bucket_metrics = cb_bucket._get_metrics(
-                    user, passwrd, nodes, cluster_values['clusterName'])
+                    user, passwrd, nodes, cluster_values['clusterName'], result_set)
             else:
                 bucket_metrics = {"buckets": buckets}
 
@@ -61,7 +61,7 @@ def run(url="", user="", passwrd="", nodes=[], buckets=[], num_samples = 60, res
                 user,
                 passwrd,
                 nodes,
-                bucket_metrics['buckets'], cluster_values['clusterName'])
+                bucket_metrics['buckets'], cluster_values['clusterName'], result_set)
 
             metrics = xdcr_metrics['metrics']
     except Exception as e:
@@ -320,8 +320,7 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                                                     )
                                                 )
                         elif len(key_split) == 1:
-                            for idx, datapoint in enumerate(
-                                    n_json['op']['samples'][entry]):
+                            if samples_count < sample_list[0]:
                                 xdcr_metrics['metrics'].append(
                                     "{} {{cluster=\"{}\", level=\"bucket\", "
                                     "bucket=\"{}\", "
@@ -331,8 +330,22 @@ def _get_metrics(user, passwrd, nodes, buckets, cluster_name="", result_set=60):
                                         cluster_name,
                                         bucket,
                                         node_hostname,
-                                        datapoint,
-                                        n_json['op']['samples']['timestamp'][idx]))
+                                        n_json['op']['samples'][entry][samples_count - 1],
+                                        n_json['op']['samples']['timestamp'][samples_count - 1]))
+                            else:
+                                for idx, datapoint in enumerate(n_json['op']['samples'][entry]):
+                                    if idx in sample_list:
+                                        xdcr_metrics['metrics'].append(
+                                            "{} {{cluster=\"{}\", level=\"bucket\", "
+                                            "bucket=\"{}\", "
+                                            "type=\"xdcr\", "
+                                            "node=\"{}\"}} {} {}".format(
+                                                entry,
+                                                cluster_name,
+                                                bucket,
+                                                node_hostname,
+                                                datapoint,
+                                                n_json['op']['samples']['timestamp'][idx]))
             except Exception as e:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 print("xdcr: {}: {} {} {} {}".format(str(e), exc_value, exc_traceback.tb_lineno, node, bucket))
