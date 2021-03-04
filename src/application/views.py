@@ -522,16 +522,17 @@ def system():
 def xdcr():
 	'''This is the method used to access xdcr metrics'''
 	nodes_list = []
+	cluster_info = cb_cluster._get_cluster(
+		application.config['CB_DATABASE'],
+		application.config['CB_USERNAME'],
+		application.config['CB_PASSWORD'])
 	if request.args.get('nodes'):
 		nodes_str = request.args.get('nodes')
 		nodes_str = nodes_str.replace('[', '').replace(']', '').replace(' ', '').replace(':8091', '')
 		nodes_list = nodes_str.split(',')
-	elif application.config['CB_EXPORTER_MODE'] == "local":
+	elif application.config['CB_EXPORTER_MODE'] == "local" and cluster_info['serviceNodes']['thisNode'] in cluster_info['serviceNodes']['kv']:
 		# if we're running in local mode, we need to get the Couchbase hostname of the localhost
-		nodes_list = [cb_cluster._get_cluster(
-			application.config['CB_DATABASE'],
-			application.config['CB_USERNAME'],
-			application.config['CB_PASSWORD'])['serviceNodes']['thisNode']]
+		nodes_list = [cluster_info['serviceNodes']['thisNode']]
 	bucket_list = []
 	if request.args.get('buckets'):
 		buckets_str = request.args.get('buckets')

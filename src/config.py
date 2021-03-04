@@ -28,7 +28,7 @@ class BaseConfig(object):
     # override the CB_DATABASE value to be localhost so that all requests will be
     # to the local machine
     if CB_EXPORTER_MODE == "local":
-      CB_DATABASE = "localhost"
+      CB_DATABASE = "ec2-3-137-145-233.us-east-2.compute.amazonaws.com"
 
 config = {
     "default": "config.BaseConfig"
