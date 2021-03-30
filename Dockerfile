@@ -18,14 +18,14 @@ WORKDIR /opt/cbprometheus_python/src
 
 EXPOSE 5000
 
-ENV CB_DATABASE = localhost
-ENV CB_USERNAME = Administrator
-ENV CB_PASSWORD = password
-ENV CB_STREAMING = true
-ENV CB_RESULTSET = 60
-ENV CB_EXPORTER_MODE = cluster
-ENV CB_NODE_EXPORTER_PORT = 9200
-ENV CB_PROCESS_EXPORTER_PORT = 9256
-ENV CB_EXPORTER_TIMEOUT = 5
+ENV CB_DATABASE=localhost
+ENV CB_USERNAME=Administrator
+ENV CB_PASSWORD=password
+ENV CB_STREAMING=true
+ENV CB_RESULTSET=60
+ENV CB_EXPORTER_MODE=cluster
+ENV CB_NODE_EXPORTER_PORT=9200
+ENV CB_PROCESS_EXPORTER_PORT=9256
+ENV CB_EXPORTER_TIMEOUT=5
 
 CMD ["uwsgi", "--http", ":5000", "--processes", "5", "--pidfile", "/tmp/cbstats.pid", "--master", "--wsgi-file", "wsgi.py"]
