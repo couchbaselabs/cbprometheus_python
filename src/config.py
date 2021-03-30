@@ -22,13 +22,13 @@ class BaseConfig(object):
     CB_EXPORTER_MODE = os.environ.get("CB_EXPORTER_MODE", "cluster")
     CB_NODE_EXPORTER_PORT = os.environ.get("CB_NODE_EXPORTER_PORT", "9200")
     CB_PROCESS_EXPORTER_PORT = os.environ.get("CB_PROCESS_EXPORTER_PORT", "9256")
-    CB_EXPORTER_TIMEOUT = int(os.environ.get("CB_EXPORTER_TIMEOUT", "5"))
-
+    CB_EXPORTER_TIMEOUT = os.environ.get("CB_EXPORTER_TIMEOUT", "5")
+    CB_EXPORTER_TIMEOUT = int(CB_EXPORTER_TIMEOUT)
     # if the exporter is being ran in local mode, i.e. on each couchbase node,
     # override the CB_DATABASE value to be localhost so that all requests will be
     # to the local machine
     if CB_EXPORTER_MODE == "local":
-      CB_DATABASE = "ec2-3-137-145-233.us-east-2.compute.amazonaws.com"
+      CB_DATABASE = "localhost"
 
 config = {
     "default": "config.BaseConfig"
