@@ -1,5 +1,17 @@
 # Couchbase Prometheus Exporter
 
+# **DEPRECATED** DO NOT USE 
+
+This project has been deprecated.  
+
+Please use the [CMOS Exporter](https://github.com/couchbaselabs/cmos-prometheus-exporter)
+
+There is also an available role for this exporter [couchbaselabs.couchbase-exporter](https://github.com/couchbaselabs/ansible-couchbase-exporter)
+
+# **DEPRECATED** DO NOT USE 
+
+
+
 ### To run Locally
 
 Install requirements<br />
